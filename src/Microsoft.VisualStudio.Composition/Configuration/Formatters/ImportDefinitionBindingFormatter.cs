@@ -8,43 +8,68 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ImportDefinitionBindingFormatter : BaseMessagePackFormatter<ImportDefinitionBinding>
+    internal class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding?>
     {
         public static readonly ImportDefinitionBindingFormatter Instance = new();
 
         private ImportDefinitionBindingFormatter()
-            : base(expectedArrayElementCount: 6)
         {
         }
 
         /// <inheritdoc/>
-        protected override ImportDefinitionBinding DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ImportDefinitionBinding? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            ImportDefinition importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
-            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
-            TypeRef part = typeRefFormatter.Deserialize(ref reader, options);
-            TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
-            TypeRef importingSiteTypeWithoutCollectionRef = typeRefFormatter.Deserialize(ref reader, options);
-
-            MemberRef? member;
-            ParameterRef? parameter;
-            bool isMember = reader.ReadBoolean();
-            if (isMember)
+            if (reader.TryReadNil())
             {
-                member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options)!;
-                return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                return null;
             }
-            else
+            options.Security.DepthStep(ref reader);
+
+            try
             {
-                parameter = options.Resolver.GetFormatterWithVerify<ParameterRef?>().Deserialize(ref reader, options)!;
-                return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 6)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportDefinitionBinding)}. Expected: {6}, Actual: {actualCount}");
+                }
+
+                ImportDefinition importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                TypeRef part = typeRefFormatter.Deserialize(ref reader, options);
+                TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
+                TypeRef importingSiteTypeWithoutCollectionRef = typeRefFormatter.Deserialize(ref reader, options);
+
+                MemberRef? member;
+                ParameterRef? parameter;
+                bool isMember = reader.ReadBoolean();
+                if (isMember)
+                {
+                    member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options)!;
+                    return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                }
+                else
+                {
+                    parameter = options.Resolver.GetFormatterWithVerify<ParameterRef?>().Deserialize(ref reader, options)!;
+                    return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
             }
         }
 
         /// <inheritdoc/>
-        protected override void SerializeData(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ImportDefinitionBinding? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(6);
+
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 

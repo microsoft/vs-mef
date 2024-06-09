@@ -10,41 +10,67 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class PropertyRefFormatter : BaseMessagePackFormatter<PropertyRef?>
+    internal class PropertyRefFormatter : IMessagePackFormatter<PropertyRef?>
     {
         public static readonly PropertyRefFormatter Instance = new();
 
         private PropertyRefFormatter()
-            : base(expectedArrayElementCount: 7)
         {
         }
 
-        protected override PropertyRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public PropertyRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
-            TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
-            TypeRef propertyType = typeRefFormatter.Deserialize(ref reader, options);
-            int metadataToken = reader.ReadInt32();
-            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            bool isStatic = reader.ReadBoolean();
-            int? setter = null;
-            int? getter = null;
-            if (reader.ReadBoolean())
+            if (reader.TryReadNil())
             {
-                setter = reader.ReadInt32();
+                return null;
             }
+            options.Security.DepthStep(ref reader);
 
-            if (reader.ReadBoolean())
+            try
             {
-                getter = reader.ReadInt32();
-            }
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 7)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(PropertyRef)}. Expected: {7}, Actual: {actualCount}");
+                }
 
-            return new PropertyRef(declaringType, propertyType, metadataToken, getter, setter, name, isStatic);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
+                TypeRef propertyType = typeRefFormatter.Deserialize(ref reader, options);
+                int metadataToken = reader.ReadInt32();
+                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                bool isStatic = reader.ReadBoolean();
+                int? setter = null;
+                int? getter = null;
+                if (reader.ReadBoolean())
+                {
+                    setter = reader.ReadInt32();
+                }
+
+                if (reader.ReadBoolean())
+                {
+                    getter = reader.ReadInt32();
+                }
+
+                return new PropertyRef(declaringType, propertyType, metadataToken, getter, setter, name, isStatic);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
-        protected override void SerializeData(ref MessagePackWriter writer, PropertyRef? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, PropertyRef? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(7);
+
+
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
             typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);

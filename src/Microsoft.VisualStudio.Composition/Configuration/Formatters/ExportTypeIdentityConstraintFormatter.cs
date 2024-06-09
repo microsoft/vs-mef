@@ -9,23 +9,48 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ExportTypeIdentityConstraintFormatter : BaseMessagePackFormatter<ExportTypeIdentityConstraint>
+    internal class ExportTypeIdentityConstraintFormatter : IMessagePackFormatter<ExportTypeIdentityConstraint?>
     {
         public static readonly ExportTypeIdentityConstraintFormatter Instance = new();
 
         private ExportTypeIdentityConstraintFormatter()
-            : base(expectedArrayElementCount: 1)
         {
         }
 
-        protected override ExportTypeIdentityConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ExportTypeIdentityConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string typeIdentityName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            return new ExportTypeIdentityConstraint(typeIdentityName);
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
+
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 1)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ExportTypeIdentityConstraint)}. Expected: {1}, Actual: {actualCount}");
+                }
+
+                string typeIdentityName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                return new ExportTypeIdentityConstraint(typeIdentityName);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
-        protected override void SerializeData(ref MessagePackWriter writer, ExportTypeIdentityConstraint value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ExportTypeIdentityConstraint? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(1);
+
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.TypeIdentityName, options);
         }
     }

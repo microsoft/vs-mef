@@ -8,26 +8,50 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ParameterRefFormatter : BaseMessagePackFormatter<ParameterRef?>
+    internal class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
     {
         public static readonly ParameterRefFormatter Instance = new();
 
         private ParameterRefFormatter()
-            : base(expectedArrayElementCount: 2)
         {
         }
 
         /// <inheritdoc/>
-        protected override ParameterRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
-            int parameterIndex = reader.ReadInt32();
-            return new ParameterRef(method, parameterIndex);
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 2)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {2}, Actual: {actualCount}");
+                }
+                options.Security.DepthStep(ref reader);
+
+                MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
+                int parameterIndex = reader.ReadInt32();
+                return new ParameterRef(method, parameterIndex);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
         /// <inheritdoc/>
-        protected override void SerializeData(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(2);
+
             options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);
             writer.Write(value.ParameterIndex);
         }

@@ -9,54 +9,78 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimePartFormatter : BaseMessagePackFormatter<RuntimePart>
+    internal class RuntimePartFormatter : IMessagePackFormatter<RuntimePart?>
     {
         public static readonly RuntimePartFormatter Instance = new();
 
         private RuntimePartFormatter()
-            : base(expectedArrayElementCount: 8)
         {
         }
 
         /// <inheritdoc/>
-        protected override RuntimePart DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public RuntimePart? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            var importingCtor = default(MethodRef);
-            IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
-
-            TypeRef typeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-
-            IMessagePackFormatter<IReadOnlyList<RuntimeExport>> runtimeExportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>();
-            IReadOnlyList<RuntimeExport> exports = runtimeExportFormatter.Deserialize(ref reader, options);
-
-            IMessagePackFormatter<IReadOnlyList<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>();
-
-            bool hasCtor = reader.ReadBoolean();
-
-            if (hasCtor)
+            if (reader.TryReadNil())
             {
-                importingCtor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
-                importingCtorArguments = runtimeImportFormatter.Deserialize(ref reader, options);
+                return null;
             }
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 8)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {8}, Actual: {actualCount}");
+                }
+                var importingCtor = default(MethodRef);
+                IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
-            IReadOnlyList<RuntimeImport> importingMembers = runtimeImportFormatter.Deserialize(ref reader, options);
-            IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
+                TypeRef typeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
 
-            string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
+                IMessagePackFormatter<IReadOnlyList<RuntimeExport>> runtimeExportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>();
+                IReadOnlyList<RuntimeExport> exports = runtimeExportFormatter.Deserialize(ref reader, options);
 
-            return new RuntimeComposition.RuntimePart(
-                      typeRef,
-                      importingCtor,
-                      importingCtorArguments,
-                      importingMembers,
-                      exports!,
-                      onImportsSatisfiedMethods,
-                      sharingBoundary);
+                IMessagePackFormatter<IReadOnlyList<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>();
+
+                bool hasCtor = reader.ReadBoolean();
+
+                if (hasCtor)
+                {
+                    importingCtor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
+                    importingCtorArguments = runtimeImportFormatter.Deserialize(ref reader, options);
+                }
+
+                IReadOnlyList<RuntimeImport> importingMembers = runtimeImportFormatter.Deserialize(ref reader, options);
+                IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
+
+                string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
+
+                return new RuntimeComposition.RuntimePart(
+                          typeRef,
+                          importingCtor,
+                          importingCtorArguments,
+                          importingMembers,
+                          exports!,
+                          onImportsSatisfiedMethods,
+                          sharingBoundary);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
         /// <inheritdoc/>
-        protected override void SerializeData(ref MessagePackWriter writer, RuntimePart value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, RuntimePart? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+
+            }
+            writer.WriteArrayHeader(8);
+
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.Exports, options);
 

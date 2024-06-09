@@ -9,35 +9,61 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimeExportFormatter : BaseMessagePackFormatter<RuntimeExport?>
+    internal class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport?>
     {
         public static readonly RuntimeExportFormatter Instance = new();
 
         private RuntimeExportFormatter()
-            : base(expectedArrayElementCount: 5)
         {
         }
 
         /// <inheritdoc/>
-        protected override RuntimeExport? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public RuntimeExport? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
-            TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
 
-            return new RuntimeComposition.RuntimeExport(
-                contractName,
-                declaringType,
-                member,
-                exportedValueType,
-                metadata);
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 5)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeExport)}. Expected: {5}, Actual: {actualCount}");
+                }
+
+                string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
+                TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+
+                return new RuntimeComposition.RuntimeExport(
+                    contractName,
+                    declaringType,
+                    member,
+                    exportedValueType,
+                    metadata);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
         /// <inheritdoc/>
-        protected override void SerializeData(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(5);
+
+
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
             options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);

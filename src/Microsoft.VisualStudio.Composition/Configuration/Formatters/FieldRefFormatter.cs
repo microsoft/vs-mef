@@ -10,30 +10,55 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class FieldRefFormatter : BaseMessagePackFormatter<FieldRef?>
+    internal class FieldRefFormatter : IMessagePackFormatter<FieldRef?>
     {
         public static readonly FieldRefFormatter Instance = new();
 
         private FieldRefFormatter()
-            : base(expectedArrayElementCount: 5)
         {
         }
 
-        protected override FieldRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public FieldRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
 
-            TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
-            TypeRef fieldType = typeRefFormatter.Deserialize(ref reader, options);
-            int metadataToken = reader.ReadInt32();
-            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            bool isStatic = reader.ReadBoolean();
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 5)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(FieldRef)}. Expected: {5}, Actual: {actualCount}");
+                }
 
-            return new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
+                TypeRef fieldType = typeRefFormatter.Deserialize(ref reader, options);
+                int metadataToken = reader.ReadInt32();
+                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                bool isStatic = reader.ReadBoolean();
+
+                return new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
-        protected override void SerializeData(ref MessagePackWriter writer, FieldRef? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, FieldRef? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(5);
+
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
             typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);

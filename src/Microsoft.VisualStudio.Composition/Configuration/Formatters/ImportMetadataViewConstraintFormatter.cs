@@ -9,23 +9,47 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ImportMetadataViewConstraintFormatter : BaseMessagePackFormatter<ImportMetadataViewConstraint>
+    internal class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<ImportMetadataViewConstraint?>
     {
         public static readonly ImportMetadataViewConstraintFormatter Instance = new();
 
         private ImportMetadataViewConstraintFormatter()
-            : base(expectedArrayElementCount: 1)
         {
         }
 
-        protected override ImportMetadataViewConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ImportMetadataViewConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement> requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
-            return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 1)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportMetadataViewConstraint)}. Expected: {1}, Actual: {actualCount}");
+                }
+
+                ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement> requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
+                return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
-        protected override void SerializeData(ref MessagePackWriter writer, ImportMetadataViewConstraint value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ImportMetadataViewConstraint? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(1);
+
             options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Serialize(ref writer, value.Requirements, options);
         }
     }

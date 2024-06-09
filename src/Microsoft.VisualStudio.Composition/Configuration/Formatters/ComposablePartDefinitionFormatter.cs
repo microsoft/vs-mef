@@ -11,63 +11,87 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ComposablePartDefinitionFormatter : BaseMessagePackFormatter<ComposablePartDefinition>
+    internal class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition?>
     {
         public static readonly ComposablePartDefinitionFormatter Instance = new();
 
         private ComposablePartDefinitionFormatter()
-            : base(expectedArrayElementCount: 12)
         {
         }
 
         /// <inheritdoc/>
-        protected override ComposablePartDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ComposablePartDefinition? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
-
-            IMessagePackFormatter<IReadOnlyList<ExportDefinition>> exportDefinitionFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>();
-            IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();
-
-            IReadOnlyList<ExportDefinition> exportedTypes = exportDefinitionFormatter.Deserialize(ref reader, options);
-
-            IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>>().Deserialize(ref reader, options);
-
-            IMessagePackFormatter<IReadOnlyList<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>();
-            IReadOnlyList<ImportDefinitionBinding> importingMembers = importDefinitionBindingFormatter.Deserialize(ref reader, options);
-
-            string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
-            IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
-
-            var importingConstructor = default(MethodRef);
-            IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
-
-            if (reader.ReadBoolean())
+            if (reader.TryReadNil())
             {
-                importingConstructor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
-                importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
+                return null;
             }
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 12)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposablePartDefinition)}. Expected: {12}, Actual: {actualCount}");
+                }
 
-            CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
-            bool isSharingBoundaryInferred = reader.ReadBoolean();
+                TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
-            return new ComposablePartDefinition(
-                partType,
-                partMetadata,
-                exportedTypes,
-                exportingMembers,
-                importingMembers,
-                sharingBoundary,
-                onImportsSatisfiedMethods,
-                importingConstructor,
-                importingConstructorImports,
-                creationPolicy,
-                isSharingBoundaryInferred);
+                IMessagePackFormatter<IReadOnlyList<ExportDefinition>> exportDefinitionFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>();
+                IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();
+
+                IReadOnlyList<ExportDefinition> exportedTypes = exportDefinitionFormatter.Deserialize(ref reader, options);
+
+                IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>>().Deserialize(ref reader, options);
+
+                IMessagePackFormatter<IReadOnlyList<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>();
+                IReadOnlyList<ImportDefinitionBinding> importingMembers = importDefinitionBindingFormatter.Deserialize(ref reader, options);
+
+                string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
+                IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
+
+                var importingConstructor = default(MethodRef);
+                IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
+
+                if (reader.ReadBoolean())
+                {
+                    importingConstructor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
+                    importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
+                }
+
+                CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
+                bool isSharingBoundaryInferred = reader.ReadBoolean();
+
+                return new ComposablePartDefinition(
+                    partType,
+                    partMetadata,
+                    exportedTypes,
+                    exportingMembers,
+                    importingMembers,
+                    sharingBoundary,
+                    onImportsSatisfiedMethods,
+                    importingConstructor,
+                    importingConstructorImports,
+                    creationPolicy,
+                    isSharingBoundaryInferred);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
         /// <inheritdoc/>
-        protected override void SerializeData(ref MessagePackWriter writer, ComposablePartDefinition value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ComposablePartDefinition? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(12);
+
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
 

@@ -9,24 +9,48 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ExportMetadataValueImportConstraintFormatter : BaseMessagePackFormatter<ExportMetadataValueImportConstraint>
+    internal class ExportMetadataValueImportConstraintFormatter : IMessagePackFormatter<ExportMetadataValueImportConstraint?>
     {
         public static readonly ExportMetadataValueImportConstraintFormatter Instance = new();
 
         private ExportMetadataValueImportConstraintFormatter()
-            : base(expectedArrayElementCount: 2)
         {
         }
 
-        protected override ExportMetadataValueImportConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ExportMetadataValueImportConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader, options);
-            return new ExportMetadataValueImportConstraint(name, value);
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 2)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ExportMetadataValueImportConstraint)}. Expected: {2}, Actual: {actualCount}");
+                }
+
+                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader, options);
+                return new ExportMetadataValueImportConstraint(name, value);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
-        protected override void SerializeData(ref MessagePackWriter writer, ExportMetadataValueImportConstraint value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ExportMetadataValueImportConstraint? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(2);
+
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
             options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, value.Value, options);
         }

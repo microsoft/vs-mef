@@ -7,25 +7,50 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack;
     using MessagePack.Formatters;
 
-    internal class ComposableCatalogFormatter : BaseMessagePackFormatter<ComposableCatalog>
+    internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog?>
     {
         public static readonly ComposableCatalogFormatter Instance = new();
 
         private ComposableCatalogFormatter()
-            : base(expectedArrayElementCount: 1)
         {
         }
 
         /// <inheritdoc/>
-        protected override ComposableCatalog DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ComposableCatalog? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
-            return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
+
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 1)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposableCatalog)}. Expected: {1}, Actual: {actualCount}");
+                }
+
+                IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
+                return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
         /// <inheritdoc/>
-        protected override void SerializeData(ref MessagePackWriter writer, ComposableCatalog value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ComposableCatalog? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(1);
+
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
         }
     }

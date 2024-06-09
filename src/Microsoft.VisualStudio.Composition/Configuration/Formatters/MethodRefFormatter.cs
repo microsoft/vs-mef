@@ -10,33 +10,58 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class MethodRefFormatter : BaseMessagePackFormatter<MethodRef?>
+    internal class MethodRefFormatter : IMessagePackFormatter<MethodRef?>
     {
         public static readonly MethodRefFormatter Instance = new();
 
         private MethodRefFormatter()
-             : base(expectedArrayElementCount: 6)
         {
         }
 
-        protected override MethodRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public MethodRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+            options.Security.DepthStep(ref reader);
 
-            int metadataToken = reader.ReadInt32();
-            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            bool isStatic = reader.ReadBoolean();
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 6)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(MethodRef)}. Expected: {6}, Actual: {actualCount}");
+                }
+                TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
 
-            IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
+                int metadataToken = reader.ReadInt32();
+                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                bool isStatic = reader.ReadBoolean();
 
-            ImmutableArray<TypeRef?> parameterTypes = typeRefFormatter.Deserialize(ref reader, options);
-            ImmutableArray<TypeRef?> genericMethodArguments = typeRefFormatter.Deserialize(ref reader, options);
+                IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
 
-            return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
+                ImmutableArray<TypeRef?> parameterTypes = typeRefFormatter.Deserialize(ref reader, options);
+                ImmutableArray<TypeRef?> genericMethodArguments = typeRefFormatter.Deserialize(ref reader, options);
+
+                return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
         }
 
-        protected override void SerializeData(ref MessagePackWriter writer, MethodRef? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, MethodRef? value, MessagePackSerializerOptions options)
         {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+            writer.WriteArrayHeader(6);
+
+
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
             typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
