@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
         {
-            writer.Write(value.Count);
+            writer.WriteMapHeader(value.Count);
 
             // Special case certain values to avoid defeating lazy load later. Check out the
             // ReadMetadata below, how it wraps the return value.
@@ -34,14 +34,14 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             value = LazyMetadataWrapper.TryUnwrap(value);
             serializedMetadata = new LazyMetadataWrapper(value.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, options.CompositionResolver());
 
-            IMessagePackFormatter<string> stringFormatter = options.Resolver.GetFormatterWithVerify<string>(); //convert to lazy
-            IMessagePackFormatter<TypeRef?> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
-            IMessagePackFormatter<Guid> guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
-            IMessagePackFormatter<IReadOnlyCollection<TypeRef?>> typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<TypeRef?>>();
+            var stringFormatter = new Lazy<IMessagePackFormatter<string>>(() => options.Resolver.GetFormatterWithVerify<string>());
+            var typeRefFormatter = new Lazy<IMessagePackFormatter<TypeRef?>>(() => options.Resolver.GetFormatterWithVerify<TypeRef?>());
+            var guidFormatter = new Lazy<IMessagePackFormatter<Guid>>(() => options.Resolver.GetFormatterWithVerify<Guid>());
+            var typeRefFormatterCollection = new Lazy<IMessagePackFormatter<IReadOnlyCollection<TypeRef?>>>(() => options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<TypeRef?>>());
 
             foreach (KeyValuePair<string, object?> item in serializedMetadata)
             {
-                stringFormatter.Serialize(ref writer, item.Key, options);
+                stringFormatter.Value.Serialize(ref writer, item.Key, options);
                 SerializeObject(ref writer, item.Value);
             }
 
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         messagePackWriter.Write((byte)MetadataDictionaryFormatter.ObjectType.Array);
 
                         TypeRef? elementTypeRef = TypeRef.Get(objectType.GetElementType(), options.CompositionResolver());
-                        typeRefFormatter.Serialize(ref messagePackWriter, elementTypeRef, options);
+                        typeRefFormatter.Value.Serialize(ref messagePackWriter, elementTypeRef, options);
                         messagePackWriter.Write(array.Length);
                         foreach (object? item in array)
                         {
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                     case Type objectType when objectType == typeof(string):
                         messagePackWriter.Write((byte)ObjectType.String);
-                        stringFormatter.Serialize(ref messagePackWriter, (string)value, options);
+                        stringFormatter.Value.Serialize(ref messagePackWriter, (string)value, options);
                         break;
 
                     case Type objectType when objectType == typeof(long):
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                     case Type objectType when objectType == typeof(Guid):
                         messagePackWriter.Write((byte)ObjectType.Guid);
-                        guidFormatter.Serialize(ref messagePackWriter, (Guid)value, options);
+                        guidFormatter.Value.Serialize(ref messagePackWriter, (Guid)value, options);
                         break;
 
                     case Type objectType when objectType == typeof(CreationPolicy):
@@ -148,38 +148,38 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                     case Type objectType when typeof(Type).GetTypeInfo().IsAssignableFrom(objectType):
                         TypeRef typeRefValue = TypeRef.Get((Type)value, options.CompositionResolver());
                         messagePackWriter.Write((byte)ObjectType.Type);
-                        typeRefFormatter.Serialize(ref messagePackWriter, typeRefValue, options);
+                        typeRefFormatter.Value.Serialize(ref messagePackWriter, typeRefValue, options);
                         break;
 
                     case Type objectType when objectType == typeof(TypeRef):
                         messagePackWriter.Write((byte)ObjectType.TypeRef);
-                        typeRefFormatter.Serialize(ref messagePackWriter, (TypeRef)value, options);
+                        typeRefFormatter.Value.Serialize(ref messagePackWriter, (TypeRef)value, options);
                         break;
 
                     case Type objectType when typeof(LazyMetadataWrapper.Enum32Substitution) == objectType:
                         var enum32SubstitutionValue = (LazyMetadataWrapper.Enum32Substitution)value;
                         messagePackWriter.Write((byte)ObjectType.Enum32Substitution);
-                        typeRefFormatter.Serialize(ref messagePackWriter, enum32SubstitutionValue.EnumType, options);
+                        typeRefFormatter.Value.Serialize(ref messagePackWriter, enum32SubstitutionValue.EnumType, options);
                         options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref messagePackWriter, enum32SubstitutionValue.RawValue, options);
                         break;
 
                     case Type objectType when typeof(LazyMetadataWrapper.TypeSubstitution) == objectType:
                         var typeSubstitutionValue = (LazyMetadataWrapper.TypeSubstitution)value;
                         messagePackWriter.Write((byte)ObjectType.TypeSubstitution);
-                        typeRefFormatter.Serialize(ref messagePackWriter, typeSubstitutionValue.TypeRef, options);
+                        typeRefFormatter.Value.Serialize(ref messagePackWriter, typeSubstitutionValue.TypeRef, options);
                         break;
 
                     case Type objectType when typeof(LazyMetadataWrapper.TypeArraySubstitution) == objectType:
                         var typeArraySubstitutionValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
                         messagePackWriter.Write((byte)ObjectType.TypeArraySubstitution);
-                        typeRefFormatterCollection.Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
+                        typeRefFormatterCollection.Value.Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
 
                         break;
 
                     default:
-                        var typeLessData = MessagePackSerializer.Typeless.Serialize(value);
+                        //messagePackWriter.WriteArrayHeader(2); to be done
                         messagePackWriter.Write((byte)ObjectType.TypeLess);
-                        options.Resolver.GetFormatterWithVerify<byte[]>().Serialize(ref messagePackWriter, typeLessData, options);
+                        TypelessFormatter.Instance.Serialize(ref messagePackWriter, value, options);
                         break;
                 }
             }
@@ -189,18 +189,19 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
 
-            int count = reader.ReadInt32();
+            int count = reader.ReadMapHeader();
             ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty;
-            IMessagePackFormatter<string> stringFormatter = options.Resolver.GetFormatterWithVerify<string>(); //convert to lazy
-            IMessagePackFormatter<TypeRef?> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
-            IMessagePackFormatter<Guid> guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
-            IMessagePackFormatter<IReadOnlyList<TypeRef?>> typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>();
+
+            var stringFormatter = new Lazy<IMessagePackFormatter<string>>(() => options.Resolver.GetFormatterWithVerify<string>());
+            var typeRefFormatter = new Lazy<IMessagePackFormatter<TypeRef?>>(() => options.Resolver.GetFormatterWithVerify<TypeRef?>());
+            var guidFormatter = new Lazy<IMessagePackFormatter<Guid>>(() => options.Resolver.GetFormatterWithVerify<Guid>());
+            var typeRefFormatterCollection = new Lazy<IMessagePackFormatter<IReadOnlyList<TypeRef?>>>(() => options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>());
 
             if (count > 0)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    string? key = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                    string? key = stringFormatter.Value.Deserialize(ref reader, options);
                     object? value = DeserializeObject(ref reader);
 
                     builder.Add(key, value);
@@ -225,7 +226,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.Array:
-                        Type elementType = typeRefFormatter.Deserialize(ref messagePackReader, options).Resolve()!;
+                        Type elementType = typeRefFormatter.Value.Deserialize(ref messagePackReader, options).Resolve()!;
 
                         int arrayLength = messagePackReader.ReadInt32();
                         var arrayObject = Array.CreateInstance(elementType, (int)arrayLength);
@@ -288,7 +289,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.String:
-                        response = stringFormatter.Deserialize(ref messagePackReader, options);
+                        response = stringFormatter.Value.Deserialize(ref messagePackReader, options);
                         break;
 
                     case ObjectType.Char:
@@ -296,7 +297,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.Guid:
-                        response = guidFormatter.Deserialize(ref messagePackReader, options);
+                        response = guidFormatter.Value.Deserialize(ref messagePackReader, options);
                         break;
 
                     case ObjectType.CreationPolicy:
@@ -304,32 +305,40 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.Type:
-                        response = typeRefFormatter.Deserialize(ref messagePackReader, options).Resolve();
+                        response = typeRefFormatter.Value.Deserialize(ref messagePackReader, options).Resolve();
                         break;
 
                     case ObjectType.TypeRef:
-                        response = typeRefFormatter.Deserialize(ref messagePackReader, options);
+                        response = typeRefFormatter.Value.Deserialize(ref messagePackReader, options);
                         break;
 
                     case ObjectType.Enum32Substitution:
-                        TypeRef? enumType = typeRefFormatter.Deserialize(ref messagePackReader, options);
+                        TypeRef? enumType = typeRefFormatter.Value.Deserialize(ref messagePackReader, options);
                         int rawValue = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref messagePackReader, options);
                         response = new LazyMetadataWrapper.Enum32Substitution(enumType!, rawValue);
                         break;
 
                     case ObjectType.TypeSubstitution:
-                        TypeRef? typeRef = typeRefFormatter.Deserialize(ref messagePackReader, options);
+                        TypeRef? typeRef = typeRefFormatter.Value.Deserialize(ref messagePackReader, options);
                         response = new LazyMetadataWrapper.TypeSubstitution(typeRef!);
                         break;
 
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef?> typeRefArray = typeRefFormatterCollection.Deserialize(ref messagePackReader, options);
+                        IReadOnlyList<TypeRef?> typeRefArray = typeRefFormatterCollection.Value.Deserialize(ref messagePackReader, options);
                         response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, options.CompositionResolver());
                         break;
 
                     case ObjectType.TypeLess:
-                        var typeLessData = options.Resolver.GetFormatterWithVerify<byte[]>().Deserialize(ref messagePackReader, options);
-                        response = MessagePackSerializer.Typeless.Deserialize(typeLessData);
+                       // messagePackWriter.WriteArrayHeader(2); call before reading type
+                        //messagePackWriter.Write((byte)ObjectType.TypeLess);
+                        response = TypelessFormatter.Instance.Deserialize(ref messagePackReader, options);
+
+                        // messagePackWriter.WriteArrayHeader(2); call before reading type  To be done
+                        //var actualCount = messagePackReader.ReadArrayHeader();
+                        //if (actualCount != 2)
+                        //{
+                        //    throw new MessagePackSerializationException($"Invalid array count for type {ObjectType.TypeLess}. Expected: {2}, Actual: {actualCount}");
+                        //}
                         break;
 
                     default:
