@@ -5,6 +5,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter;
 using MessagePack;
 using MessagePack.Formatters;
 
+/// <summary>
+/// A custom formatter for the <see cref="PartCreationPolicyConstraint"/> class.
+/// This formatter is designed to avoid invoking the constructor during deserialization,
+/// which helps to prevent the allocation of many redundant classes.
+/// </summary>
 internal class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
 {
     public static readonly PartCreationPolicyConstraintFormatter Instance = new();
@@ -23,7 +28,7 @@ internal class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<Par
         options.Security.DepthStep(ref reader);
         try
         {
-            var actualCount = reader.ReadArrayHeader();
+            int actualCount = reader.ReadArrayHeader();
             if (actualCount != 1)
             {
                 throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {1}, Actual: {actualCount}");

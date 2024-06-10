@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Composition.Formatter;
 /// It allows for customization of the serialization process by providing a resolver for formatters and a composition resolver.
 /// </remarks>
 #pragma warning disable CS3009 // Base type is not CLS-compliant
-public class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
+public class MessagePackSerializerContext : MessagePackSerializerOptions
 #pragma warning restore CS3009 // Base type is not CLS-compliant
 {
     /// <summary>
@@ -36,12 +36,6 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions, IDispo
     }
 
     public Resolver CompositionResolver { get; }
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-    }
 
     private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) =>
         CompositeResolver.Create(
