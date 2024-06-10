@@ -137,4 +137,3 @@ internal class ComposablePartDefinitionFormatter : IMessagePackFormatter<Composa
         writer.Write(value.IsSharingBoundaryInferred);
     }
 }
-

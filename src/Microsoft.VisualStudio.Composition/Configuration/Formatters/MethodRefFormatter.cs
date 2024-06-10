@@ -63,15 +63,14 @@ internal class MethodRefFormatter : IMessagePackFormatter<MethodRef?>
         writer.WriteArrayHeader(6);
 
         IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
         typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
 
         writer.Write(value.MetadataToken);
         options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
         writer.Write(value.IsStatic);
 
-        IMessagePackFormatter<ImmutableArray<TypeRef>> typeREfFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
-        typeREfFormatter.Serialize(ref writer, value.ParameterTypes, options);
-        typeREfFormatter.Serialize(ref writer, value.GenericMethodArguments, options);
+        IMessagePackFormatter<ImmutableArray<TypeRef>> immutableTypeRefArrayFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
+        immutableTypeRefArrayFormatter.Serialize(ref writer, value.ParameterTypes, options);
+        immutableTypeRefArrayFormatter.Serialize(ref writer, value.GenericMethodArguments, options);
     }
 }

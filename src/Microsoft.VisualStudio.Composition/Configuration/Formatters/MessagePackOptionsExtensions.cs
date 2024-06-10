@@ -7,9 +7,9 @@ using MessagePack;
 
 internal static class MessagePackOptionsExtensions
 {
-    public static Resolver CompositionResolver(this MessagePackSerializerOptions option)
+    internal static Resolver CompositionResolver(this MessagePackSerializerOptions option)
     {
-        var messagePackFormatterContext = (MessagePackSerializerContext)option!;
+        var messagePackFormatterContext = (MessagePackSerializerContext)option;
         return messagePackFormatterContext.CompositionResolver;
     }
 }

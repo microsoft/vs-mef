@@ -379,7 +379,6 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
 
         public bool IsNonSharedInstanceRequired { get; private set; }
 
-        [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public Type? ExportFactory
