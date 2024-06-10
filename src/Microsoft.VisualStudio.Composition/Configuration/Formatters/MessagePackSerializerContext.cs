@@ -3,10 +3,12 @@
 
 namespace Microsoft.VisualStudio.Composition;
 
+using System.Reflection;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.VisualStudio.Composition.Formatter;
+using Microsoft.VisualStudio.Composition.Reflection;
 
 /// <summary>
 /// Provides a context for MessagePack serialization with additional options.
@@ -66,6 +68,18 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
                  new DedupingResolver(resolver),
             });
 
+    private static readonly HashSet<Type> DedupingTypes =
+    [
+        typeof(RuntimeComposition.RuntimeExport),
+        typeof(PropertyRef),
+        typeof(FieldRef),
+        typeof(ParameterRef),
+        typeof(TypeRef),
+        typeof(AssemblyName),
+        typeof(StrongAssemblyIdentity),
+        typeof(string),
+    ];
+
     private class DedupingResolver : IFormatterResolver
     {
         private const sbyte ReferenceExtensionTypeCode = 1;
@@ -82,7 +96,7 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
 
         public IMessagePackFormatter<T>? GetFormatter<T>()
         {
-            if (!typeof(T).IsValueType)
+            if (DedupingTypes.Contains(typeof(T)))
             {
                 return this.GetDedupingFormatter<T>();
             }
