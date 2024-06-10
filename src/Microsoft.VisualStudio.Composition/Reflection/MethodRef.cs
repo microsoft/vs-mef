@@ -69,21 +69,16 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.GenericMethodArguments = ImmutableArray<TypeRef>.Empty;
         }
 
-        [IgnoreMember]
         public MethodBase MethodBase => (MethodBase)this.MemberInfo;
 
-        [IgnoreMember]
         public MethodBase? MethodBaseNoResolve => (MethodBase?)this.MemberInfoNoResolve;
 
         protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
-        [Key(4)]
         public override string Name { get; }
 
-        [Key(5)]
         public ImmutableArray<TypeRef> ParameterTypes { get; }
 
-        [Key(6)]
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
         [return: NotNullIfNotNull("method")]

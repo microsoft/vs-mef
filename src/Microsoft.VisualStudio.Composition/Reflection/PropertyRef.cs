@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private readonly int? setMethodMetadataToken;
 
-        [SerializationConstructor]
         public PropertyRef(TypeRef declaringType, TypeRef propertyTypeRef, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name, bool isStatic)
             : base(declaringType, metadataToken, isStatic)
         {

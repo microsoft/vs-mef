@@ -36,13 +36,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.FieldTypeRef = TypeRef.Get(field.FieldType, resolver);
         }
 
-        [IgnoreMember]
         public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
 
-        [Key(4)]
         public TypeRef FieldTypeRef { get; }
 
-        [Key(5)]
         public override string Name { get; }
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
