@@ -207,7 +207,7 @@ Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.ImportMetadataVi
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.IsSatisfiedBy(Microsoft.VisualStudio.Composition.ExportDefinition! exportDefinition) -> bool
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.IsMetadataumValueRequired.get -> bool
-Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumRequirement(Microsoft.VisualStudio.Composition.Reflection.TypeRef! metadatumValueTypeRef, bool isMetadataumValueRequired) -> void
+Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumRequirement(Microsoft.VisualStudio.Composition.Reflection.TypeRef! valueType, bool required) -> void
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumValueType.get -> System.Type!
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumValueTypeRef.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef!
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.Requirements.get -> System.Collections.Immutable.ImmutableDictionary<string!, Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement>!

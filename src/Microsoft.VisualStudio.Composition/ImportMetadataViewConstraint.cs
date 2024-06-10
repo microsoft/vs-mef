@@ -198,11 +198,11 @@ public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDe
     [MessagePackObject]
     public struct MetadatumRequirement
     {
-        public MetadatumRequirement(TypeRef metadatumValueTypeRef, bool isMetadataumValueRequired)
-            : this()
+        public MetadatumRequirement(TypeRef valueType, bool required)
+                        : this()
         {
-            this.MetadatumValueTypeRef = metadatumValueTypeRef;
-            this.IsMetadataumValueRequired = isMetadataumValueRequired;
+            this.MetadatumValueTypeRef = valueType;
+            this.IsMetadataumValueRequired = required;
         }
 
         [Key(0)]
