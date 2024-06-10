@@ -3,11 +3,8 @@
 
 namespace Microsoft.VisualStudio.Composition.Formatter
 {
-    using System.Collections.Immutable;
-    using System.Reflection.PortableExecutable;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal class FieldRefFormatter : IMessagePackFormatter<FieldRef?>

@@ -2,11 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 namespace Microsoft.VisualStudio.Composition.Formatter
 {
-    using System.Collections.Immutable;
-    using System.Globalization;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Reflection;
 
     internal class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
     {

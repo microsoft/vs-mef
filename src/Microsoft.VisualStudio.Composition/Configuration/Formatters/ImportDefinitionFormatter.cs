@@ -3,8 +3,6 @@
 
 namespace Microsoft.VisualStudio.Composition.Formatter
 {
-    using System.Collections.Immutable;
-    using System.Data;
     using MessagePack;
     using MessagePack.Formatters;
 

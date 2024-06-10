@@ -16,7 +16,6 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq}")]
-
     [MessagePackFormatter(typeof(ExportDefinitionFormatter))]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {

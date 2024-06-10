@@ -35,7 +35,6 @@ namespace Microsoft.VisualStudio.Composition
             this.RequiredCreationPolicy = creationPolicy;
         }
 
-        [Key(0)]
         public CreationPolicy RequiredCreationPolicy { get; private set; }
 
         /// <summary>

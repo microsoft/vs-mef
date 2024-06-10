@@ -3,11 +3,6 @@
 
 namespace Microsoft.VisualStudio.Composition
 {
-    using System.Collections.Concurrent;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Reflection;
-    using System.Runtime.Serialization;
     using MessagePack;
     using MessagePack.Formatters;
     using MessagePack.Resolvers;
