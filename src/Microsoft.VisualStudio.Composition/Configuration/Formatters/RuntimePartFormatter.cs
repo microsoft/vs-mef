@@ -58,14 +58,7 @@ internal class RuntimePartFormatter : IMessagePackFormatter<RuntimePart?>
 
             string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
 
-            return new RuntimeComposition.RuntimePart(
-                      typeRef,
-                      importingCtor,
-                      importingCtorArguments,
-                      importingMembers,
-                      exports,
-                      onImportsSatisfiedMethods,
-                      sharingBoundary);
+            return new RuntimePart(typeRef, importingCtor, importingCtorArguments, importingMembers, exports, onImportsSatisfiedMethods, sharingBoundary);
         }
         finally
         {

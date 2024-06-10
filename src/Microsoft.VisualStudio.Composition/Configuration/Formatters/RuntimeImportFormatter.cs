@@ -90,27 +90,10 @@ internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport?>
                 exportFactorySharingBoundaries = ImmutableList<string>.Empty;
             }
 
-            return importingMember == null
-                        ? new RuntimeComposition.RuntimeImport(
-                            importingParameterRef: importingParameter ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(ParameterRef)}"),
-                            importingSiteTypeRef,
-                            importingSiteTypeWithoutCollectionRef,
-                            cardinality,
-                            satisfyingExports: satisfyingExports.ToList(),
-                            (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired,
-                            isExportFactory,
-                            metadata,
-                            exportFactorySharingBoundaries)
-                        : new RuntimeComposition.RuntimeImport(
-                            importingMember,
-                            importingSiteTypeRef,
-                            importingSiteTypeWithoutCollectionRef,
-                            cardinality,
-                            satisfyingExports.ToList(),
-                            (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired,
-                            isExportFactory,
-                            metadata,
-                            exportFactorySharingBoundaries);
+            return importingMember is null
+                        ? new RuntimeImport(
+                            importingParameterRef: importingParameter ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(ParameterRef)}"), importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports: satisfyingExports.ToList(), (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
+                        : new RuntimeImport(importingMember, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports.ToList(), (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries);
         }
         finally
         {
