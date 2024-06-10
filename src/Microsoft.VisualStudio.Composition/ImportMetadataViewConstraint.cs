@@ -8,12 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using MessagePack;
-using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 using Microsoft.VisualStudio.Composition.Reflection;
 

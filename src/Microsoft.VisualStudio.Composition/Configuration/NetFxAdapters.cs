@@ -10,12 +10,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition.ReflectionModel;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using MessagePack;
-using Microsoft.VisualStudio.Composition.Formatter;
-using Microsoft.VisualStudio.Composition.Reflection;
 using MefV1 = System.ComponentModel.Composition;
 
 public static class NetFxAdapters
