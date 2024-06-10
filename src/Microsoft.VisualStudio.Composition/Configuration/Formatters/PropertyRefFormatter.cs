@@ -71,8 +71,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-            typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
-            typeRefFormatter.Serialize(ref writer, value!.PropertyTypeRef, options);
+            typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
+            typeRefFormatter.Serialize(ref writer, value.PropertyTypeRef, options);
 
             writer.Write(value.MetadataToken);
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);

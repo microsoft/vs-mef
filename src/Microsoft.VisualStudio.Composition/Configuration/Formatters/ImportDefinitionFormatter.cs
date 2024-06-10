@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 IReadOnlyList<IImportSatisfiabilityConstraint> constraints = options.Resolver.GetFormatterWithVerify<IReadOnlyList<IImportSatisfiabilityConstraint>>().Deserialize(ref reader, options);
                 IReadOnlyCollection<string> sharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options);
 
-                return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
+                return new ImportDefinition(contractName, cardinality, metadata, constraints, sharingBoundaries);
             }
             finally
             {

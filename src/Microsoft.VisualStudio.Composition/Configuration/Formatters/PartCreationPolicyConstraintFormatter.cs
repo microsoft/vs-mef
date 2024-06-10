@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 }
 
                 CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
-                return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
+                return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
             }
             finally
             {

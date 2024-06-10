@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 
                 var assemblyName = new AssemblyName(fullName);
-                assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
                 return new StrongAssemblyIdentity(assemblyName, mvid);
             }
             finally
@@ -56,9 +56,9 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             writer.WriteArrayHeader(3);
 
-            options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
+            options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase!, options);
+            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.Name.CodeBase, options);
         }
     }
 }

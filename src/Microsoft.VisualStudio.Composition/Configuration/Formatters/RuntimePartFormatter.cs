@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                           importingCtor,
                           importingCtorArguments,
                           importingMembers,
-                          exports!,
+                          exports,
                           onImportsSatisfiedMethods,
                           sharingBoundary);
             }

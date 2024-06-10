@@ -55,7 +55,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 if (!reader.TryReadNil())
                 {
                     importingConstructor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
-                    importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
+
+                    if (reader.TryReadNil())
+                    {
+                        importingConstructorImports = null;
+                    }
+                    else
+                    {
+                        importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
+                    }
                 }
 
                 CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
@@ -114,7 +122,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             else
             {
                 options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryRef, options);
-                importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingConstructorImports!, options);
+
+                if (value.ImportingConstructorImports is null)
+                {
+                    writer.WriteNil();
+                }
+                else
+                {
+                    importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingConstructorImports, options);
+                }
             }
 
             options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.CreationPolicy, options);

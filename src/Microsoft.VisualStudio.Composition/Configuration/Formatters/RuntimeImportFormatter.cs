@@ -70,31 +70,31 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                 IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
                 IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
-                IReadOnlyCollection<string?> exportFactorySharingBoundaries = isExportFactory
+                IReadOnlyCollection<string> exportFactorySharingBoundaries = isExportFactory
                     ? options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options)
                     : ImmutableList<string>.Empty;
 
                 return importingMember == null
                             ? new RuntimeComposition.RuntimeImport(
-                                importingParameterRef: importingParameter!,
+                                importingParameterRef: importingParameter ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(ParameterRef)}"),
                                 importingSiteTypeRef,
                                 importingSiteTypeWithoutCollectionRef,
                                 cardinality,
-                                satisfyingExports: satisfyingExports.ToList()!,
+                                satisfyingExports: satisfyingExports.ToList(),
                                 (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired,
                                 isExportFactory,
                                 metadata,
-                                exportFactorySharingBoundaries!)
+                                exportFactorySharingBoundaries)
                             : new RuntimeComposition.RuntimeImport(
                                 importingMember,
                                 importingSiteTypeRef,
                                 importingSiteTypeWithoutCollectionRef,
                                 cardinality,
-                                satisfyingExports.ToList()!,
+                                satisfyingExports.ToList(),
                                 (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired,
                                 isExportFactory,
                                 metadata,
-                                exportFactorySharingBoundaries!);
+                                exportFactorySharingBoundaries);
             }
             finally
             {

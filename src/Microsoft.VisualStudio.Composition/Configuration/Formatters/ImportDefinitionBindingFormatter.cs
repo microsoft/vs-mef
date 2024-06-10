@@ -45,13 +45,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                 if (!reader.TryReadNil())
                 {
-                    member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options)!;
-                    return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                    member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
+                    return new ImportDefinitionBinding(importDefinition, part, member ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(MemberRef)}"), importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                 }
                 else
                 {
-                    parameter = options.Resolver.GetFormatterWithVerify<ParameterRef?>().Deserialize(ref reader, options)!;
-                    return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                    parameter = options.Resolver.GetFormatterWithVerify<ParameterRef?>().Deserialize(ref reader, options);
+                    return new ImportDefinitionBinding(importDefinition, part, parameter ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(ParameterRef)}"), importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                 }
             }
             finally

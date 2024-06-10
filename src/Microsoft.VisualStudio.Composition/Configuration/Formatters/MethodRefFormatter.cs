@@ -39,12 +39,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                 bool isStatic = reader.ReadBoolean();
 
-                IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
+                IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
 
-                ImmutableArray<TypeRef?> parameterTypes = typeRefFormatter.Deserialize(ref reader, options);
-                ImmutableArray<TypeRef?> genericMethodArguments = typeRefFormatter.Deserialize(ref reader, options);
+                ImmutableArray<TypeRef> parameterTypes = typeRefFormatter.Deserialize(ref reader, options);
+                ImmutableArray<TypeRef> genericMethodArguments = typeRefFormatter.Deserialize(ref reader, options);
 
-                return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
+                return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments);
             }
             finally
             {
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-            typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
+            typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
 
             writer.Write(value.MetadataToken);
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);

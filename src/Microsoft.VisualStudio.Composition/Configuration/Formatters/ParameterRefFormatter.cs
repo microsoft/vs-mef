@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             writer.WriteArrayHeader(2);
 
-            options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);
+            options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
             writer.Write(value.ParameterIndex);
         }
     }
