@@ -17,7 +17,7 @@ internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport?>
     {
     }
 
-    public enum RuntimeImportFlags : byte
+    private enum RuntimeImportFlags : byte
     {
         None = 0x00,
         IsNonSharedInstanceRequired = 0x01,
