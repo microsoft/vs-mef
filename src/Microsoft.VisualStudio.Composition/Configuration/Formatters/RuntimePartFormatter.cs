@@ -44,9 +44,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                 IMessagePackFormatter<IReadOnlyList<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>();
 
-                bool hasCtor = reader.ReadBoolean();
-
-                if (hasCtor)
+                if (reader.TryReadNil())
+                {
+                    reader.Skip();
+                }
+                else
                 {
                     importingCtor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
                     importingCtorArguments = runtimeImportFormatter.Deserialize(ref reader, options);
@@ -90,13 +92,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             if (value.ImportingConstructorOrFactoryMethodRef is null)
             {
-                writer.Write(false);
+                writer.WriteNil(); // no Importing Constructor Or Factory MethodRef arguments
+                writer.WriteNil(); // no importing constructor arguments
             }
             else
             {
-                writer.Write(true);
                 options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryMethodRef, options);
-
                 runtimeImportFormatter.Serialize(ref writer, value.ImportingConstructorArguments, options);
             }
 

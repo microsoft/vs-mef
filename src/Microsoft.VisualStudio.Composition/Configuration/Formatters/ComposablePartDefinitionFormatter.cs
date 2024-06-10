@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 var importingConstructor = default(MethodRef);
                 IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
 
-                if (reader.ReadBoolean())
+                if (!reader.TryReadNil())
                 {
                     importingConstructor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
                     importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
@@ -112,11 +112,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             if (value.ImportingConstructorOrFactoryRef is null)
             {
-                writer.Write(false);
+                writer.WriteNil();
             }
             else
             {
-                writer.Write(true);
                 options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryRef, options);
                 importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingConstructorImports!, options);
             }

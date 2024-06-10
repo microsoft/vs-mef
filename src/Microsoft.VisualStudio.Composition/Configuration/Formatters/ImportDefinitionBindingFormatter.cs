@@ -43,8 +43,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                 MemberRef? member;
                 ParameterRef? parameter;
-                bool isMember = reader.ReadBoolean();
-                if (isMember)
+
+                if (!reader.TryReadNil())
                 {
                     member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options)!;
                     return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
@@ -81,12 +81,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             if (value.ImportingMemberRef is null)
             {
-                writer.Write(false);
+                writer.WriteNil();
                 options.Resolver.GetFormatterWithVerify<ParameterRef?>().Serialize(ref writer, value.ImportingParameterRef, options);
             }
             else
             {
-                writer.Write(true);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.ImportingMemberRef, options);
             }
         }

@@ -44,12 +44,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 bool isStatic = reader.ReadBoolean();
                 int? setter = null;
                 int? getter = null;
-                if (reader.ReadBoolean())
+                if (!reader.TryReadNil())
                 {
                     setter = reader.ReadInt32();
                 }
 
-                if (reader.ReadBoolean())
+                if (!reader.TryReadNil())
                 {
                     getter = reader.ReadInt32();
                 }
@@ -82,22 +82,20 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             writer.Write(value.IsStatic);
             if (value.SetMethodMetadataToken.HasValue)
             {
-                writer.Write(true);
                 writer.Write(value.SetMethodMetadataToken.Value);
             }
             else
             {
-                writer.Write(false);
+                writer.WriteNil();
             }
 
             if (value.GetMethodMetadataToken.HasValue)
             {
-                writer.Write(true);
                 writer.Write(value.GetMethodMetadataToken.Value);
             }
             else
             {
-                writer.Write(false);
+                writer.WriteNil();
             }
         }
     }

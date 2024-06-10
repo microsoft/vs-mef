@@ -43,7 +43,17 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 int genericTypeParameterCount = reader.ReadInt32();
                 ImmutableArray<TypeRef?> genericTypeArguments = typeRefFormatter.Deserialize(ref reader, options);
                 bool shallow = reader.ReadBoolean();
-                ImmutableArray<TypeRef?> baseTypes = !shallow ? typeRefFormatter.Deserialize(ref reader, options) : ImmutableArray<TypeRef?>.Empty;
+                ImmutableArray<TypeRef?> baseTypes;
+                if (!shallow)
+                {
+                    baseTypes = typeRefFormatter.Deserialize(ref reader, options);
+                }
+                else
+                {
+                    reader.Skip();
+                    baseTypes = ImmutableArray<TypeRef?>.Empty;
+                }
+
                 bool hasElementType = reader.ReadInt32() != 0;
                 TypeRef? elementType = hasElementType
                        ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
@@ -82,6 +92,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (!value.IsShallow)
             {
                 typeRefFormatter.Serialize(ref writer, value.BaseTypes, options);
+            }
+            else
+            {
+                writer.WriteNil();
             }
 
             writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
