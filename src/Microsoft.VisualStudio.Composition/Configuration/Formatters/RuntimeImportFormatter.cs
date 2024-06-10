@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 var actualCount = reader.ReadArrayHeader();
                 if (actualCount != 7)
                 {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeImport)}. Expected: {7}, Actual: {actualCount}");
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeImport)}. Expected: {6}, Actual: {actualCount}");
                 }
 
                 options.Security.DepthStep(ref reader);
@@ -65,14 +65,30 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                 IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
                 TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
-                TypeRef importingSiteTypeWithoutCollectionRef =
-        cardinality == ImportCardinality.ZeroOrMore ? typeRefFormatter.Deserialize(ref reader, options) : importingSiteTypeRef;
+
+                TypeRef importingSiteTypeWithoutCollectionRef;
+                if (cardinality == ImportCardinality.ZeroOrMore)
+                {
+                    importingSiteTypeWithoutCollectionRef = typeRefFormatter.Deserialize(ref reader, options);
+                }
+                else
+                {
+                    reader.Skip();
+                    importingSiteTypeWithoutCollectionRef = importingSiteTypeRef;
+                }
 
                 IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
                 IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
-                IReadOnlyCollection<string> exportFactorySharingBoundaries = isExportFactory
-                    ? options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options)
-                    : ImmutableList<string>.Empty;
+                IReadOnlyCollection<string> exportFactorySharingBoundaries;
+                if (isExportFactory)
+                {
+                    exportFactorySharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options);
+                }
+                else
+                {
+                    reader.Skip();
+                    exportFactorySharingBoundaries = ImmutableList<string>.Empty;
+                }
 
                 return importingMember == null
                             ? new RuntimeComposition.RuntimeImport(
@@ -145,6 +161,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 {
                     throw new ArgumentException($"{nameof(value.ImportingSiteTypeWithoutCollectionRef)} and {nameof(value.ImportingSiteTypeRef)} must be equal when {nameof(value.Cardinality)} is not {nameof(ImportCardinality.ZeroOrMore)}.", nameof(value));
                 }
+                else
+                {
+                    writer.WriteNil();
+                }
             }
 
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.SatisfyingExports, options);
@@ -153,6 +173,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (value.IsExportFactory)
             {
                 options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);
+            }
+            else
+            {
+                writer.WriteNil();
             }
         }
     }

@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 if (!reader.TryReadNil())
                 {
                     member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
+                    reader.Skip(); // for ParameterRef
                     return new ImportDefinitionBinding(importDefinition, part, member ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(MemberRef)}"), importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                 }
                 else
@@ -86,6 +87,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             else
             {
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.ImportingMemberRef, options);
+                writer.WriteNil(); // for ParameterRef
             }
         }
     }

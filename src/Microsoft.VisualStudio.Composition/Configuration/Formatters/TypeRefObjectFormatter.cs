@@ -54,9 +54,16 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 }
 
                 bool hasElementType = reader.ReadInt32() != 0;
-                TypeRef? elementType = hasElementType
-                       ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
-                       : null;
+                TypeRef? elementType;
+                if (hasElementType)
+                {
+                    elementType = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader, options);
+                }
+                else
+                {
+                    reader.Skip();
+                    elementType = null;
+                }
 
                 return TypeRef.Get(options.CompositionResolver(), assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
             }
@@ -102,6 +109,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (!value.ElementTypeRef.Equals(value))
             {
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ElementTypeRef, options);
+            }
+            else
+            {
+                writer.WriteNil();
             }
         }
     }
