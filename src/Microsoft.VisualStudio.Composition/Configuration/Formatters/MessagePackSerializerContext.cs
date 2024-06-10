@@ -43,25 +43,6 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
         CompositeResolver.Create(
             new IMessagePackFormatter[]
             {
-                ComposableCatalogFormatter.Instance,
-                ComposablePartDefinitionFormatter.Instance,
-                ExportDefinitionFormatter.Instance,
-                FieldRefFormatter.Instance,
-                ImportDefinitionBindingFormatter.Instance,
-                ImportDefinitionFormatter.Instance,
-                ImportMetadataViewConstraintFormatter.Instance,
-                ExportMetadataValueImportConstraintFormatter.Instance,
-                ExportTypeIdentityConstraintFormatter.Instance,
-                MetadataDictionaryFormatter.Instance,
-                MethodRefFormatter.Instance,
-                ParameterRefFormatter.Instance,
-                PartCreationPolicyConstraintFormatter.Instance,
-                PropertyRefFormatter.Instance,
-                RuntimeCompositionFormatter.Instance,
-                RuntimeExportFormatter.Instance,
-                RuntimeImportFormatter.Instance,
-                RuntimePartFormatter.Instance,
-                new StringInterningFormatter(),
             },
             new IFormatterResolver[]
             {
@@ -77,7 +58,6 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
         typeof(TypeRef),
         typeof(AssemblyName),
         typeof(StrongAssemblyIdentity),
-        typeof(string),
     ];
 
     private class DedupingResolver : IFormatterResolver
