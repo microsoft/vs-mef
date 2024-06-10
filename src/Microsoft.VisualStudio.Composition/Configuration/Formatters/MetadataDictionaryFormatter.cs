@@ -83,8 +83,8 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
                     messagePackWriter.WriteUInt64(ulongValue);
                     break;
 
-                case Type objectType when objectType == typeof(int):
-                    messagePackWriter.WriteInt32((int)value);
+                case int intValue:
+                    messagePackWriter.WriteInt32(intValue);
                     break;
 
                 case uint uintValue:
@@ -117,7 +117,7 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
 
                 case char charValue:
                     messagePackWriter.Write((byte)ObjectType.Char);
-                    messagePackWriter.Write(charValue);
+                    messagePackWriter.WriteUInt16(charValue);
                     break;
 
                 case Guid guidValue:
@@ -127,7 +127,7 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
 
                 case CreationPolicy creationPolicyValue:
                     messagePackWriter.Write((byte)ObjectType.CreationPolicy);
-                    messagePackWriter.Write((byte)creationPolicyValue);
+                    messagePackWriter.WriteUInt8((byte)creationPolicyValue);
                     break;
 
                 case TypeRef typeRefTypeValue:
@@ -232,7 +232,7 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
             object? DeserializeCustomObject(ref MessagePackReader messagePackReader)
             {
                 object? deserializedValue;
-                var objectType = (ObjectType)options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref messagePackReader, options);
+                var objectType = (ObjectType)messagePackReader.ReadByte();
 
                 switch (objectType)
                 {
