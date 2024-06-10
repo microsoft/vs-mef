@@ -44,7 +44,7 @@ public class CachedComposition : ICompositionCacheManager, IRuntimeCompositionCa
 
         return Task.Run(() =>
         {
-            using var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, composition.Resolver);
+            using var context = new MessagePackSerializerContext(StandardResolver.Instance, composition.Resolver);
             MessagePackSerializer.Serialize(cacheStream, composition, context, cancellationToken);
         });
     }
@@ -55,7 +55,7 @@ public class CachedComposition : ICompositionCacheManager, IRuntimeCompositionCa
         Requires.Argument(cacheStream.CanRead, "cacheStream", Strings.ReadableStreamRequired);
         Requires.NotNull(resolver, nameof(resolver));
 
-        using var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, resolver);
+        using var context = new MessagePackSerializerContext(StandardResolver.Instance, resolver);
         return await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, context, cancellationToken);
     }
 
