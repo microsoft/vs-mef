@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             try
             {
                 var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 8)
+                if (actualCount != 9)
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {8}, Actual: {actualCount}");
                 }
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 return;
             }
 
-            writer.WriteArrayHeader(8);
+            writer.WriteArrayHeader(9);
 
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.Exports, options);

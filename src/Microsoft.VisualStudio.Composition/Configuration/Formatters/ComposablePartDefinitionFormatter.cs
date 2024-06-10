@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             try
             {
                 var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 12)
+                if (actualCount != 11)
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposablePartDefinition)}. Expected: {12}, Actual: {actualCount}");
                 }
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 return;
             }
 
-            writer.WriteArrayHeader(12);
+            writer.WriteArrayHeader(11);
 
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
