@@ -1,64 +1,63 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-namespace Microsoft.VisualStudio.Composition.Formatter
+namespace Microsoft.VisualStudio.Composition.Formatter;
+
+using System.Reflection;
+using MessagePack;
+using MessagePack.Formatters;
+
+internal class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
 {
-    using System.Reflection;
-    using MessagePack;
-    using MessagePack.Formatters;
+    public static readonly StrongAssemblyIdentityFormatter Instance = new();
 
-    internal class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
+    private StrongAssemblyIdentityFormatter()
     {
-        public static readonly StrongAssemblyIdentityFormatter Instance = new();
+    }
 
-        private StrongAssemblyIdentityFormatter()
+    /// <inheritdoc/>
+    public StrongAssemblyIdentity? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        if (reader.TryReadNil())
         {
+            return null;
         }
 
-        /// <inheritdoc/>
-        public StrongAssemblyIdentity? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        options.Security.DepthStep(ref reader);
+
+        try
         {
-            if (reader.TryReadNil())
+            var actualCount = reader.ReadArrayHeader();
+            if (actualCount != 3)
             {
-                return null;
+                throw new MessagePackSerializationException($"Invalid array count for type {nameof(StrongAssemblyIdentity)}. Expected: {3}, Actual: {actualCount}");
             }
 
-            options.Security.DepthStep(ref reader);
+            Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
+            string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 
-            try
-            {
-                var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 3)
-                {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(StrongAssemblyIdentity)}. Expected: {3}, Actual: {actualCount}");
-                }
+            var assemblyName = new AssemblyName(fullName);
+            assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
+            return new StrongAssemblyIdentity(assemblyName, mvid);
+        }
+        finally
+        {
+            reader.Depth--;
+        }
+    }
 
-                Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
-                string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-
-                var assemblyName = new AssemblyName(fullName);
-                assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
-                return new StrongAssemblyIdentity(assemblyName, mvid);
-            }
-            finally
-            {
-                reader.Depth--;
-            }
+    /// <inheritdoc/>
+    public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNil();
+            return;
         }
 
-        /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
-        {
-            if (value is null)
-            {
-                writer.WriteNil();
-                return;
-            }
+        writer.WriteArrayHeader(3);
 
-            writer.WriteArrayHeader(3);
-
-            options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
-            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.Name.CodeBase, options);
-        }
+        options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
+        options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
+        options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.Name.CodeBase, options);
     }
 }

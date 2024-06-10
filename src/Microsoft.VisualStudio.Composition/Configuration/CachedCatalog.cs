@@ -1,375 +1,374 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition
+namespace Microsoft.VisualStudio.Composition;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using MessagePack;
+using MessagePack.Resolvers;
+using Microsoft.VisualStudio.Composition.Reflection;
+
+public class CachedCatalog
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using MessagePack;
-    using MessagePack.Resolvers;
-    using Microsoft.VisualStudio.Composition.Reflection;
+    protected static readonly Encoding TextEncoding = Encoding.UTF8;
 
-    public class CachedCatalog
+    public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
     {
-        protected static readonly Encoding TextEncoding = Encoding.UTF8;
+        Requires.NotNull(catalog, nameof(catalog));
+        Requires.NotNull(cacheStream, nameof(cacheStream));
 
-        public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        return Task.Run(() =>
         {
-            Requires.NotNull(catalog, nameof(catalog));
-            Requires.NotNull(cacheStream, nameof(cacheStream));
+            using var context = new MessagePackSerializerContext(StandardResolver.Instance, catalog.Resolver);
+            MessagePackSerializer.Serialize(cacheStream, catalog, context, cancellationToken);
+        });
+    }
 
-            return Task.Run(() =>
-            {
-                using var context = new MessagePackSerializerContext(StandardResolver.Instance, catalog.Resolver);
-                MessagePackSerializer.Serialize(cacheStream, catalog, context, cancellationToken);
-            });
+    public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        Requires.NotNull(cacheStream, nameof(cacheStream));
+        Requires.NotNull(resolver, nameof(resolver));
+
+        using var context = new MessagePackSerializerContext(MessagePack.Resolvers.StandardResolver.Instance, resolver);
+        return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
+    }
+
+    private class SerializationContext : SerializationContextBase
+    {
+        private readonly Func<IImportSatisfiabilityConstraint?> readIImportSatisfiabilityConstraintDelegate;
+        private readonly Func<ImportDefinitionBinding> readImportDefinitionBindingDelegate;
+        private readonly Func<ExportDefinition> readExportDefinitionDelegate;
+
+        internal SerializationContext(BinaryReader reader, Resolver resolver)
+            : base(reader, resolver)
+        {
+            this.readIImportSatisfiabilityConstraintDelegate = this.ReadIImportSatisfiabilityConstraint;
+            this.readImportDefinitionBindingDelegate = this.ReadImportDefinitionBinding;
+            this.readExportDefinitionDelegate = this.ReadExportDefinition;
         }
 
-        public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
+            : base(writer, estimatedObjectCount, resolver)
         {
-            Requires.NotNull(cacheStream, nameof(cacheStream));
-            Requires.NotNull(resolver, nameof(resolver));
-
-            using var context = new MessagePackSerializerContext(MessagePack.Resolvers.StandardResolver.Instance, resolver);
-            return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
+            this.readIImportSatisfiabilityConstraintDelegate = this.ReadIImportSatisfiabilityConstraint;
+            this.readImportDefinitionBindingDelegate = this.ReadImportDefinitionBinding;
+            this.readExportDefinitionDelegate = this.ReadExportDefinition;
         }
 
-        private class SerializationContext : SerializationContextBase
+        private enum ConstraintTypes
         {
-            private readonly Func<IImportSatisfiabilityConstraint?> readIImportSatisfiabilityConstraintDelegate;
-            private readonly Func<ImportDefinitionBinding> readImportDefinitionBindingDelegate;
-            private readonly Func<ExportDefinition> readExportDefinitionDelegate;
+            ImportMetadataViewConstraint,
+            ExportTypeIdentityConstraint,
+            PartCreationPolicyConstraint,
+            ExportMetadataValueImportConstraint,
+        }
 
-            internal SerializationContext(BinaryReader reader, Resolver resolver)
-                : base(reader, resolver)
+        internal void Write(ComposableCatalog catalog)
+        {
+            using (this.Trace(nameof(ComposableCatalog)))
             {
-                this.readIImportSatisfiabilityConstraintDelegate = this.ReadIImportSatisfiabilityConstraint;
-                this.readImportDefinitionBindingDelegate = this.ReadImportDefinitionBinding;
-                this.readExportDefinitionDelegate = this.ReadExportDefinition;
+                this.Write(catalog.Parts, this.Write);
             }
+        }
 
-            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
-                : base(writer, estimatedObjectCount, resolver)
+        internal ComposableCatalog ReadComposableCatalog()
+        {
+            using (this.Trace(nameof(ComposableCatalog)))
             {
-                this.readIImportSatisfiabilityConstraintDelegate = this.ReadIImportSatisfiabilityConstraint;
-                this.readImportDefinitionBindingDelegate = this.ReadImportDefinitionBinding;
-                this.readExportDefinitionDelegate = this.ReadExportDefinition;
+                var parts = this.ReadList(this.ReadComposablePartDefinition);
+                return ComposableCatalog.Create(this.Resolver).AddParts(parts);
             }
+        }
 
-            private enum ConstraintTypes
+        private void Write(ComposablePartDefinition partDefinition)
+        {
+            using (this.Trace(nameof(ComposablePartDefinition)))
             {
-                ImportMetadataViewConstraint,
-                ExportTypeIdentityConstraint,
-                PartCreationPolicyConstraint,
-                ExportMetadataValueImportConstraint,
-            }
+                this.Write(partDefinition.TypeRef);
+                this.Write(partDefinition.Metadata);
+                this.Write(partDefinition.ExportedTypes, this.Write);
 
-            internal void Write(ComposableCatalog catalog)
-            {
-                using (this.Trace(nameof(ComposableCatalog)))
+                this.WriteCompressedUInt((uint)partDefinition.ExportingMembers.Count);
+                foreach (var exportingMember in partDefinition.ExportingMembers)
                 {
-                    this.Write(catalog.Parts, this.Write);
+                    this.Write(exportingMember.Key);
+                    this.Write(exportingMember.Value, this.Write);
+                }
+
+                this.Write(partDefinition.ImportingMembers, this.Write);
+                this.Write(partDefinition.SharingBoundary);
+                this.Write(partDefinition.OnImportsSatisfiedMethodRefs, this.Write);
+                if (partDefinition.ImportingConstructorOrFactoryRef == null)
+                {
+                    this.writer!.Write(false);
+                }
+                else
+                {
+                    this.writer!.Write(true);
+                    this.Write(partDefinition.ImportingConstructorOrFactoryRef);
+                    this.Write(partDefinition.ImportingConstructorImports!, this.Write);
+                }
+
+                this.Write(partDefinition.CreationPolicy);
+                this.writer.Write(partDefinition.IsSharingBoundaryInferred);
+            }
+        }
+
+        private ComposablePartDefinition ReadComposablePartDefinition()
+        {
+            using (this.Trace(nameof(ComposablePartDefinition)))
+            {
+                var partType = this.ReadTypeRef()!;
+                var partMetadata = this.ReadMetadata();
+                var exportedTypes = this.ReadList(this.readExportDefinitionDelegate);
+                var exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
+                uint exportedMembersCount = this.ReadCompressedUInt();
+                for (int i = 0; i < exportedMembersCount; i++)
+                {
+                    var member = this.ReadMemberRef()!;
+                    var exports = this.ReadList(this.readExportDefinitionDelegate);
+                    exportingMembers.Add(member, exports);
+                }
+
+                var importingMembers = this.ReadList(this.readImportDefinitionBindingDelegate);
+                var sharingBoundary = this.ReadString();
+                IReadOnlyList<MethodRef> onImportsSatisfiedMethods = this.ReadList(this.ReadMethodRef)!;
+
+                MethodRef? importingConstructor = default(MethodRef);
+                IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
+                if (this.reader!.ReadBoolean())
+                {
+                    importingConstructor = this.ReadMethodRef();
+                    importingConstructorImports = this.ReadList(this.readImportDefinitionBindingDelegate);
+                }
+
+                var creationPolicy = this.ReadCreationPolicy();
+                var isSharingBoundaryInferred = this.reader.ReadBoolean();
+
+                var part = new ComposablePartDefinition(
+                    partType,
+                    partMetadata,
+                    exportedTypes,
+                    exportingMembers,
+                    importingMembers,
+                    sharingBoundary,
+                    onImportsSatisfiedMethods,
+                    importingConstructor,
+                    importingConstructorImports,
+                    creationPolicy,
+                    isSharingBoundaryInferred);
+                return part;
+            }
+        }
+
+        private void Write(CreationPolicy creationPolicy)
+        {
+            using (this.Trace(nameof(CreationPolicy)))
+            {
+                this.writer!.Write((byte)creationPolicy);
+            }
+        }
+
+        private CreationPolicy ReadCreationPolicy()
+        {
+            using (this.Trace(nameof(CreationPolicy)))
+            {
+                return (CreationPolicy)this.reader!.ReadByte();
+            }
+        }
+
+        private void Write(ExportDefinition exportDefinition)
+        {
+            using (this.Trace(nameof(ExportDefinition)))
+            {
+                this.Write(exportDefinition.ContractName);
+                this.Write(exportDefinition.Metadata);
+            }
+        }
+
+        private ExportDefinition ReadExportDefinition()
+        {
+            using (this.Trace(nameof(ExportDefinition)))
+            {
+                var contractName = this.ReadString()!;
+                var metadata = this.ReadMetadata();
+                return new ExportDefinition(contractName, metadata);
+            }
+        }
+
+        private void Write(ImportDefinition importDefinition)
+        {
+            using (this.Trace(nameof(ImportDefinition)))
+            {
+                this.Write(importDefinition.ContractName);
+                this.Write(importDefinition.Cardinality);
+                this.Write(importDefinition.Metadata);
+                this.Write(importDefinition.ExportConstraints, this.Write);
+                this.Write(importDefinition.ExportFactorySharingBoundaries, this.Write);
+            }
+        }
+
+        private ImportDefinition ReadImportDefinition()
+        {
+            using (this.Trace(nameof(ImportDefinition)))
+            {
+                var contractName = this.ReadString()!;
+                var cardinality = this.ReadImportCardinality();
+                var metadata = this.ReadMetadata();
+                var constraints = this.ReadList(this.readIImportSatisfiabilityConstraintDelegate);
+                var sharingBoundaries = this.ReadList(this.readStringDelegate);
+                return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
+            }
+        }
+
+        private void Write(ImportDefinitionBinding importDefinitionBinding)
+        {
+            using (this.Trace(nameof(ImportDefinitionBinding)))
+            {
+                this.Write(importDefinitionBinding.ImportDefinition);
+                this.Write(importDefinitionBinding.ComposablePartTypeRef);
+                this.Write(importDefinitionBinding.ImportingSiteTypeRef);
+                this.Write(importDefinitionBinding.ImportingSiteTypeWithoutCollectionRef);
+
+                if (importDefinitionBinding.ImportingMemberRef == null)
+                {
+                    this.writer!.Write(false);
+                    this.Write(importDefinitionBinding.ImportingParameterRef);
+                }
+                else
+                {
+                    this.writer!.Write(true);
+                    this.Write(importDefinitionBinding.ImportingMemberRef);
                 }
             }
+        }
 
-            internal ComposableCatalog ReadComposableCatalog()
+        private ImportDefinitionBinding ReadImportDefinitionBinding()
+        {
+            using (this.Trace(nameof(ImportDefinitionBinding)))
             {
-                using (this.Trace(nameof(ComposableCatalog)))
+                var importDefinition = this.ReadImportDefinition();
+                var part = this.ReadTypeRef()!;
+                var importingSiteTypeRef = this.ReadTypeRef()!;
+                var importingSiteTypeWithoutCollectionRef = this.ReadTypeRef()!;
+
+                MemberRef? member;
+                ParameterRef? parameter;
+                bool isMember = this.reader!.ReadBoolean();
+                if (isMember)
                 {
-                    var parts = this.ReadList(this.ReadComposablePartDefinition);
-                    return ComposableCatalog.Create(this.Resolver).AddParts(parts);
+                    member = this.ReadMemberRef()!;
+                    return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                }
+                else
+                {
+                    parameter = this.ReadParameterRef()!;
+                    return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                 }
             }
+        }
 
-            private void Write(ComposablePartDefinition partDefinition)
+        private void Write(IImportSatisfiabilityConstraint importConstraint)
+        {
+            using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
             {
-                using (this.Trace(nameof(ComposablePartDefinition)))
+                ConstraintTypes type;
+                if (importConstraint is ImportMetadataViewConstraint)
                 {
-                    this.Write(partDefinition.TypeRef);
-                    this.Write(partDefinition.Metadata);
-                    this.Write(partDefinition.ExportedTypes, this.Write);
+                    type = ConstraintTypes.ImportMetadataViewConstraint;
+                }
+                else if (importConstraint is ExportTypeIdentityConstraint)
+                {
+                    type = ConstraintTypes.ExportTypeIdentityConstraint;
+                }
+                else if (importConstraint is PartCreationPolicyConstraint)
+                {
+                    type = ConstraintTypes.PartCreationPolicyConstraint;
+                }
+                else if (importConstraint is ExportMetadataValueImportConstraint)
+                {
+                    type = ConstraintTypes.ExportMetadataValueImportConstraint;
+                }
+                else
+                {
+                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
+                }
 
-                    this.WriteCompressedUInt((uint)partDefinition.ExportingMembers.Count);
-                    foreach (var exportingMember in partDefinition.ExportingMembers)
-                    {
-                        this.Write(exportingMember.Key);
-                        this.Write(exportingMember.Value, this.Write);
-                    }
+                this.writer!.Write((byte)type);
+                switch (type)
+                {
+                    case ConstraintTypes.ImportMetadataViewConstraint:
+                        var importMetadataViewConstraint = (ImportMetadataViewConstraint)importConstraint;
+                        this.WriteCompressedUInt((uint)importMetadataViewConstraint.Requirements.Count);
+                        foreach (var item in importMetadataViewConstraint.Requirements)
+                        {
+                            this.Write(item.Key);
+                            this.Write(item.Value.MetadatumValueTypeRef);
+                            this.writer.Write(item.Value.IsMetadataumValueRequired);
+                        }
 
-                    this.Write(partDefinition.ImportingMembers, this.Write);
-                    this.Write(partDefinition.SharingBoundary);
-                    this.Write(partDefinition.OnImportsSatisfiedMethodRefs, this.Write);
-                    if (partDefinition.ImportingConstructorOrFactoryRef == null)
-                    {
-                        this.writer!.Write(false);
-                    }
-                    else
-                    {
-                        this.writer!.Write(true);
-                        this.Write(partDefinition.ImportingConstructorOrFactoryRef);
-                        this.Write(partDefinition.ImportingConstructorImports!, this.Write);
-                    }
-
-                    this.Write(partDefinition.CreationPolicy);
-                    this.writer.Write(partDefinition.IsSharingBoundaryInferred);
+                        break;
+                    case ConstraintTypes.ExportTypeIdentityConstraint:
+                        var exportTypeIdentityConstraint = (ExportTypeIdentityConstraint)importConstraint;
+                        this.Write(exportTypeIdentityConstraint.TypeIdentityName);
+                        break;
+                    case ConstraintTypes.PartCreationPolicyConstraint:
+                        var partCreationPolicyConstraint = (PartCreationPolicyConstraint)importConstraint;
+                        this.Write(partCreationPolicyConstraint.RequiredCreationPolicy);
+                        break;
+                    case ConstraintTypes.ExportMetadataValueImportConstraint:
+                        var exportMetadataValueImportConstraint = (ExportMetadataValueImportConstraint)importConstraint;
+                        this.Write(exportMetadataValueImportConstraint.Name);
+                        this.WriteObject(exportMetadataValueImportConstraint.Value);
+                        break;
+                    default:
+                        throw Assumes.NotReachable();
                 }
             }
+        }
 
-            private ComposablePartDefinition ReadComposablePartDefinition()
+        private IImportSatisfiabilityConstraint? ReadIImportSatisfiabilityConstraint()
+        {
+            using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
             {
-                using (this.Trace(nameof(ComposablePartDefinition)))
+                var type = (ConstraintTypes)this.reader!.ReadByte();
+                switch (type)
                 {
-                    var partType = this.ReadTypeRef()!;
-                    var partMetadata = this.ReadMetadata();
-                    var exportedTypes = this.ReadList(this.readExportDefinitionDelegate);
-                    var exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
-                    uint exportedMembersCount = this.ReadCompressedUInt();
-                    for (int i = 0; i < exportedMembersCount; i++)
-                    {
-                        var member = this.ReadMemberRef()!;
-                        var exports = this.ReadList(this.readExportDefinitionDelegate);
-                        exportingMembers.Add(member, exports);
-                    }
+                    case ConstraintTypes.ImportMetadataViewConstraint:
+                        uint count = this.ReadCompressedUInt();
+                        var requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
+                        for (int i = 0; i < count; i++)
+                        {
+                            var name = this.ReadString()!;
+                            var valueTypeRef = this.ReadTypeRef()!;
+                            var isRequired = this.reader.ReadBoolean();
+                            requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
+                        }
 
-                    var importingMembers = this.ReadList(this.readImportDefinitionBindingDelegate);
-                    var sharingBoundary = this.ReadString();
-                    IReadOnlyList<MethodRef> onImportsSatisfiedMethods = this.ReadList(this.ReadMethodRef)!;
+                        return new ImportMetadataViewConstraint(requirements.ToImmutable(), this.Resolver);
+                    case ConstraintTypes.ExportTypeIdentityConstraint:
+                        string? exportTypeIdentity = this.ReadString()!;
+                        return new ExportTypeIdentityConstraint(exportTypeIdentity);
+                    case ConstraintTypes.PartCreationPolicyConstraint:
+                        CreationPolicy creationPolicy = this.ReadCreationPolicy();
+                        return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
+                    case ConstraintTypes.ExportMetadataValueImportConstraint:
+                        {
+                            string? name = this.ReadString()!;
+                            object? value = this.ReadObject();
+                            return new ExportMetadataValueImportConstraint(name, value);
+                        }
 
-                    MethodRef? importingConstructor = default(MethodRef);
-                    IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
-                    if (this.reader!.ReadBoolean())
-                    {
-                        importingConstructor = this.ReadMethodRef();
-                        importingConstructorImports = this.ReadList(this.readImportDefinitionBindingDelegate);
-                    }
-
-                    var creationPolicy = this.ReadCreationPolicy();
-                    var isSharingBoundaryInferred = this.reader.ReadBoolean();
-
-                    var part = new ComposablePartDefinition(
-                        partType,
-                        partMetadata,
-                        exportedTypes,
-                        exportingMembers,
-                        importingMembers,
-                        sharingBoundary,
-                        onImportsSatisfiedMethods,
-                        importingConstructor,
-                        importingConstructorImports,
-                        creationPolicy,
-                        isSharingBoundaryInferred);
-                    return part;
-                }
-            }
-
-            private void Write(CreationPolicy creationPolicy)
-            {
-                using (this.Trace(nameof(CreationPolicy)))
-                {
-                    this.writer!.Write((byte)creationPolicy);
-                }
-            }
-
-            private CreationPolicy ReadCreationPolicy()
-            {
-                using (this.Trace(nameof(CreationPolicy)))
-                {
-                    return (CreationPolicy)this.reader!.ReadByte();
-                }
-            }
-
-            private void Write(ExportDefinition exportDefinition)
-            {
-                using (this.Trace(nameof(ExportDefinition)))
-                {
-                    this.Write(exportDefinition.ContractName);
-                    this.Write(exportDefinition.Metadata);
-                }
-            }
-
-            private ExportDefinition ReadExportDefinition()
-            {
-                using (this.Trace(nameof(ExportDefinition)))
-                {
-                    var contractName = this.ReadString()!;
-                    var metadata = this.ReadMetadata();
-                    return new ExportDefinition(contractName, metadata);
-                }
-            }
-
-            private void Write(ImportDefinition importDefinition)
-            {
-                using (this.Trace(nameof(ImportDefinition)))
-                {
-                    this.Write(importDefinition.ContractName);
-                    this.Write(importDefinition.Cardinality);
-                    this.Write(importDefinition.Metadata);
-                    this.Write(importDefinition.ExportConstraints, this.Write);
-                    this.Write(importDefinition.ExportFactorySharingBoundaries, this.Write);
-                }
-            }
-
-            private ImportDefinition ReadImportDefinition()
-            {
-                using (this.Trace(nameof(ImportDefinition)))
-                {
-                    var contractName = this.ReadString()!;
-                    var cardinality = this.ReadImportCardinality();
-                    var metadata = this.ReadMetadata();
-                    var constraints = this.ReadList(this.readIImportSatisfiabilityConstraintDelegate);
-                    var sharingBoundaries = this.ReadList(this.readStringDelegate);
-                    return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
-                }
-            }
-
-            private void Write(ImportDefinitionBinding importDefinitionBinding)
-            {
-                using (this.Trace(nameof(ImportDefinitionBinding)))
-                {
-                    this.Write(importDefinitionBinding.ImportDefinition);
-                    this.Write(importDefinitionBinding.ComposablePartTypeRef);
-                    this.Write(importDefinitionBinding.ImportingSiteTypeRef);
-                    this.Write(importDefinitionBinding.ImportingSiteTypeWithoutCollectionRef);
-
-                    if (importDefinitionBinding.ImportingMemberRef == null)
-                    {
-                        this.writer!.Write(false);
-                        this.Write(importDefinitionBinding.ImportingParameterRef);
-                    }
-                    else
-                    {
-                        this.writer!.Write(true);
-                        this.Write(importDefinitionBinding.ImportingMemberRef);
-                    }
-                }
-            }
-
-            private ImportDefinitionBinding ReadImportDefinitionBinding()
-            {
-                using (this.Trace(nameof(ImportDefinitionBinding)))
-                {
-                    var importDefinition = this.ReadImportDefinition();
-                    var part = this.ReadTypeRef()!;
-                    var importingSiteTypeRef = this.ReadTypeRef()!;
-                    var importingSiteTypeWithoutCollectionRef = this.ReadTypeRef()!;
-
-                    MemberRef? member;
-                    ParameterRef? parameter;
-                    bool isMember = this.reader!.ReadBoolean();
-                    if (isMember)
-                    {
-                        member = this.ReadMemberRef()!;
-                        return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
-                    }
-                    else
-                    {
-                        parameter = this.ReadParameterRef()!;
-                        return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
-                    }
-                }
-            }
-
-            private void Write(IImportSatisfiabilityConstraint importConstraint)
-            {
-                using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
-                {
-                    ConstraintTypes type;
-                    if (importConstraint is ImportMetadataViewConstraint)
-                    {
-                        type = ConstraintTypes.ImportMetadataViewConstraint;
-                    }
-                    else if (importConstraint is ExportTypeIdentityConstraint)
-                    {
-                        type = ConstraintTypes.ExportTypeIdentityConstraint;
-                    }
-                    else if (importConstraint is PartCreationPolicyConstraint)
-                    {
-                        type = ConstraintTypes.PartCreationPolicyConstraint;
-                    }
-                    else if (importConstraint is ExportMetadataValueImportConstraint)
-                    {
-                        type = ConstraintTypes.ExportMetadataValueImportConstraint;
-                    }
-                    else
-                    {
-                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
-                    }
-
-                    this.writer!.Write((byte)type);
-                    switch (type)
-                    {
-                        case ConstraintTypes.ImportMetadataViewConstraint:
-                            var importMetadataViewConstraint = (ImportMetadataViewConstraint)importConstraint;
-                            this.WriteCompressedUInt((uint)importMetadataViewConstraint.Requirements.Count);
-                            foreach (var item in importMetadataViewConstraint.Requirements)
-                            {
-                                this.Write(item.Key);
-                                this.Write(item.Value.MetadatumValueTypeRef);
-                                this.writer.Write(item.Value.IsMetadataumValueRequired);
-                            }
-
-                            break;
-                        case ConstraintTypes.ExportTypeIdentityConstraint:
-                            var exportTypeIdentityConstraint = (ExportTypeIdentityConstraint)importConstraint;
-                            this.Write(exportTypeIdentityConstraint.TypeIdentityName);
-                            break;
-                        case ConstraintTypes.PartCreationPolicyConstraint:
-                            var partCreationPolicyConstraint = (PartCreationPolicyConstraint)importConstraint;
-                            this.Write(partCreationPolicyConstraint.RequiredCreationPolicy);
-                            break;
-                        case ConstraintTypes.ExportMetadataValueImportConstraint:
-                            var exportMetadataValueImportConstraint = (ExportMetadataValueImportConstraint)importConstraint;
-                            this.Write(exportMetadataValueImportConstraint.Name);
-                            this.WriteObject(exportMetadataValueImportConstraint.Value);
-                            break;
-                        default:
-                            throw Assumes.NotReachable();
-                    }
-                }
-            }
-
-            private IImportSatisfiabilityConstraint? ReadIImportSatisfiabilityConstraint()
-            {
-                using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
-                {
-                    var type = (ConstraintTypes)this.reader!.ReadByte();
-                    switch (type)
-                    {
-                        case ConstraintTypes.ImportMetadataViewConstraint:
-                            uint count = this.ReadCompressedUInt();
-                            var requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
-                            for (int i = 0; i < count; i++)
-                            {
-                                var name = this.ReadString()!;
-                                var valueTypeRef = this.ReadTypeRef()!;
-                                var isRequired = this.reader.ReadBoolean();
-                                requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
-                            }
-
-                            return new ImportMetadataViewConstraint(requirements.ToImmutable(), this.Resolver);
-                        case ConstraintTypes.ExportTypeIdentityConstraint:
-                            string? exportTypeIdentity = this.ReadString()!;
-                            return new ExportTypeIdentityConstraint(exportTypeIdentity);
-                        case ConstraintTypes.PartCreationPolicyConstraint:
-                            CreationPolicy creationPolicy = this.ReadCreationPolicy();
-                            return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
-                        case ConstraintTypes.ExportMetadataValueImportConstraint:
-                            {
-                                string? name = this.ReadString()!;
-                                object? value = this.ReadObject();
-                                return new ExportMetadataValueImportConstraint(name, value);
-                            }
-
-                        default:
-                            throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedConstraintType, type));
-                    }
+                    default:
+                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedConstraintType, type));
                 }
             }
         }

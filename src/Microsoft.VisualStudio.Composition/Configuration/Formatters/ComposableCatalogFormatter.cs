@@ -1,58 +1,57 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition.Formatter
+namespace Microsoft.VisualStudio.Composition.Formatter;
+
+using MessagePack;
+using MessagePack.Formatters;
+
+internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog?>
 {
-    using MessagePack;
-    using MessagePack.Formatters;
+    public static readonly ComposableCatalogFormatter Instance = new();
 
-    internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog?>
+    private ComposableCatalogFormatter()
     {
-        public static readonly ComposableCatalogFormatter Instance = new();
+    }
 
-        private ComposableCatalogFormatter()
+    /// <inheritdoc/>
+    public ComposableCatalog? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        if (reader.TryReadNil())
         {
+            return null;
         }
 
-        /// <inheritdoc/>
-        public ComposableCatalog? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        options.Security.DepthStep(ref reader);
+
+        try
         {
-            if (reader.TryReadNil())
+            var actualCount = reader.ReadArrayHeader();
+            if (actualCount != 1)
             {
-                return null;
+                throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposableCatalog)}. Expected: {1}, Actual: {actualCount}");
             }
 
-            options.Security.DepthStep(ref reader);
+            IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
+            return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
+        }
+        finally
+        {
+            reader.Depth--;
+        }
+    }
 
-            try
-            {
-                var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 1)
-                {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposableCatalog)}. Expected: {1}, Actual: {actualCount}");
-                }
-
-                IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
-                return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
-            }
-            finally
-            {
-                reader.Depth--;
-            }
+    /// <inheritdoc/>
+    public void Serialize(ref MessagePackWriter writer, ComposableCatalog? value, MessagePackSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNil();
+            return;
         }
 
-        /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ComposableCatalog? value, MessagePackSerializerOptions options)
-        {
-            if (value is null)
-            {
-                writer.WriteNil();
-                return;
-            }
+        writer.WriteArrayHeader(1);
 
-            writer.WriteArrayHeader(1);
-
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
-        }
+        options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
     }
 }

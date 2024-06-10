@@ -1,57 +1,56 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition.Formatter
+namespace Microsoft.VisualStudio.Composition.Formatter;
+
+using MessagePack;
+using MessagePack.Formatters;
+
+internal class ExportMetadataValueImportConstraintFormatter : IMessagePackFormatter<ExportMetadataValueImportConstraint?>
 {
-    using MessagePack;
-    using MessagePack.Formatters;
+    public static readonly ExportMetadataValueImportConstraintFormatter Instance = new();
 
-    internal class ExportMetadataValueImportConstraintFormatter : IMessagePackFormatter<ExportMetadataValueImportConstraint?>
+    private ExportMetadataValueImportConstraintFormatter()
     {
-        public static readonly ExportMetadataValueImportConstraintFormatter Instance = new();
+    }
 
-        private ExportMetadataValueImportConstraintFormatter()
+    public ExportMetadataValueImportConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        if (reader.TryReadNil())
         {
+            return null;
         }
 
-        public ExportMetadataValueImportConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        options.Security.DepthStep(ref reader);
+        try
         {
-            if (reader.TryReadNil())
+            var actualCount = reader.ReadArrayHeader();
+            if (actualCount != 2)
             {
-                return null;
+                throw new MessagePackSerializationException($"Invalid array count for type {nameof(ExportMetadataValueImportConstraint)}. Expected: {2}, Actual: {actualCount}");
             }
 
-            options.Security.DepthStep(ref reader);
-            try
-            {
-                var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 2)
-                {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ExportMetadataValueImportConstraint)}. Expected: {2}, Actual: {actualCount}");
-                }
+            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+            object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader, options);
+            return new ExportMetadataValueImportConstraint(name, value);
+        }
+        finally
+        {
+            reader.Depth--;
+        }
+    }
 
-                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader, options);
-                return new ExportMetadataValueImportConstraint(name, value);
-            }
-            finally
-            {
-                reader.Depth--;
-            }
+    public void Serialize(ref MessagePackWriter writer, ExportMetadataValueImportConstraint? value, MessagePackSerializerOptions options)
+    {
+        if (value is null)
+        {
+            writer.WriteNil();
+            return;
         }
 
-        public void Serialize(ref MessagePackWriter writer, ExportMetadataValueImportConstraint? value, MessagePackSerializerOptions options)
-        {
-            if (value is null)
-            {
-                writer.WriteNil();
-                return;
-            }
+        writer.WriteArrayHeader(2);
 
-            writer.WriteArrayHeader(2);
-
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
-            options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, value.Value, options);
-        }
+        options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
+        options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, value.Value, options);
     }
 }
