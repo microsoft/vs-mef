@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Composition.Formatter;
 using Microsoft.VisualStudio.Composition.Reflection;
 
 [MessagePackFormatter(typeof(ComposableCatalogFormatter))]
-
 public class ComposableCatalog : IEquatable<ComposableCatalog>
 {
     /// <summary>

@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.Composition.Formatter;
 
 [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
 [MessagePackFormatter(typeof(TypeRefObjectFormatter))]
-
 public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
 {
     /// <summary>

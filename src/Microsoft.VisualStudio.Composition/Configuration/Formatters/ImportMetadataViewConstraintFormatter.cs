@@ -31,7 +31,9 @@ internal class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<Imp
                 throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportMetadataViewConstraint)}. Expected: {1}, Actual: {actualCount}");
             }
 
-            ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement> requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
+#pragma warning disable IDE0008 // Use explicit type
+            var requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
+#pragma warning restore IDE0008 // Use explicit type
             return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
         }
         finally
