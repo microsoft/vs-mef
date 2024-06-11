@@ -373,7 +373,7 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
                 var actualCount = reader.ReadArrayHeader();
                 if (actualCount != 11)
                 {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposablePartDefinition)}. Expected: {12}, Actual: {actualCount}");
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposablePartDefinition)}. Expected: {11}, Actual: {actualCount}");
                 }
 
                 TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);

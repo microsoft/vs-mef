@@ -674,7 +674,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
                 var actualCount = reader.ReadArrayHeader();
                 if (actualCount != 7)
                 {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeImport)}. Expected: {6}, Actual: {actualCount}");
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeImport)}. Expected: {7}, Actual: {actualCount}");
                 }
 
                 options.Security.DepthStep(ref reader);
@@ -820,7 +820,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
                 int actualCount = reader.ReadArrayHeader();
                 if (actualCount != 9)
                 {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {8}, Actual: {actualCount}");
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {9}, Actual: {actualCount}");
                 }
 
                 var importingCtor = default(MethodRef);
