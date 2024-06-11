@@ -496,7 +496,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
         }
     }
 
-    [MessagePackFormatter(typeof(RuntimeExportFormatter))]
+    [MessagePackObject]
     public class RuntimeExport : IEquatable<RuntimeExport>
     {
         private MemberInfo? member;
@@ -514,6 +514,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
             this.Metadata = metadata;
         }
 
+        [SerializationConstructor]
         public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef? memberRef, TypeRef? exportedValueTypeRef, IReadOnlyDictionary<string, object?> metadata)
         {
             Requires.NotNullOrEmpty(contractName, nameof(contractName));
@@ -527,12 +528,16 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
             this.Metadata = metadata;
         }
 
+        [Key(0)]
         public string ContractName { get; private set; }
 
+        [Key(1)]
         public TypeRef DeclaringTypeRef { get; private set; }
 
+        [Key(2)]
         public MemberRef? MemberRef { get; private set; }
 
+        [Key(3)]
         public TypeRef ExportedValueTypeRef
         {
             get
@@ -551,14 +556,17 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
             }
         }
 
+        [IgnoreMember]
         public Type ExportedValueType
         {
             get { return this.ExportedValueTypeRef.ResolvedType; }
         }
 
+        [Key(4)]
         [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
+        [IgnoreMember]
         public MemberInfo? Member => this.member ?? (this.member = this.MemberRef?.MemberInfo);
 
         public override int GetHashCode() => this.ContractName.GetHashCode() + this.DeclaringTypeRef.GetHashCode();
@@ -567,7 +575,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
 
         public bool Equals(RuntimeExport? other)
         {
-            if (other == null)
+            if (other is null)
             {
                 return false;
             }
