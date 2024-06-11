@@ -263,7 +263,7 @@ public class ComposableCatalog : IEquatable<ComposableCatalog>
         return false;
     }
 
-    internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog?>
+    private class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog?>
     {
         public static readonly ComposableCatalogFormatter Instance = new();
 

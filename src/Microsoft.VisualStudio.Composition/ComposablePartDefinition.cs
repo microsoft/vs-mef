@@ -351,7 +351,7 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
         this.ImportingConstructorOrFactoryRef?.GetInputAssemblies(assemblies);
     }
 
-    internal class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition?>
+    private class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition?>
     {
         public static readonly ComposablePartDefinitionFormatter Instance = new();
 

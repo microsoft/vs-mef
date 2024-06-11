@@ -95,7 +95,7 @@ public class ParameterRef : IEquatable<ParameterRef>
         this.DeclaringType.GetInputAssemblies(assemblies);
     }
 
-    internal class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
+    private class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
     {
         public static readonly ParameterRefFormatter Instance = new();
 

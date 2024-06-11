@@ -223,7 +223,7 @@ public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
         this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
     }
 
-    internal class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding?>
+    private class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding?>
     {
         public static readonly ImportDefinitionBindingFormatter Instance = new();
 

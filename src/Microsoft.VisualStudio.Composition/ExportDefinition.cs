@@ -76,7 +76,7 @@ public class ExportDefinition : IEquatable<ExportDefinition>
         ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata, nameGetter);
     }
 
-    internal class ExportDefinitionFormatter : IMessagePackFormatter<ExportDefinition?>
+    private class ExportDefinitionFormatter : IMessagePackFormatter<ExportDefinition?>
     {
         public static readonly ExportDefinitionFormatter Instance = new();
 

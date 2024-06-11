@@ -216,7 +216,7 @@ public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDe
         public bool IsMetadataumValueRequired { get; private set; }
     }
 
-    internal class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<ImportMetadataViewConstraint?>
+    private class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<ImportMetadataViewConstraint?>
     {
         public static readonly ImportMetadataViewConstraintFormatter Instance = new();
 

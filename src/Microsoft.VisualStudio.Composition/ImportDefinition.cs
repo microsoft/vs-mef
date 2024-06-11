@@ -141,7 +141,7 @@ public class ImportDefinition : IEquatable<ImportDefinition>
         ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata, nameRetriever);
     }
 
-    internal class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition?>
+    private class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition?>
     {
         public static readonly ImportDefinitionFormatter Instance = new();
 

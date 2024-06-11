@@ -451,7 +451,7 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
         }
     }
 
-    internal class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
+    private class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
     {
         public static readonly TypeRefObjectFormatter Instance = new();
 

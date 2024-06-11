@@ -128,7 +128,7 @@ public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDe
     /// This formatter is designed to avoid invoking the constructor during deserialization,
     /// which helps to prevent the allocation of many redundant classes.
     /// </summary>
-    internal class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
+    private class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
     {
         public static readonly PartCreationPolicyConstraintFormatter Instance = new();
 

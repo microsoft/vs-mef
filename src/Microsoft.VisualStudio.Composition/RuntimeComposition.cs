@@ -590,7 +590,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
         }
     }
 
-    internal class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition?>
+    private class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition?>
     {
         public static readonly RuntimeCompositionFormatter Instance = new();
 
@@ -643,7 +643,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
         }
     }
 
-    internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport?>
+    private class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport?>
     {
         public static readonly RuntimeImportFormatter Instance = new();
 
@@ -798,7 +798,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
         }
     }
 
-    internal class RuntimePartFormatter : IMessagePackFormatter<RuntimePart?>
+    private class RuntimePartFormatter : IMessagePackFormatter<RuntimePart?>
     {
         public static readonly RuntimePartFormatter Instance = new();
 

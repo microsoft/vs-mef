@@ -58,7 +58,7 @@ public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstrai
         indentingWriter.WriteLine("{0} = {1}", this.Name, this.Value);
     }
 
-    internal class ExportMetadataValueImportConstraintFormatter : IMessagePackFormatter<ExportMetadataValueImportConstraint?>
+    private class ExportMetadataValueImportConstraintFormatter : IMessagePackFormatter<ExportMetadataValueImportConstraint?>
     {
         public static readonly ExportMetadataValueImportConstraintFormatter Instance = new();
 

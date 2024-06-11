@@ -76,7 +76,7 @@ public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDe
         return this.TypeIdentityName == other.TypeIdentityName;
     }
 
-    internal class ExportTypeIdentityConstraintFormatter : IMessagePackFormatter<ExportTypeIdentityConstraint?>
+    private class ExportTypeIdentityConstraintFormatter : IMessagePackFormatter<ExportTypeIdentityConstraint?>
     {
         public static readonly ExportTypeIdentityConstraintFormatter Instance = new();
 
