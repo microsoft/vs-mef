@@ -18,9 +18,7 @@ using Microsoft.VisualStudio.Composition.Reflection;
 /// The <see cref="MessagePackSerializerContext"/> class is used to configure the serialization and deserialization process in MessagePack.
 /// It allows for customization of the serialization process by providing a resolver for formatters and a composition resolver.
 /// </remarks>
-#pragma warning disable CS3009 // Base type is not CLS-compliant
 public class MessagePackSerializerContext : MessagePackSerializerOptions
-#pragma warning restore CS3009 // Base type is not CLS-compliant
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MessagePackSerializerContext"/> class.
@@ -29,9 +27,7 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
     /// <remarks>
     /// This class extends the <see cref="MessagePackSerializerOptions"/> class and implements the <see cref="IDisposable"/> interface.
     /// </remarks>
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
     public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
-#pragma warning restore CS3001 // Argument type is not CLS-compliant
         : base(GetIFormatterResolver(resolver))
     {
         this.CompositionResolver = compositionResolver;

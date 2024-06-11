@@ -12,9 +12,9 @@ using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Reflection;
 using static Microsoft.VisualStudio.Composition.LazyMetadataWrapper;
 
-public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
+internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
 {
-    public static readonly MetadataDictionaryFormatter Instance = new();
+    internal static readonly MetadataDictionaryFormatter Instance = new();
 
     private MetadataDictionaryFormatter()
     {
@@ -294,7 +294,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                             break;
 
                         case ObjectType.TypeSubstitution:
-                            TypeRef typeRef = typeRefFormatter.Value.Deserialize(ref messagePackReader, options) ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(TypeSubstitution)}"); ;
+                            TypeRef typeRef = typeRefFormatter.Value.Deserialize(ref messagePackReader, options) ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(TypeSubstitution)}");
                             deserializedValue = new LazyMetadataWrapper.TypeSubstitution(typeRef);
                             break;
 

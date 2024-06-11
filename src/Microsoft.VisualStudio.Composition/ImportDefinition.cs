@@ -200,5 +200,4 @@ public class ImportDefinition : IEquatable<ImportDefinition>
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);
         }
     }
-
 }

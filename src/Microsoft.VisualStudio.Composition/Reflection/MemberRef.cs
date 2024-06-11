@@ -39,14 +39,14 @@ public abstract class MemberRef : IEquatable<MemberRef>
         this.IsStatic = isStatic;
     }
 
-    protected MemberRef(TypeRef declaringType, MemberInfo cachedMemberInfo)
+    protected MemberRef(TypeRef declaringType, MemberInfo memberInfo)
     {
         Requires.NotNull(declaringType, nameof(declaringType));
-        Requires.NotNull(cachedMemberInfo, nameof(cachedMemberInfo));
+        Requires.NotNull(memberInfo, nameof(memberInfo));
 
         this.DeclaringType = declaringType;
-        this.cachedMemberInfo = cachedMemberInfo;
-        this.IsStatic = cachedMemberInfo.IsStatic();
+        this.cachedMemberInfo = memberInfo;
+        this.IsStatic = memberInfo.IsStatic();
     }
 
     protected MemberRef(MemberInfo memberInfo, Resolver resolver)

@@ -201,7 +201,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var before = new StringWriter();
             catalog.ToString(before);
-
             var after = new StringWriter();
             deserializedCatalog.ToString(after);
 

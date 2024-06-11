@@ -245,7 +245,7 @@ Microsoft.VisualStudio.Composition.Reflection.MemberRef
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.AssemblyName.get -> System.Reflection.AssemblyName!
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.DeclaringType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef!
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberInfo.get -> System.Reflection.MemberInfo!
-Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef! declaringType, System.Reflection.MemberInfo! cachedMemberInfo) -> void
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef! declaringType, System.Reflection.MemberInfo! memberInfo) -> void
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(System.Reflection.MemberInfo! memberInfo, Microsoft.VisualStudio.Composition.Resolver! resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MetadataToken.get -> int
 Microsoft.VisualStudio.Composition.Reflection.MethodRef
