@@ -30,6 +30,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF002_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" contains a mix of attributes from MEFv1 and MEFv2. Consolidate to just one variety of attributes.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA["{0}" 형식에 MEFv1 및 MEFv2의 특성이 혼합되어 있습니다. 하나의 특성 종류로만 통합하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF002_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Avoid mixing MEF attribute varieties]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MEF 특성 종류를 혼합하지 마세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
