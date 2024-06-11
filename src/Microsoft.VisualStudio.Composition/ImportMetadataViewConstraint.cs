@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 using Microsoft.VisualStudio.Composition.Reflection;
 
@@ -213,5 +214,54 @@ public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDe
 
         [Key(1)]
         public bool IsMetadataumValueRequired { get; private set; }
+    }
+
+    internal class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<ImportMetadataViewConstraint?>
+    {
+        public static readonly ImportMetadataViewConstraintFormatter Instance = new();
+
+        private ImportMetadataViewConstraintFormatter()
+        {
+        }
+
+        public ImportMetadataViewConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 1)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportMetadataViewConstraint)}. Expected: {1}, Actual: {actualCount}");
+                }
+
+#pragma warning disable IDE0008 // Use explicit type
+                var requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
+#pragma warning restore IDE0008 // Use explicit type
+                return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+
+        public void Serialize(ref MessagePackWriter writer, ImportMetadataViewConstraint? value, MessagePackSerializerOptions options)
+        {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
+            writer.WriteArrayHeader(1);
+
+            options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Serialize(ref writer, value.Requirements, options);
+        }
     }
 }

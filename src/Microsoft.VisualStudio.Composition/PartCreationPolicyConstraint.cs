@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 
 /// <summary>
@@ -120,5 +121,57 @@ public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDe
         }
 
         return this.RequiredCreationPolicy == other.RequiredCreationPolicy;
+    }
+
+    /// <summary>
+    /// A custom formatter for the <see cref="PartCreationPolicyConstraint"/> class.
+    /// This formatter is designed to avoid invoking the constructor during deserialization,
+    /// which helps to prevent the allocation of many redundant classes.
+    /// </summary>
+    internal class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
+    {
+        public static readonly PartCreationPolicyConstraintFormatter Instance = new();
+
+        private PartCreationPolicyConstraintFormatter()
+        {
+        }
+
+        public PartCreationPolicyConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                int actualCount = reader.ReadArrayHeader();
+                if (actualCount != 1)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {1}, Actual: {actualCount}");
+                }
+
+                CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
+                return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+
+        public void Serialize(ref MessagePackWriter writer, PartCreationPolicyConstraint? value, MessagePackSerializerOptions options)
+        {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
+            writer.WriteArrayHeader(1);
+
+            options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.RequiredCreationPolicy, options);
+        }
     }
 }

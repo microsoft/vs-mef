@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 using Microsoft.VisualStudio.Composition.Reflection;
 
@@ -586,6 +587,306 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
                 && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueTypeRef, other.ExportedValueTypeRef)
                 && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
             return result;
+        }
+    }
+
+    internal class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition?>
+    {
+        public static readonly RuntimeCompositionFormatter Instance = new();
+
+        private RuntimeCompositionFormatter()
+        {
+        }
+
+        /// <inheritdoc/>
+        public RuntimeComposition? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+
+            try
+            {
+                options.Security.DepthStep(ref reader);
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 2)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeComposition)}. Expected: {2}, Actual: {actualCount}");
+                }
+
+                IReadOnlyCollection<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Deserialize(ref reader, options);
+
+                IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Deserialize(ref reader, options);
+
+                return RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, options.CompositionResolver());
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Serialize(ref MessagePackWriter writer, RuntimeComposition? value, MessagePackSerializerOptions options)
+        {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
+            writer.WriteArrayHeader(2);
+
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Serialize(ref writer, value.MetadataViewsAndProviders, options);
+        }
+    }
+
+    internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport?>
+    {
+        public static readonly RuntimeImportFormatter Instance = new();
+
+        private RuntimeImportFormatter()
+        {
+        }
+
+        private enum RuntimeImportFlags : byte
+        {
+            None = 0x00,
+            IsNonSharedInstanceRequired = 0x01,
+            IsExportFactory = 0x02,
+            CardinalityExactlyOne = 0x04,
+            CardinalityOneOrZero = 0x08,
+            IsParameter = 0x10,
+        }
+
+        /// <inheritdoc/>
+        public RuntimeImport? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+
+            try
+            {
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != 7)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeImport)}. Expected: {6}, Actual: {actualCount}");
+                }
+
+                options.Security.DepthStep(ref reader);
+
+                var flags = (RuntimeImportFlags)reader.ReadByte();
+                ImportCardinality cardinality =
+                  (flags & RuntimeImportFlags.CardinalityOneOrZero) == RuntimeImportFlags.CardinalityOneOrZero ? ImportCardinality.OneOrZero :
+                  (flags & RuntimeImportFlags.CardinalityExactlyOne) == RuntimeImportFlags.CardinalityExactlyOne ? ImportCardinality.ExactlyOne :
+                  ImportCardinality.ZeroOrMore;
+                bool isExportFactory = (flags & RuntimeImportFlags.IsExportFactory) == RuntimeImportFlags.IsExportFactory;
+
+                var importingMember = default(MemberRef);
+                var importingParameter = default(ParameterRef);
+                if ((flags & RuntimeImportFlags.IsParameter) == RuntimeImportFlags.IsParameter)
+                {
+                    importingParameter = options.Resolver.GetFormatterWithVerify<ParameterRef?>().Deserialize(ref reader, options);
+                }
+                else
+                {
+                    importingMember = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
+                }
+
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+                TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
+
+                TypeRef importingSiteTypeWithoutCollectionRef;
+                if (cardinality == ImportCardinality.ZeroOrMore)
+                {
+                    importingSiteTypeWithoutCollectionRef = typeRefFormatter.Deserialize(ref reader, options);
+                }
+                else
+                {
+                    reader.Skip();
+                    importingSiteTypeWithoutCollectionRef = importingSiteTypeRef;
+                }
+
+                IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
+                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+                IReadOnlyCollection<string> exportFactorySharingBoundaries;
+                if (isExportFactory)
+                {
+                    exportFactorySharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options);
+                }
+                else
+                {
+                    reader.Skip();
+                    exportFactorySharingBoundaries = ImmutableList<string>.Empty;
+                }
+
+                return importingMember is null
+                            ? new RuntimeImport(
+                                importingParameterRef: importingParameter ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(ParameterRef)}"), importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports: satisfyingExports.ToList(), (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
+                            : new RuntimeImport(importingMember, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports.ToList(), (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Serialize(ref MessagePackWriter writer, RuntimeImport? value, MessagePackSerializerOptions options)
+        {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
+            writer.WriteArrayHeader(7);
+
+            RuntimeImportFlags flags = RuntimeImportFlags.None;
+            flags |= value.ImportingMemberRef == null ? RuntimeImportFlags.IsParameter : 0;
+            flags |= value.IsNonSharedInstanceRequired ? RuntimeImportFlags.IsNonSharedInstanceRequired : 0;
+            flags |= value.IsExportFactory ? RuntimeImportFlags.IsExportFactory : 0;
+            flags |=
+                value.Cardinality == ImportCardinality.ExactlyOne ? RuntimeImportFlags.CardinalityExactlyOne :
+                value.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
+
+            writer.Write((byte)flags);
+
+            if (value.ImportingMemberRef is null)
+            {
+                options.Resolver.GetFormatterWithVerify<ParameterRef?>().Serialize(ref writer, value.ImportingParameterRef, options);
+            }
+            else
+            {
+                options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.ImportingMemberRef, options);
+            }
+
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+            typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeRef, options);
+
+            if (value.Cardinality == ImportCardinality.ZeroOrMore)
+            {
+                typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeWithoutCollectionRef, options);
+            }
+            else
+            {
+                if (value.ImportingSiteTypeWithoutCollectionRef != value.ImportingSiteTypeRef)
+                {
+                    throw new ArgumentException($"{nameof(value.ImportingSiteTypeWithoutCollectionRef)} and {nameof(value.ImportingSiteTypeRef)} must be equal when {nameof(value.Cardinality)} is not {nameof(ImportCardinality.ZeroOrMore)}.", nameof(value));
+                }
+                else
+                {
+                    writer.WriteNil();
+                }
+            }
+
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.SatisfyingExports, options);
+
+            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
+            if (value.IsExportFactory)
+            {
+                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);
+            }
+            else
+            {
+                writer.WriteNil();
+            }
+        }
+    }
+
+    internal class RuntimePartFormatter : IMessagePackFormatter<RuntimePart?>
+    {
+        public static readonly RuntimePartFormatter Instance = new();
+
+        private RuntimePartFormatter()
+        {
+        }
+
+        /// <inheritdoc/>
+        public RuntimePart? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                int actualCount = reader.ReadArrayHeader();
+                if (actualCount != 9)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {8}, Actual: {actualCount}");
+                }
+
+                var importingCtor = default(MethodRef);
+                IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
+
+                TypeRef typeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+
+                IMessagePackFormatter<IReadOnlyList<RuntimeExport>> runtimeExportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>();
+                IReadOnlyList<RuntimeExport> exports = runtimeExportFormatter.Deserialize(ref reader, options);
+
+                IMessagePackFormatter<IReadOnlyList<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>();
+
+                if (reader.TryReadNil())
+                {
+                    reader.Skip();
+                }
+                else
+                {
+                    importingCtor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
+                    importingCtorArguments = runtimeImportFormatter.Deserialize(ref reader, options);
+                }
+
+                IReadOnlyList<RuntimeImport> importingMembers = runtimeImportFormatter.Deserialize(ref reader, options);
+                IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
+
+                string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
+
+                return new RuntimePart(typeRef, importingCtor, importingCtorArguments, importingMembers, exports, onImportsSatisfiedMethods, sharingBoundary);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Serialize(ref MessagePackWriter writer, RuntimePart? value, MessagePackSerializerOptions options)
+        {
+            if (value is null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
+            writer.WriteArrayHeader(9);
+
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.Exports, options);
+
+            IMessagePackFormatter<IReadOnlyCollection<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeImport>>();
+
+            if (value.ImportingConstructorOrFactoryMethodRef is null)
+            {
+                writer.WriteNil(); // no Importing Constructor Or Factory MethodRef arguments
+                writer.WriteNil(); // no importing constructor arguments
+            }
+            else
+            {
+                options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryMethodRef, options);
+                runtimeImportFormatter.Serialize(ref writer, value.ImportingConstructorArguments, options);
+            }
+
+            runtimeImportFormatter.Serialize(ref writer, value.ImportingMembers, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<MethodRef>>().Serialize(ref writer, value.OnImportsSatisfiedMethodRefs, options);
+
+            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.SharingBoundary, options);
         }
     }
 }

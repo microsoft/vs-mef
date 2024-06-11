@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using MessagePack;
-using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 
 /// <summary>
