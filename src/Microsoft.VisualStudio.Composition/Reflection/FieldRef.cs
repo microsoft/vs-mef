@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using MessagePack;
-using Microsoft.VisualStudio.Composition.Formatter;
 
 [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-[MessagePackFormatter(typeof(FieldRefFormatter))]
+[MessagePackObject]
 public class FieldRef : MemberRef, IEquatable<FieldRef>
 {
     /// <summary>
@@ -36,10 +35,13 @@ public class FieldRef : MemberRef, IEquatable<FieldRef>
         this.FieldTypeRef = TypeRef.Get(field.FieldType, resolver);
     }
 
+    [IgnoreMember]
     public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
 
+    [Key(1)]
     public TypeRef FieldTypeRef { get; }
 
+    [Key(3)]
     public override string Name { get; }
 
     internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);

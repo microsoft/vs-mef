@@ -11,7 +11,7 @@ using MessagePack;
 using Microsoft.VisualStudio.Composition.Formatter;
 
 [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-[MessagePackFormatter(typeof(PropertyRefFormatter))]
+[MessagePackObject]
 public class PropertyRef : MemberRef, IEquatable<PropertyRef>
 {
     /// <summary>
@@ -41,6 +41,14 @@ public class PropertyRef : MemberRef, IEquatable<PropertyRef>
         this.PropertyTypeRef = propertyTypeRef;
     }
 
+    [SerializationConstructor]
+#pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
+    public PropertyRef(TypeRef declaringType, TypeRef propertyTypeRef, int metadataToken, string name, bool isStatic, int? getMethodMetadataToken, int? setMethodMetadataToken)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+        : this(declaringType, propertyTypeRef, metadataToken, getMethodMetadataToken, setMethodMetadataToken, name, isStatic)
+    {
+    }
+
     public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
                : base(propertyInfo, resolver)
     {
@@ -50,14 +58,19 @@ public class PropertyRef : MemberRef, IEquatable<PropertyRef>
         this.PropertyTypeRef = TypeRef.Get(propertyInfo.PropertyType, resolver);
     }
 
+    [IgnoreMember]
     public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;
 
+    [Key(1)]
     public TypeRef PropertyTypeRef { get; }
 
+    [Key(5)]
     public int? GetMethodMetadataToken => this.getMethodMetadataToken;
 
+    [Key(6)]
     public int? SetMethodMetadataToken => this.setMethodMetadataToken;
 
+    [Key(3)]
     public override string Name { get; }
 
     internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);

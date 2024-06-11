@@ -8,10 +8,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using MessagePack;
+using MessagePack.Formatters;
+using Microsoft.VisualStudio.Composition.Formatter;
 
 [Union(0, typeof(FieldRef))]
 [Union(1, typeof(PropertyRef))]
 [Union(2, typeof(MethodRef))]
+[MessagePackObject]
 public abstract class MemberRef : IEquatable<MemberRef>
 {
     /// <summary>
@@ -29,6 +32,7 @@ public abstract class MemberRef : IEquatable<MemberRef>
     /// <summary>
     /// Initializes a new instance of the <see cref="MemberRef"/> class.
     /// </summary>
+    [SerializationConstructor]
     protected MemberRef(TypeRef declaringType, int metadataToken, bool isStatic)
     {
         Requires.NotNull(declaringType, nameof(declaringType));
@@ -54,16 +58,22 @@ public abstract class MemberRef : IEquatable<MemberRef>
     {
     }
 
+    [Key(0)]
     public TypeRef DeclaringType { get; }
 
+    [IgnoreMember]
     public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
+    [IgnoreMember]
     public abstract string Name { get; }
 
+    [Key(4)]
     public bool IsStatic { get; }
 
+    [Key(2)]
     public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
+    [IgnoreMember]
     public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
     internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;
