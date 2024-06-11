@@ -11,10 +11,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using MessagePack;
-using Microsoft.VisualStudio.Composition.Formatter;
 
 [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-[MessagePackFormatter(typeof(MethodRefFormatter))]
+[MessagePackObject]
 public class MethodRef : MemberRef, IEquatable<MethodRef>
 {
     /// <summary>
@@ -42,6 +41,14 @@ public class MethodRef : MemberRef, IEquatable<MethodRef>
         this.GenericMethodArguments = genericMethodArguments;
     }
 
+    [SerializationConstructor]
+#pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
+    public MethodRef(TypeRef declaringType, string name, int metadataToken, ImmutableArray<TypeRef> parameterTypes, bool isStatic, ImmutableArray<TypeRef> genericMethodArguments)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+      : this(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments)
+    {
+    }
+
     public MethodRef(MethodBase method, Resolver resolver)
         : this(method, resolver, Requires.NotNull(method, nameof(method)).GetParameterTypes(resolver))
     {
@@ -66,16 +73,21 @@ public class MethodRef : MemberRef, IEquatable<MethodRef>
         this.GenericMethodArguments = ImmutableArray<TypeRef>.Empty;
     }
 
+    [IgnoreMember]
     public MethodBase MethodBase => (MethodBase)this.MemberInfo;
 
+    [IgnoreMember]
     public MethodBase? MethodBaseNoResolve => (MethodBase?)this.MemberInfoNoResolve;
 
     protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
+    [Key(1)]
     public override string Name { get; }
 
+    [Key(3)]
     public ImmutableArray<TypeRef> ParameterTypes { get; }
 
+    [Key(5)]
     public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
     [return: NotNullIfNotNull("method")]

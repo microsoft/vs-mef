@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using MessagePack;
-using MessagePack.Formatters;
-using Microsoft.VisualStudio.Composition.Formatter;
 
 [Union(0, typeof(FieldRef))]
 [Union(1, typeof(PropertyRef))]

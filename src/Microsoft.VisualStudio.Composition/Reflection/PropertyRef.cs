@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using MessagePack;
-using Microsoft.VisualStudio.Composition.Formatter;
 
 [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
 [MessagePackObject]
