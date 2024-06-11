@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 
 /// <summary>
@@ -17,7 +18,7 @@ using Microsoft.VisualStudio.Composition.Formatter;
 /// two assemblies are equivalent.
 /// </summary>
 [DebuggerDisplay("{" + nameof(Name) + "}")]
-[MessagePackFormatter(typeof(StrongAssemblyIdentityFormatter))]
+[MessagePackObject]
 public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
 {
     /// <summary>
@@ -35,12 +36,15 @@ public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     /// <summary>
     /// Gets the assembly's full name.
     /// </summary>
+    [Key(0)]
+    [MessagePackFormatter(typeof(AssemblyNameFormatter))]
     public AssemblyName Name { get; }
 
     /// <summary>
     /// Gets the MVID for the assembly's manifest module. This is a unique identifier that represents individual
     /// builds of an assembly.
     /// </summary>
+    [Key(1)]
     public Guid Mvid { get; }
 
     /// <summary>
@@ -54,7 +58,7 @@ public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     {
         Requires.NotNullOrEmpty(assemblyFile, nameof(assemblyFile));
 
-        if (assemblyName == null)
+        if (assemblyName is null)
         {
             assemblyName = AssemblyName.GetAssemblyName(assemblyFile);
         }
