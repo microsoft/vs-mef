@@ -30,7 +30,6 @@ public abstract class MemberRef : IEquatable<MemberRef>
     /// <summary>
     /// Initializes a new instance of the <see cref="MemberRef"/> class.
     /// </summary>
-    [SerializationConstructor]
     protected MemberRef(TypeRef declaringType, int metadataToken, bool isStatic)
     {
         Requires.NotNull(declaringType, nameof(declaringType));

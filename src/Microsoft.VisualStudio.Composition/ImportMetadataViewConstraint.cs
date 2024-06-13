@@ -240,9 +240,7 @@ public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDe
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportMetadataViewConstraint)}. Expected: {1}, Actual: {actualCount}");
                 }
 
-#pragma warning disable IDE0008 // Use explicit type
                 var requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
-#pragma warning restore IDE0008 // Use explicit type
                 return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
             }
             finally

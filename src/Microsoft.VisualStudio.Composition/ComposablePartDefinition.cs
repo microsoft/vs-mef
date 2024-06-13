@@ -408,6 +408,10 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
                         importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
                     }
                 }
+                else
+                {
+                    reader.Skip();
+                }
 
                 CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
                 bool isSharingBoundaryInferred = reader.ReadBoolean();
@@ -460,6 +464,7 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
 
             if (value.ImportingConstructorOrFactoryRef is null)
             {
+                writer.WriteNil();
                 writer.WriteNil();
             }
             else

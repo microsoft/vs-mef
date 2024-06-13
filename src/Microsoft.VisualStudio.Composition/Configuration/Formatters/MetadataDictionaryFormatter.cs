@@ -34,14 +34,14 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
         value = LazyMetadataWrapper.TryUnwrap(value);
         serializedMetadata = new LazyMetadataWrapper(value.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, options.CompositionResolver());
 
-        var stringFormatter = new Lazy<IMessagePackFormatter<string>>(() => options.Resolver.GetFormatterWithVerify<string>());
-        var typeRefFormatter = new Lazy<IMessagePackFormatter<TypeRef?>>(() => options.Resolver.GetFormatterWithVerify<TypeRef?>());
-        var guidFormatter = new Lazy<IMessagePackFormatter<Guid>>(() => options.Resolver.GetFormatterWithVerify<Guid>());
-        var typeRefFormatterCollection = new Lazy<IMessagePackFormatter<IReadOnlyCollection<TypeRef?>>>(() => options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<TypeRef?>>());
+        var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
+        var typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
+        var guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
+        var typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>();
 
         foreach (KeyValuePair<string, object?> item in serializedMetadata)
         {
-            stringFormatter.Value.Serialize(ref writer, item.Key, options);
+            stringFormatter.Serialize(ref writer, item.Key, options);
             SerializeObject(ref writer, item.Value);
         }
 
@@ -56,10 +56,13 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
             switch (value)
             {
                 case Array array:
-                    messagePackWriter.WriteArrayHeader(array.Length + 2); // +1 for the type of the array elementTypeRef
+                    messagePackWriter.WriteArrayHeader(3);
+
                     messagePackWriter.Write((byte)ObjectType.Array);
                     TypeRef? elementTypeRef = TypeRef.Get(value.GetType().GetElementType(), options.CompositionResolver());
-                    typeRefFormatter.Value.Serialize(ref messagePackWriter, elementTypeRef, options);
+                    typeRefFormatter.Serialize(ref messagePackWriter, elementTypeRef, options);
+
+                    messagePackWriter.WriteArrayHeader(array.Length);
                     foreach (object? item in array)
                     {
                         SerializeObject(ref messagePackWriter, item);
@@ -72,7 +75,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     break;
 
                 case string stringValue:
-                    stringFormatter.Value.Serialize(ref messagePackWriter, stringValue, options);
+                    stringFormatter.Serialize(ref messagePackWriter, stringValue, options);
                     break;
 
                 case long longValue:
@@ -124,7 +127,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                 case Guid guidValue:
                     messagePackWriter.WriteArrayHeader(2);
                     messagePackWriter.Write((byte)ObjectType.Guid);
-                    guidFormatter.Value.Serialize(ref messagePackWriter, guidValue, options);
+                    guidFormatter.Serialize(ref messagePackWriter, guidValue, options);
                     break;
 
                 case CreationPolicy creationPolicyValue:
@@ -136,26 +139,26 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                 case TypeRef typeRefTypeValue:
                     messagePackWriter.WriteArrayHeader(2);
                     messagePackWriter.Write((byte)ObjectType.TypeRef);
-                    typeRefFormatter.Value.Serialize(ref messagePackWriter, typeRefTypeValue, options);
+                    typeRefFormatter.Serialize(ref messagePackWriter, typeRefTypeValue, options);
                     break;
 
                 case LazyMetadataWrapper.Enum32Substitution enum32SubstitutionValue:
                     messagePackWriter.WriteArrayHeader(3);
                     messagePackWriter.Write((byte)ObjectType.Enum32Substitution);
-                    typeRefFormatter.Value.Serialize(ref messagePackWriter, enum32SubstitutionValue.EnumType, options);
+                    typeRefFormatter.Serialize(ref messagePackWriter, enum32SubstitutionValue.EnumType, options);
                     options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref messagePackWriter, enum32SubstitutionValue.RawValue, options);
                     break;
 
                 case LazyMetadataWrapper.TypeSubstitution typeSubstitutionValue:
                     messagePackWriter.WriteArrayHeader(2);
                     messagePackWriter.Write((byte)ObjectType.TypeSubstitution);
-                    typeRefFormatter.Value.Serialize(ref messagePackWriter, typeSubstitutionValue.TypeRef, options);
+                    typeRefFormatter.Serialize(ref messagePackWriter, typeSubstitutionValue.TypeRef, options);
                     break;
 
                 case LazyMetadataWrapper.TypeArraySubstitution typeArraySubstitutionValue:
                     messagePackWriter.WriteArrayHeader(2);
                     messagePackWriter.Write((byte)ObjectType.TypeArraySubstitution);
-                    typeRefFormatterCollection.Value.Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
+                    typeRefFormatterCollection.Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
 
                     break;
 
@@ -163,11 +166,11 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     messagePackWriter.WriteArrayHeader(2);
                     TypeRef typeRefValue = TypeRef.Get((Type)value, options.CompositionResolver());
                     messagePackWriter.Write((byte)ObjectType.Type);
-                    typeRefFormatter.Value.Serialize(ref messagePackWriter, typeRefValue, options);
+                    typeRefFormatter.Serialize(ref messagePackWriter, typeRefValue, options);
                     break;
                 default:
                     messagePackWriter.WriteArrayHeader(2);
-                    messagePackWriter.Write((byte)ObjectType.TypeLess);
+                    messagePackWriter.Write((byte)ObjectType.Typeless);
                     TypelessFormatter.Instance.Serialize(ref messagePackWriter, value, options);
                     break;
             }
@@ -176,28 +179,27 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
 
     public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
-
         int count = reader.ReadMapHeader();
         ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty;
 
-        var stringFormatter = new Lazy<IMessagePackFormatter<string>>(() => options.Resolver.GetFormatterWithVerify<string>());
-        var typeRefFormatter = new Lazy<IMessagePackFormatter<TypeRef?>>(() => options.Resolver.GetFormatterWithVerify<TypeRef?>());
-        var guidFormatter = new Lazy<IMessagePackFormatter<Guid>>(() => options.Resolver.GetFormatterWithVerify<Guid>());
-        var typeRefFormatterCollection = new Lazy<IMessagePackFormatter<IReadOnlyList<TypeRef>>>(() => options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>());
+        var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
+        var typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
+        var guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
+        var typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>();
 
         if (count > 0)
         {
+            ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
+
             for (int i = 0; i < count; i++)
             {
-                string? key = stringFormatter.Value.Deserialize(ref reader, options);
+                string? key = stringFormatter.Deserialize(ref reader, options);
                 object? value = DeserializeObject(ref reader);
 
                 builder.Add(key, value);
             }
 
             metadata = builder.ToImmutable();
-            builder.Clear();
         }
 
         return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, options.CompositionResolver());
@@ -233,7 +235,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     MessagePackCode.Float64 => messagePackReader.ReadDouble(),
                     _ => DeserializeCustomObject(ref messagePackReader),
                 },
-                MessagePackType.String => stringFormatter.Value.Deserialize(ref messagePackReader, options),
+                MessagePackType.String => stringFormatter.Deserialize(ref messagePackReader, options),
                 _ => DeserializeCustomObject(ref messagePackReader),
             };
             return deserializedItem;
@@ -251,11 +253,10 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     switch (objectType)
                     {
                         case ObjectType.Array:
+                            Type elementType = typeRefFormatter.Deserialize(ref messagePackReader, options).Resolve()!;
 
-                            int arrayLength = headerLength;
-
-                            Type elementType = typeRefFormatter.Value.Deserialize(ref messagePackReader, options).Resolve()!;
-                            var arrayObject = Array.CreateInstance(elementType, (int)arrayLength - 2);
+                            int arrayLength = messagePackReader.ReadArrayHeader();
+                            var arrayObject = Array.CreateInstance(elementType, arrayLength);
 
                             for (int i = 0; i < arrayObject.Length; i++)
                             {
@@ -272,7 +273,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                             break;
 
                         case ObjectType.Guid:
-                            deserializedValue = guidFormatter.Value.Deserialize(ref messagePackReader, options);
+                            deserializedValue = guidFormatter.Deserialize(ref messagePackReader, options);
                             break;
 
                         case ObjectType.CreationPolicy:
@@ -280,30 +281,30 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                             break;
 
                         case ObjectType.Type:
-                            deserializedValue = typeRefFormatter.Value.Deserialize(ref messagePackReader, options).Resolve();
+                            deserializedValue = typeRefFormatter.Deserialize(ref messagePackReader, options).Resolve();
                             break;
 
                         case ObjectType.TypeRef:
-                            deserializedValue = typeRefFormatter.Value.Deserialize(ref messagePackReader, options);
+                            deserializedValue = typeRefFormatter.Deserialize(ref messagePackReader, options);
                             break;
 
                         case ObjectType.Enum32Substitution:
-                            TypeRef enumType = typeRefFormatter.Value.Deserialize(ref messagePackReader, options) ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(Enum32Substitution)}");
+                            TypeRef enumType = typeRefFormatter.Deserialize(ref messagePackReader, options) ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(Enum32Substitution)}");
                             int rawValue = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref messagePackReader, options);
                             deserializedValue = new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
                             break;
 
                         case ObjectType.TypeSubstitution:
-                            TypeRef typeRef = typeRefFormatter.Value.Deserialize(ref messagePackReader, options) ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(TypeSubstitution)}");
+                            TypeRef typeRef = typeRefFormatter.Deserialize(ref messagePackReader, options) ?? throw new MessagePackSerializationException($"Unexpected null for the type {nameof(TypeSubstitution)}");
                             deserializedValue = new LazyMetadataWrapper.TypeSubstitution(typeRef);
                             break;
 
                         case ObjectType.TypeArraySubstitution:
-                            IReadOnlyList<TypeRef> typeRefArray = typeRefFormatterCollection.Value.Deserialize(ref messagePackReader, options);
+                            IReadOnlyList<TypeRef> typeRefArray = typeRefFormatterCollection.Deserialize(ref messagePackReader, options);
                             deserializedValue = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, options.CompositionResolver());
                             break;
 
-                        case ObjectType.TypeLess:
+                        case ObjectType.Typeless:
                             deserializedValue = TypelessFormatter.Instance.Deserialize(ref messagePackReader, options);
                             break;
 
@@ -326,7 +327,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
         CreationPolicy,
         Type,
         Array,
-        TypeLess,
+        Typeless,
         TypeRef,
         Char,
         Guid,
