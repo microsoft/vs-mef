@@ -43,7 +43,7 @@ public class MethodRef : MemberRef, IEquatable<MethodRef>
 
     [SerializationConstructor]
 #pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
-    public MethodRef(TypeRef declaringType, string name, int metadataToken, ImmutableArray<TypeRef> parameterTypes, bool isStatic, ImmutableArray<TypeRef> genericMethodArguments)
+    public MethodRef(TypeRef declaringType, int metadataToken, bool isStatic, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
 #pragma warning restore RS0016 // Add public types and members to the declared API
       : this(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments)
     {
@@ -81,10 +81,10 @@ public class MethodRef : MemberRef, IEquatable<MethodRef>
 
     protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
-    [Key(1)]
+    [Key(3)]
     public override string Name { get; }
 
-    [Key(3)]
+    [Key(4)]
     public ImmutableArray<TypeRef> ParameterTypes { get; }
 
     [Key(5)]

@@ -471,7 +471,7 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
             try
             {
                 var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 10)
+                if (actualCount != 8)
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {10}, Actual: {actualCount}");
                 }
@@ -484,27 +484,26 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
                 TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
                 int genericTypeParameterCount = reader.ReadInt32();
                 ImmutableArray<TypeRef> genericTypeArguments = typeRefFormatter.Deserialize(ref reader, options);
-                bool shallow = reader.ReadBoolean();
+
+                bool shallow = false;
                 ImmutableArray<TypeRef> baseTypes;
-                if (!shallow)
+                if (!reader.TryReadNil())
                 {
                     baseTypes = typeRefFormatter.Deserialize(ref reader, options);
                 }
                 else
                 {
-                    reader.Skip();
                     baseTypes = ImmutableArray<TypeRef>.Empty;
+                    shallow = true;
                 }
 
-                bool hasElementType = reader.ReadInt32() != 0;
                 TypeRef? elementType;
-                if (hasElementType)
+                if (!reader.TryReadNil())
                 {
                     elementType = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader, options);
                 }
                 else
                 {
-                    reader.Skip();
                     elementType = null;
                 }
 
@@ -525,7 +524,7 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
                 return;
             }
 
-            writer.WriteArrayHeader(10);
+            writer.WriteArrayHeader(8);
 
             options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
             writer.Write(value.MetadataToken);
@@ -536,7 +535,7 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
             IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
             typeRefFormatter.Serialize(ref writer, value.GenericTypeArguments, options);
 
-            writer.Write(value.IsShallow);
+           // writer.Write(value.IsShallow);
 
             if (!value.IsShallow)
             {
@@ -547,7 +546,7 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
                 writer.WriteNil();
             }
 
-            writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
+           // writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
 
             if (!value.ElementTypeRef.Equals(value))
             {

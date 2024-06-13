@@ -19,7 +19,6 @@ public class FieldRef : MemberRef, IEquatable<FieldRef>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
-    [SerializationConstructor]
     public FieldRef(TypeRef declaringType, TypeRef fieldTypeRef, int metadataToken, string name, bool isStatic)
         : base(declaringType, metadataToken, isStatic)
     {
@@ -35,13 +34,21 @@ public class FieldRef : MemberRef, IEquatable<FieldRef>
         this.FieldTypeRef = TypeRef.Get(field.FieldType, resolver);
     }
 
+    [SerializationConstructor]
+#pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
+    public FieldRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef fieldTypeRef, string name)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+    : this(declaringType, fieldTypeRef, metadataToken, name, isStatic)
+    {
+    }
+
     [IgnoreMember]
     public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
 
-    [Key(1)]
+    [Key(3)]
     public TypeRef FieldTypeRef { get; }
 
-    [Key(3)]
+    [Key(4)]
     public override string Name { get; }
 
     internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);

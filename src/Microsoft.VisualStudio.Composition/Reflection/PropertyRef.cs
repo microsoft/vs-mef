@@ -42,7 +42,7 @@ public class PropertyRef : MemberRef, IEquatable<PropertyRef>
 
     [SerializationConstructor]
 #pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
-    public PropertyRef(TypeRef declaringType, TypeRef propertyTypeRef, int metadataToken, string name, bool isStatic, int? getMethodMetadataToken, int? setMethodMetadataToken)
+    public PropertyRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef propertyTypeRef, string name, int? getMethodMetadataToken, int? setMethodMetadataToken)
 #pragma warning restore RS0016 // Add public types and members to the declared API
         : this(declaringType, propertyTypeRef, metadataToken, getMethodMetadataToken, setMethodMetadataToken, name, isStatic)
     {
@@ -60,17 +60,17 @@ public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     [IgnoreMember]
     public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;
 
-    [Key(1)]
+    [Key(3)]
     public TypeRef PropertyTypeRef { get; }
+
+    [Key(4)]
+    public override string Name { get; }
 
     [Key(5)]
     public int? GetMethodMetadataToken => this.getMethodMetadataToken;
 
     [Key(6)]
     public int? SetMethodMetadataToken => this.setMethodMetadataToken;
-
-    [Key(3)]
-    public override string Name { get; }
 
     internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
 

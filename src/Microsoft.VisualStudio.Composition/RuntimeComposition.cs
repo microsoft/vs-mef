@@ -818,7 +818,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
             try
             {
                 int actualCount = reader.ReadArrayHeader();
-                if (actualCount != 9)
+                if (actualCount != 7)
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {9}, Actual: {actualCount}");
                 }
@@ -865,7 +865,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
                 return;
             }
 
-            writer.WriteArrayHeader(9);
+            writer.WriteArrayHeader(7);
 
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.Exports, options);

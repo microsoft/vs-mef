@@ -65,11 +65,11 @@ public abstract class MemberRef : IEquatable<MemberRef>
     [IgnoreMember]
     public abstract string Name { get; }
 
-    [Key(4)]
-    public bool IsStatic { get; }
+    [Key(1)]
+    public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
     [Key(2)]
-    public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
+    public bool IsStatic { get; }
 
     [IgnoreMember]
     public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());

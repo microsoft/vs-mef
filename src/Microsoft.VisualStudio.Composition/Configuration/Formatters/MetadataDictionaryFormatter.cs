@@ -12,9 +12,9 @@ using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Reflection;
 using static Microsoft.VisualStudio.Composition.LazyMetadataWrapper;
 
-internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
+public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
 {
-    internal static readonly MetadataDictionaryFormatter Instance = new();
+    public static readonly MetadataDictionaryFormatter Instance = new();
 
     private MetadataDictionaryFormatter()
     {
