@@ -6,7 +6,7 @@ using System.Reflection;
 using MessagePack;
 using MessagePack.Formatters;
 
-public class AssemblyNameFormatter : IMessagePackFormatter<AssemblyName?>
+internal class AssemblyNameFormatter : IMessagePackFormatter<AssemblyName?>
 {
     public static readonly AssemblyNameFormatter Instance = new();
 

@@ -36,7 +36,6 @@ public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     /// Gets the assembly's full name.
     /// </summary>
     [Key(0)]
-    [MessagePackFormatter(typeof(AssemblyNameFormatter))]
     public AssemblyName Name { get; }
 
     /// <summary>
