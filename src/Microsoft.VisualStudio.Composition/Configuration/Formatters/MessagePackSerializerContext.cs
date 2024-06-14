@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Composition.Reflection;
 
 /// <summary>
 /// Provides a context for MessagePack serialization with additional options.
-/// This class extends the <see cref="MessagePackSerializerOptions"/> class and implements the <see cref="IDisposable"/> interface.
+/// This class extends the <see cref="MessagePackSerializerOptions"/> class.
 /// </summary>
 /// <remarks>
 /// The <see cref="MessagePackSerializerContext"/> class is used to configure the serialization and deserialization process in MessagePack.
@@ -25,25 +25,29 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
     /// Represents a context for MessagePack serialization with additional options.
     /// </summary>
     /// <remarks>
-    /// This class extends the <see cref="MessagePackSerializerOptions"/> class and implements the <see cref="IDisposable"/> interface.
+    /// This class extends the <see cref="MessagePackSerializerOptions"/> class.
     /// </remarks>
     public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
-        : base(GetIFormatterResolver(resolver))
+        : base(Standard.WithResolver(GetIFormatterResolver()))
     {
         this.CompositionResolver = compositionResolver;
     }
 
     public Resolver CompositionResolver { get; }
 
-    private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) =>
-        CompositeResolver.Create(
+    private static IFormatterResolver GetIFormatterResolver()
+    {
+        return new DedupingResolver(CompositeResolver.Create(
             new IMessagePackFormatter[]
             {
+                AssemblyNameFormatter.Instance,
+                MetadataDictionaryFormatter.Instance,
             },
             new IFormatterResolver[]
             {
-                 new DedupingResolver(resolver),
-            });
+                 StandardResolver.Instance,
+            }));
+    }
 
     private static readonly HashSet<Type> DedupingTypes =
     [

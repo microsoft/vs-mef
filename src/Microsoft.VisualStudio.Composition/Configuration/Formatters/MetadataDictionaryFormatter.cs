@@ -12,16 +12,22 @@ using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Reflection;
 using static Microsoft.VisualStudio.Composition.LazyMetadataWrapper;
 
+#pragma warning disable RS0016 // Add public types and members to the declared API
 public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
+#pragma warning restore RS0016 // Add public types and members to the declared API
 {
+#pragma warning disable RS0016 // Add public types and members to the declared API
     public static readonly MetadataDictionaryFormatter Instance = new();
+#pragma warning restore RS0016 // Add public types and members to the declared API
 
     private MetadataDictionaryFormatter()
     {
     }
 
     /// <inheritdoc/>
+#pragma warning disable RS0016 // Add public types and members to the declared API
     public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
+#pragma warning restore RS0016 // Add public types and members to the declared API
     {
         writer.WriteMapHeader(value.Count);
 
@@ -74,10 +80,6 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     messagePackWriter.Write(boolValue);
                     break;
 
-                case string stringValue:
-                    stringFormatter.Serialize(ref messagePackWriter, stringValue, options);
-                    break;
-
                 case long longValue:
                     messagePackWriter.WriteInt64(longValue);
                     break;
@@ -122,6 +124,12 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     messagePackWriter.WriteArrayHeader(2);
                     messagePackWriter.Write((byte)ObjectType.Char);
                     messagePackWriter.WriteUInt16(charValue);
+                    break;
+
+                case string stringValue:
+                    messagePackWriter.WriteArrayHeader(2);
+                    messagePackWriter.Write((byte)ObjectType.String);
+                    stringFormatter.Serialize(ref messagePackWriter, stringValue, options);
                     break;
 
                 case Guid guidValue:
@@ -177,7 +185,9 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
         }
     }
 
+#pragma warning disable RS0016 // Add public types and members to the declared API
     public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+#pragma warning restore RS0016 // Add public types and members to the declared API
     {
         int count = reader.ReadMapHeader();
         ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty;
@@ -235,7 +245,6 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
                     MessagePackCode.Float64 => messagePackReader.ReadDouble(),
                     _ => DeserializeCustomObject(ref messagePackReader),
                 },
-                MessagePackType.String => stringFormatter.Deserialize(ref messagePackReader, options),
                 _ => DeserializeCustomObject(ref messagePackReader),
             };
             return deserializedItem;
@@ -266,6 +275,10 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
 
                             deserializedValue = arrayObject;
 
+                            break;
+
+                        case ObjectType.String:
+                            deserializedValue = stringFormatter.Deserialize(ref messagePackReader, options);
                             break;
 
                         case ObjectType.Char:
@@ -324,6 +337,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
 
     private enum ObjectType : byte
     {
+        String,
         CreationPolicy,
         Type,
         Array,

@@ -535,8 +535,6 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
             IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
             typeRefFormatter.Serialize(ref writer, value.GenericTypeArguments, options);
 
-           // writer.Write(value.IsShallow);
-
             if (!value.IsShallow)
             {
                 typeRefFormatter.Serialize(ref writer, value.BaseTypes, options);
@@ -545,8 +543,6 @@ public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
             {
                 writer.WriteNil();
             }
-
-           // writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
 
             if (!value.ElementTypeRef.Equals(value))
             {
