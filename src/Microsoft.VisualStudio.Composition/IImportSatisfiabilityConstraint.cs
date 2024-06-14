@@ -5,13 +5,11 @@ namespace Microsoft.VisualStudio.Composition;
 
 using System;
 using MessagePack;
-using static Microsoft.VisualStudio.Composition.NetFxAdapters;
 
-[Union(0, typeof(ImportConstraint))]
-[Union(1, typeof(ExportMetadataValueImportConstraint))]
-[Union(2, typeof(ExportTypeIdentityConstraint))]
-[Union(3, typeof(ImportMetadataViewConstraint))]
-[Union(4, typeof(PartCreationPolicyConstraint))]
+[Union(0, typeof(ExportMetadataValueImportConstraint))]
+[Union(1, typeof(ExportTypeIdentityConstraint))]
+[Union(2, typeof(ImportMetadataViewConstraint))]
+[Union(3, typeof(PartCreationPolicyConstraint))]
 public interface IImportSatisfiabilityConstraint : IEquatable<IImportSatisfiabilityConstraint>
 {
     bool IsSatisfiedBy(ExportDefinition exportDefinition);
