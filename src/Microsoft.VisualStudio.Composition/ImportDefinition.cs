@@ -11,11 +11,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using MessagePack;
-using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Formatter;
 
 [DebuggerDisplay("{" + nameof(ContractName) + ",nq} ({Cardinality})")]
-[MessagePackFormatter(typeof(ImportDefinitionFormatter))]
+[MessagePackObject]
 public class ImportDefinition : IEquatable<ImportDefinition>
 {
     private readonly ImmutableList<IImportSatisfiabilityConstraint> exportConstraints;
@@ -24,6 +23,7 @@ public class ImportDefinition : IEquatable<ImportDefinition>
     /// Initializes a new instance of the <see cref="ImportDefinition"/> class
     /// based on MEF v2 attributes.
     /// </summary>
+    [SerializationConstructor]
     public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
     {
         Requires.NotNullOrEmpty(contractName, nameof(contractName));
@@ -47,21 +47,27 @@ public class ImportDefinition : IEquatable<ImportDefinition>
     {
     }
 
+    [Key(0)]
     public string ContractName { get; private set; }
 
+    [Key(1)]
     public ImportCardinality Cardinality { get; private set; }
 
-    /// <summary>
-    /// Gets the sharing boundaries created when the export factory is used.
-    /// </summary>
-    public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
-
+    [Key(2)]
+    [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
     public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
+    [Key(3)]
     public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints
     {
         get { return this.exportConstraints; }
     }
+
+    /// <summary>
+    /// Gets the sharing boundaries created when the export factory is used.
+    /// </summary>
+    [Key(4)]
+    public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
     public ImportDefinition WithExportConstraints(IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints)
     {
@@ -139,65 +145,5 @@ public class ImportDefinition : IEquatable<ImportDefinition>
 
         // TODO: consider the assembly dependencies brought in by constraints.
         ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata, nameRetriever);
-    }
-
-    private class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition?>
-    {
-        public static readonly ImportDefinitionFormatter Instance = new();
-
-        private ImportDefinitionFormatter()
-        {
-        }
-
-        /// <inheritdoc/>
-        public ImportDefinition? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-        {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-
-            options.Security.DepthStep(ref reader);
-
-            try
-            {
-                var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 5)
-                {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportDefinition)}. Expected: {5}, Actual: {actualCount}");
-                }
-
-                string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                ImportCardinality cardinality = options.Resolver.GetFormatterWithVerify<ImportCardinality>().Deserialize(ref reader, options);
-                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
-
-                IReadOnlyList<IImportSatisfiabilityConstraint> constraints = options.Resolver.GetFormatterWithVerify<IReadOnlyList<IImportSatisfiabilityConstraint>>().Deserialize(ref reader, options);
-                IReadOnlyCollection<string> sharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options);
-
-                return new ImportDefinition(contractName, cardinality, metadata, constraints, sharingBoundaries);
-            }
-            finally
-            {
-                reader.Depth--;
-            }
-        }
-
-        /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ImportDefinition? value, MessagePackSerializerOptions options)
-        {
-            if (value is null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
-            writer.WriteArrayHeader(5);
-
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
-            options.Resolver.GetFormatterWithVerify<ImportCardinality>().Serialize(ref writer, value.Cardinality, options);
-            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<IImportSatisfiabilityConstraint>>().Serialize(ref writer, value.ExportConstraints, options);
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);
-        }
     }
 }
