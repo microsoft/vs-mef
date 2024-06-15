@@ -42,6 +42,7 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
             {
                 AssemblyNameFormatter.Instance,
                 MetadataDictionaryFormatter.Instance,
+                MetadataObjectFormatter.Instance,
             },
             new IFormatterResolver[]
             {
@@ -51,6 +52,7 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
 
     private static readonly HashSet<Type> DedupingTypes =
     [
+        typeof(string),
         typeof(RuntimeComposition.RuntimeExport),
         typeof(PropertyRef),
         typeof(FieldRef),
