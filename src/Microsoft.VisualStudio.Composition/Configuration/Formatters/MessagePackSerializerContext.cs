@@ -28,14 +28,14 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
     /// This class extends the <see cref="MessagePackSerializerOptions"/> class.
     /// </remarks>
     public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
-        : base(Standard.WithResolver(GetIFormatterResolver()))
+        : base(Standard.WithResolver(GetIFormatterResolver(resolver)))
     {
         this.CompositionResolver = compositionResolver;
     }
 
     public Resolver CompositionResolver { get; }
 
-    private static IFormatterResolver GetIFormatterResolver()
+    private static IFormatterResolver GetIFormatterResolver(IFormatterResolver formatterResolver)
     {
         return new DedupingResolver(CompositeResolver.Create(
             new IMessagePackFormatter[]
@@ -45,7 +45,7 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
             },
             new IFormatterResolver[]
             {
-                 StandardResolverAllowPrivate.Instance,
+                 formatterResolver,
             }));
     }
 
