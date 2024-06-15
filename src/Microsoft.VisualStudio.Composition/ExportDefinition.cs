@@ -32,7 +32,6 @@ public class ExportDefinition : IEquatable<ExportDefinition>
     public string ContractName { get; private set; }
 
     [Key(1)]
-    [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
     public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
     public override bool Equals(object? obj)

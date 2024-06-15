@@ -55,7 +55,6 @@ public class ImportDefinition : IEquatable<ImportDefinition>
     public ImportCardinality Cardinality { get; private set; }
 
     [Key(2)]
-    [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
     public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
     [Key(3)]

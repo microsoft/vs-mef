@@ -502,6 +502,7 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
     {
         [IgnoreMember]
         private MemberInfo? member;
+
         [IgnoreMember]
         private TypeRef? exportedValueTypeRef;
 
@@ -566,7 +567,6 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
         }
 
         [Key(4)]
-        [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         [IgnoreMember]
