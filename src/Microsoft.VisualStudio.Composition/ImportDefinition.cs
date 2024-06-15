@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Composition.Formatter;
 [MessagePackObject]
 public class ImportDefinition : IEquatable<ImportDefinition>
 {
+    [IgnoreMember]
     private readonly ImmutableList<IImportSatisfiabilityConstraint> exportConstraints;
 
     /// <summary>

@@ -19,12 +19,14 @@ public abstract class MemberRef : IEquatable<MemberRef>
     /// The metadata token for this member if read from a persisted assembly.
     /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
     /// </summary>
+    [IgnoreMember]
     private readonly int? metadataToken;
 
     /// <summary>
     /// The <see cref="MemberInfo"/> that this value was instantiated with,
     /// or cached later when a metadata token was resolved.
     /// </summary>
+    [IgnoreMember]
     private MemberInfo? cachedMemberInfo;
 
     /// <summary>
@@ -73,8 +75,10 @@ public abstract class MemberRef : IEquatable<MemberRef>
     [IgnoreMember]
     public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
+    [IgnoreMember]
     internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;
 
+    [IgnoreMember]
     internal Resolver Resolver => this.DeclaringType.Resolver;
 
     [return: NotNullIfNotNull("member")]

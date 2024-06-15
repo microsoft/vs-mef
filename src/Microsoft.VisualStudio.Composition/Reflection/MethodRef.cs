@@ -20,6 +20,7 @@ public class MethodRef : MemberRef, IEquatable<MethodRef>
     /// Gets the string to display in the debugger watch window for this value.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    [IgnoreMember]
     internal virtual string DebuggerDisplay => this.ToString();
 
     public MethodRef(TypeRef declaringType, int metadataToken, string name, bool isStatic, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
@@ -42,9 +43,7 @@ public class MethodRef : MemberRef, IEquatable<MethodRef>
     }
 
     [SerializationConstructor]
-#pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
-    public MethodRef(TypeRef declaringType, int metadataToken, bool isStatic, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
-#pragma warning restore RS0016 // Add public types and members to the declared API
+    private MethodRef(TypeRef declaringType, int metadataToken, bool isStatic, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
       : this(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments)
     {
     }

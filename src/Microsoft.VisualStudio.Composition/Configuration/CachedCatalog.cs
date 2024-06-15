@@ -27,7 +27,7 @@ public class CachedCatalog
 
         return Task.Run(() =>
         {
-            var context = new MessagePackSerializerContext(StandardResolver.Instance, catalog.Resolver);
+            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, catalog.Resolver);
             MessagePackSerializer.Serialize(cacheStream, catalog, context, cancellationToken);
         });
     }
@@ -37,7 +37,7 @@ public class CachedCatalog
         Requires.NotNull(cacheStream, nameof(cacheStream));
         Requires.NotNull(resolver, nameof(resolver));
 
-        var context = new MessagePackSerializerContext(MessagePack.Resolvers.StandardResolver.Instance, resolver);
+        var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, resolver);
         return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
     }
 

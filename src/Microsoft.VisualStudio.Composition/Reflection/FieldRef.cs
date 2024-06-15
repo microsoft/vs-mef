@@ -17,6 +17,7 @@ public class FieldRef : MemberRef, IEquatable<FieldRef>
     /// Gets the string to display in the debugger watch window for this value.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    [IgnoreMember]
     private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
     public FieldRef(TypeRef declaringType, TypeRef fieldTypeRef, int metadataToken, string name, bool isStatic)
@@ -35,9 +36,7 @@ public class FieldRef : MemberRef, IEquatable<FieldRef>
     }
 
     [SerializationConstructor]
-#pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
-    public FieldRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef fieldTypeRef, string name)
-#pragma warning restore RS0016 // Add public types and members to the declared API
+    private FieldRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef fieldTypeRef, string name)
     : this(declaringType, fieldTypeRef, metadataToken, name, isStatic)
     {
     }

@@ -500,7 +500,9 @@ public class RuntimeComposition : IEquatable<RuntimeComposition>
     [MessagePackObject]
     public class RuntimeExport : IEquatable<RuntimeExport>
     {
+        [IgnoreMember]
         private MemberInfo? member;
+        [IgnoreMember]
         private TypeRef? exportedValueTypeRef;
 
         public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef? memberRef, IReadOnlyDictionary<string, object?> metadata)

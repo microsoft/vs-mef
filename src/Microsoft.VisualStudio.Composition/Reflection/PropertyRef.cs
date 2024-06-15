@@ -17,18 +17,21 @@ public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     /// Gets the string to display in the debugger watch window for this value.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    [IgnoreMember]
     private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
     /// <summary>
     /// The metadata token for this member if read from a persisted assembly.
     /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
     /// </summary>
+    [IgnoreMember]
     private readonly int? getMethodMetadataToken;
 
     /// <summary>
     /// The metadata token for this member if read from a persisted assembly.
     /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
     /// </summary>
+    [IgnoreMember]
     private readonly int? setMethodMetadataToken;
 
     public PropertyRef(TypeRef declaringType, TypeRef propertyTypeRef, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name, bool isStatic)
@@ -41,9 +44,7 @@ public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     }
 
     [SerializationConstructor]
-#pragma warning disable RS0016 // Add public types and members to the declared API, This was added to make the class serializable and avoid the breaking change
-    public PropertyRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef propertyTypeRef, string name, int? getMethodMetadataToken, int? setMethodMetadataToken)
-#pragma warning restore RS0016 // Add public types and members to the declared API
+    private PropertyRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef propertyTypeRef, string name, int? getMethodMetadataToken, int? setMethodMetadataToken)
         : this(declaringType, propertyTypeRef, metadataToken, getMethodMetadataToken, setMethodMetadataToken, name, isStatic)
     {
     }

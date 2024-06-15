@@ -12,20 +12,15 @@ using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Reflection;
 using static Microsoft.VisualStudio.Composition.LazyMetadataWrapper;
 
-#pragma warning disable RS0016 // Add public types and members to the declared API
-public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
-#pragma warning restore RS0016 // Add public types and members to the declared API
+internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
 {
-#pragma warning disable RS0016 // Add public types and members to the declared API
     public static readonly MetadataDictionaryFormatter Instance = new();
-#pragma warning restore RS0016 // Add public types and members to the declared API
 
     private MetadataDictionaryFormatter()
     {
     }
 
     /// <inheritdoc/>
-#pragma warning disable RS0016 // Add public types and members to the declared API
     public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
 #pragma warning restore RS0016 // Add public types and members to the declared API
     {
@@ -185,9 +180,7 @@ public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictio
         }
     }
 
-#pragma warning disable RS0016 // Add public types and members to the declared API
     public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-#pragma warning restore RS0016 // Add public types and members to the declared API
     {
         int count = reader.ReadMapHeader();
         ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty;

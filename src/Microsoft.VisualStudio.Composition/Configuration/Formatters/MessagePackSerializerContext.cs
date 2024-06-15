@@ -45,7 +45,7 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
             },
             new IFormatterResolver[]
             {
-                 StandardResolver.Instance,
+                 StandardResolverAllowPrivate.Instance,
             }));
     }
 
