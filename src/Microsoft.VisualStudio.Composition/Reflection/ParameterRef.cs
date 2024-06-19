@@ -1,149 +1,150 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition.Reflection;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using MessagePack;
-using MessagePack.Formatters;
-using Microsoft.VisualStudio.Composition.Formatter;
-
-[DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-[MessagePackFormatter(typeof(ParameterRefFormatter))]
-public class ParameterRef : IEquatable<ParameterRef>
+namespace Microsoft.VisualStudio.Composition.Reflection
 {
-    /// <summary>
-    /// Gets the string to display in the debugger watch window for this value.
-    /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Method.DebuggerDisplay}(p-index: {this.ParameterIndex})";
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Reflection;
+    using MessagePack;
+    using MessagePack.Formatters;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
-    /// <summary>
-    /// A cache behind the <see cref="ParameterInfo"/> property.
-    /// </summary>
-    private ParameterInfo? cachedParameterInfo;
-
-    public ParameterRef(MethodRef method, int parameterIndex)
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackFormatter(typeof(ParameterRefFormatter))]
+    public class ParameterRef : IEquatable<ParameterRef>
     {
-        Requires.NotNull(method, nameof(method));
-        Requires.Range(parameterIndex >= 0, nameof(parameterIndex));
+        /// <summary>
+        /// Gets the string to display in the debugger watch window for this value.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Method.DebuggerDisplay}(p-index: {this.ParameterIndex})";
 
-        this.Method = method;
-        this.ParameterIndex = parameterIndex;
-    }
+        /// <summary>
+        /// A cache behind the <see cref="ParameterInfo"/> property.
+        /// </summary>
+        private ParameterInfo? cachedParameterInfo;
 
-    public ParameterRef(ParameterInfo parameterInfo, Resolver resolver)
-    {
-        Requires.NotNull(parameterInfo, nameof(parameterInfo));
-        Requires.NotNull(resolver, nameof(resolver));
-
-        this.Method = new MethodRef((MethodBase)parameterInfo.Member, resolver);
-        this.ParameterIndex = parameterInfo.Position;
-    }
-
-    public MethodRef Method { get; }
-
-    public ParameterInfo? ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
-
-    public TypeRef DeclaringType => this.Method.DeclaringType;
-
-    public int MethodMetadataToken => this.Method.MetadataToken;
-
-    /// <summary>
-    /// Gets a 0-based index describing which parameter in the method this references.
-    /// </summary>
-    public int ParameterIndex { get; }
-
-    public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
-
-    internal Resolver Resolver => this.DeclaringType.Resolver;
-
-    [return: NotNullIfNotNull("parameter")]
-    public static ParameterRef? Get(ParameterInfo parameter, Resolver resolver)
-    {
-        if (parameter != null)
+        public ParameterRef(MethodRef method, int parameterIndex)
         {
-            return new ParameterRef(parameter, resolver);
+            Requires.NotNull(method, nameof(method));
+            Requires.Range(parameterIndex >= 0, nameof(parameterIndex));
+
+            this.Method = method;
+            this.ParameterIndex = parameterIndex;
         }
 
-        return default(ParameterRef);
-    }
-
-    public bool Equals(ParameterRef? other)
-    {
-        if (other is null)
+        public ParameterRef(ParameterInfo parameterInfo, Resolver resolver)
         {
-            return false;
+            Requires.NotNull(parameterInfo, nameof(parameterInfo));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            this.Method = new MethodRef((MethodBase)parameterInfo.Member, resolver);
+            this.ParameterIndex = parameterInfo.Position;
         }
 
-        return this.Method.Equals(other.Method)
-            && this.ParameterIndex == other.ParameterIndex;
-    }
+        public MethodRef Method { get; }
 
-    public override int GetHashCode() => unchecked(this.Method.MetadataToken + this.ParameterIndex);
+        public ParameterInfo? ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
 
-    public override bool Equals(object? obj) => obj is ParameterRef parameter && this.Equals(parameter);
+        public TypeRef DeclaringType => this.Method.DeclaringType;
 
-    internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
-    {
-        Requires.NotNull(assemblies, nameof(assemblies));
+        public int MethodMetadataToken => this.Method.MetadataToken;
 
-        this.DeclaringType.GetInputAssemblies(assemblies);
-    }
+        /// <summary>
+        /// Gets a 0-based index describing which parameter in the method this references.
+        /// </summary>
+        public int ParameterIndex { get; }
 
-    private class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
-    {
-        public static readonly ParameterRefFormatter Instance = new();
+        public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
-        private ParameterRefFormatter()
+        internal Resolver Resolver => this.DeclaringType.Resolver;
+
+        [return: NotNullIfNotNull("parameter")]
+        public static ParameterRef? Get(ParameterInfo parameter, Resolver resolver)
         {
-        }
-
-        /// <inheritdoc/>
-        public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-        {
-            if (reader.TryReadNil())
+            if (parameter != null)
             {
-                return null;
+                return new ParameterRef(parameter, resolver);
             }
 
-            try
+            return default(ParameterRef);
+        }
+
+        public bool Equals(ParameterRef? other)
+        {
+            if (other is null)
             {
-                var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 2)
+                return false;
+            }
+
+            return this.Method.Equals(other.Method)
+                && this.ParameterIndex == other.ParameterIndex;
+        }
+
+        public override int GetHashCode() => unchecked(this.Method.MetadataToken + this.ParameterIndex);
+
+        public override bool Equals(object? obj) => obj is ParameterRef parameter && this.Equals(parameter);
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, nameof(assemblies));
+
+            this.DeclaringType.GetInputAssemblies(assemblies);
+        }
+
+        private class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
+        {
+            public static readonly ParameterRefFormatter Instance = new();
+
+            private ParameterRefFormatter()
+            {
+            }
+
+            /// <inheritdoc/>
+            public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                if (reader.TryReadNil())
                 {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {2}, Actual: {actualCount}");
+                    return null;
                 }
 
-                options.Security.DepthStep(ref reader);
+                try
+                {
+                    var actualCount = reader.ReadArrayHeader();
+                    if (actualCount != 2)
+                    {
+                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {2}, Actual: {actualCount}");
+                    }
 
-                MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
-                int parameterIndex = reader.ReadInt32();
-                return new ParameterRef(method, parameterIndex);
+                    options.Security.DepthStep(ref reader);
+
+                    MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
+                    int parameterIndex = reader.ReadInt32();
+                    return new ParameterRef(method, parameterIndex);
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
             }
-            finally
+
+            /// <inheritdoc/>
+            public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
             {
-                reader.Depth--;
+                if (value is null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+
+                writer.WriteArrayHeader(2);
+
+                options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
+                writer.Write(value.ParameterIndex);
             }
-        }
-
-        /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
-        {
-            if (value is null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
-            writer.WriteArrayHeader(2);
-
-            options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
-            writer.Write(value.ParameterIndex);
         }
     }
 }

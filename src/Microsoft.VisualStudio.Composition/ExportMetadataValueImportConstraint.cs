@@ -1,62 +1,63 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition;
-
-using System.Collections.Generic;
-using System.IO;
-using MessagePack;
-using MessagePack.Formatters;
-using Microsoft.VisualStudio.Composition.Formatter;
-
-[MessagePackObject]
-public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
+namespace Microsoft.VisualStudio.Composition
 {
-    public ExportMetadataValueImportConstraint(string name, object? value)
+    using System.Collections.Generic;
+    using System.IO;
+    using MessagePack;
+    using MessagePack.Formatters;
+    using Microsoft.VisualStudio.Composition.Formatter;
+
+    [MessagePackObject]
+    public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        Requires.NotNullOrEmpty(name, nameof(name));
-
-        this.Name = name;
-        this.Value = value;
-    }
-
-    [Key(0)]
-    public string Name { get; private set; }
-
-    [Key(1)]
-    public object? Value { get; private set; }
-
-    public bool IsSatisfiedBy(ExportDefinition exportDefinition)
-    {
-        Requires.NotNull(exportDefinition, nameof(exportDefinition));
-
-        object? exportMetadataValue;
-        if (exportDefinition.Metadata.TryGetValue(this.Name, out exportMetadataValue))
+        public ExportMetadataValueImportConstraint(string name, object? value)
         {
-            if (EqualityComparer<object?>.Default.Equals(this.Value, exportMetadataValue))
-            {
-                return true;
-            }
+            Requires.NotNullOrEmpty(name, nameof(name));
+
+            this.Name = name;
+            this.Value = value;
         }
 
-        return false;
-    }
+        [Key(0)]
+        public string Name { get; private set; }
 
-    public bool Equals(IImportSatisfiabilityConstraint? obj)
-    {
-        var other = obj as ExportMetadataValueImportConstraint;
-        if (other == null)
+        [Key(1)]
+        public object? Value { get; private set; }
+
+        public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
+
+            object? exportMetadataValue;
+            if (exportDefinition.Metadata.TryGetValue(this.Name, out exportMetadataValue))
+            {
+                if (EqualityComparer<object?>.Default.Equals(this.Value, exportMetadataValue))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
-        return this.Name == other.Name
-            && EqualityComparer<object?>.Default.Equals(this.Value, other.Value);
-    }
+        public bool Equals(IImportSatisfiabilityConstraint? obj)
+        {
+            var other = obj as ExportMetadataValueImportConstraint;
+            if (other == null)
+            {
+                return false;
+            }
 
-    public void ToString(TextWriter writer)
-    {
-        var indentingWriter = IndentingTextWriter.Get(writer);
-        indentingWriter.WriteLine("{0} = {1}", this.Name, this.Value);
+            return this.Name == other.Name
+                && EqualityComparer<object?>.Default.Equals(this.Value, other.Value);
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("{0} = {1}", this.Name, this.Value);
+        }
     }
 }

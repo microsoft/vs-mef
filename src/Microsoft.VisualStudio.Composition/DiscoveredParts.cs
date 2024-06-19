@@ -1,65 +1,62 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition;
-
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MessagePack;
-using Microsoft.VisualStudio.Composition.Formatter;
-
-[MessagePackObject]
-public class DiscoveredParts
+namespace Microsoft.VisualStudio.Composition
 {
-    public static readonly DiscoveredParts Empty = new DiscoveredParts(ImmutableHashSet.Create<ComposablePartDefinition>(), ImmutableList.Create<PartDiscoveryException>());
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using MessagePack;
 
-    [SerializationConstructor]
-    public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<PartDiscoveryException> discoveryErrors)
+    [MessagePackObject]
+    public class DiscoveredParts
     {
-        Requires.NotNull(parts, nameof(parts));
-        Requires.NotNull(discoveryErrors, nameof(discoveryErrors));
+        public static readonly DiscoveredParts Empty = new DiscoveredParts(ImmutableHashSet.Create<ComposablePartDefinition>(), ImmutableList.Create<PartDiscoveryException>());
 
-        this.Parts = ImmutableHashSet.CreateRange(parts);
-        this.DiscoveryErrors = ImmutableList.CreateRange(discoveryErrors);
-    }
-
-    [Key(0)]
-    public ImmutableHashSet<ComposablePartDefinition> Parts { get; private set; }
-
-    [Key(1)]
-    public ImmutableList<PartDiscoveryException> DiscoveryErrors { get; private set; }
-
-    /// <summary>
-    /// Returns the discovered parts if no errors occurred, otherwise throws an exception describing any discovery failures.
-    /// </summary>
-    /// <returns>This discovery result.</returns>
-    /// <exception cref="CompositionFailedException">Thrown if <see cref="DiscoveryErrors"/> is non-empty.</exception>
-    /// <remarks>
-    /// This method returns <c>this</c> so that it may be used in a 'fluent API' expression.
-    /// </remarks>
-    public DiscoveredParts ThrowOnErrors()
-    {
-        if (this.DiscoveryErrors.Count == 0)
+        [SerializationConstructor]
+        public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<PartDiscoveryException> discoveryErrors)
         {
-            return this;
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(discoveryErrors, nameof(discoveryErrors));
+
+            this.Parts = ImmutableHashSet.CreateRange(parts);
+            this.DiscoveryErrors = ImmutableList.CreateRange(discoveryErrors);
         }
 
-        throw new CompositionFailedException(Strings.ErrorsDuringDiscovery, new AggregateException(this.DiscoveryErrors));
-    }
+        [Key(0)]
+        public ImmutableHashSet<ComposablePartDefinition> Parts { get; private set; }
 
-    internal DiscoveredParts Merge(DiscoveredParts other)
-    {
-        Requires.NotNull(other, nameof(other));
+        [Key(1)]
+        public ImmutableList<PartDiscoveryException> DiscoveryErrors { get; private set; }
 
-        if (other.Parts.Count == 0 && other.DiscoveryErrors.Count == 0)
+        /// <summary>
+        /// Returns the discovered parts if no errors occurred, otherwise throws an exception describing any discovery failures.
+        /// </summary>
+        /// <returns>This discovery result.</returns>
+        /// <exception cref="CompositionFailedException">Thrown if <see cref="DiscoveryErrors"/> is non-empty.</exception>
+        /// <remarks>
+        /// This method returns <c>this</c> so that it may be used in a 'fluent API' expression.
+        /// </remarks>
+        public DiscoveredParts ThrowOnErrors()
         {
-            return this;
+            if (this.DiscoveryErrors.Count == 0)
+            {
+                return this;
+            }
+
+            throw new CompositionFailedException(Strings.ErrorsDuringDiscovery, new AggregateException(this.DiscoveryErrors));
         }
 
-        return new DiscoveredParts(this.Parts.Union(other.Parts), this.DiscoveryErrors.AddRange(other.DiscoveryErrors));
+        internal DiscoveredParts Merge(DiscoveredParts other)
+        {
+            Requires.NotNull(other, nameof(other));
+
+            if (other.Parts.Count == 0 && other.DiscoveryErrors.Count == 0)
+            {
+                return this;
+            }
+
+            return new DiscoveredParts(this.Parts.Union(other.Parts), this.DiscoveryErrors.AddRange(other.DiscoveryErrors));
+        }
     }
 }
