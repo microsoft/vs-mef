@@ -12,23 +12,38 @@ using Microsoft.VisualStudio.Composition.Reflection;
 
 /// <summary>
 /// Provides a context for MessagePack serialization with additional options.
-/// This class extends the <see cref="MessagePackSerializerOptions"/> class.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The <see cref="MessagePackSerializerContext"/> class is used to configure the serialization and deserialization process in MessagePack.
 /// It allows for customization of the serialization process by providing a resolver for formatters and a composition resolver.
+/// </para>
+/// <para>
+/// An object of this class (or a derived class) is required to deserialize types declared within this assembly.
+/// </para>
 /// </remarks>
 public class MessagePackSerializerContext : MessagePackSerializerOptions
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MessagePackSerializerContext"/> class.
-    /// Represents a context for MessagePack serialization with additional options.
     /// </summary>
-    /// <remarks>
-    /// This class extends the <see cref="MessagePackSerializerOptions"/> class.
-    /// </remarks>
-    public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
-        : base(Standard.WithResolver(GetIFormatterResolver(resolver)))
+    /// <param name="resolver">The <see cref="Resolver"/> to use for loading assemblies at runtime.</param>
+    public MessagePackSerializerContext(Resolver resolver)
+        : this(resolver, StandardResolverAllowPrivate.Instance)
+    {
+        this.CompositionResolver = resolver;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MessagePackSerializerContext"/> class.
+    /// </summary>
+    /// <param name="compositionResolver">The <see cref="Resolver"/> to use for loading assemblies at runtime.</param>
+    /// <param name="formatterResolver">
+    /// The MessagePack object to use for resolving formatters during serialization.
+    /// This is expected to be at least as capable as the default <see cref="StandardResolverAllowPrivate"/>.
+    /// </param>
+    private MessagePackSerializerContext(Resolver compositionResolver, IFormatterResolver formatterResolver)
+        : base(Standard.WithResolver(GetIFormatterResolver(formatterResolver)))
     {
         this.CompositionResolver = compositionResolver;
     }

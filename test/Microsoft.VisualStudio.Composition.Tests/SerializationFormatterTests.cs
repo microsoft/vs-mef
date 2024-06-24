@@ -91,7 +91,7 @@ public class SerializationFormatterTests
     {
         private MessagePackReader SerializeAndGetReader(TObjectType objectToValidate, out MessagePackSerializerContext context)
         {
-            context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var bytes = MessagePackSerializer.Serialize(objectToValidate, context);
 
             return new MessagePackReader(bytes);

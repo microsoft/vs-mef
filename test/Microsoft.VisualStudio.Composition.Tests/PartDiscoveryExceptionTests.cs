@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var exceptionToTest = new PartDiscoveryException("msg") { AssemblyPath = "/some path", ScannedType = typeof(string) };
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
             MessagePackSerializer.Serialize(ms, exceptionToTest, context);
             ms.Position = 0;
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Exception innerException = new InvalidOperationException("inner");
             var exceptionToTest = new PartDiscoveryException("msg", innerException) { AssemblyPath = "/some path", ScannedType = typeof(string) };
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
             MessagePackSerializer.Serialize(ms, exceptionToTest, context);
             ms.Position = 0;
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var exceptionToTest = new PartDiscoveryException("msg", innerException1) { AssemblyPath = "/some path", ScannedType = typeof(string) };
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
             MessagePackSerializer.Serialize(ms, exceptionToTest, context);
             ms.Position = 0;
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 exceptionToTest = ex;
             }
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
             MessagePackSerializer.Serialize(ms, exceptionToTest, context);
             ms.Position = 0;
