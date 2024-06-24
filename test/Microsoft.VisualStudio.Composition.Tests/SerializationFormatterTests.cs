@@ -18,67 +18,73 @@ public class SerializationFormatterTests
     [Fact]
     public void AssemblyNameSerializeTest()
     {
-        AssemblyNameSerialize.Instance.TestSerialization();
+        AssemblyNameSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void MetaDataDictionaryFormatterSerializeTest()
     {
-        MetaDataDictionaryFormatterSerialize.Instance.TestSerialization();
+        MetaDataDictionaryFormatterSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void MetaDataObjectSerializeTest()
     {
-        MetaDataObjectSerialize.Instance.TestSerialization();
+        MetaDataObjectSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void MemberRefSerializeTest()
     {
-        MemberRefSerialize.Instance.TestSerialization();
+        MemberRefSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void TypeRefSerializeTest()
     {
-        TypeRefSerialize.Instance.TestSerialization();
+        TypeRefSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void ComposableCatalogSerializeTest()
     {
-        ComposableCatalogSerialize.Instance.TestSerialization();
+        ComposableCatalogSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void ComposablePartDefinitionSerializeTest()
     {
-        ComposablePartDefinitionSerialize.Instance.TestSerialization();
+        ComposablePartDefinitionSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void ImportDefinitionBindingSerializeTest()
     {
-        ImportDefinitionBindingSerialize.Instance.TestSerialization();
+        ImportDefinitionBindingSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void ImportMetadataViewConstraintSerializeTest()
     {
-        ImportMetadataViewConstraintSerialize.Instance.TestSerialization();
+        ImportMetadataViewConstraintSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void PartCreationPolicyConstraintSerializeTest()
     {
-        PartCreationPolicyConstraintSerialize.Instance.TestSerialization();
+        PartCreationPolicyConstraintSerialize.Instance.RunSerializationTest();
     }
 
     [Fact]
     public void RuntimeCompositionSerializeTest()
     {
-        RuntimeCompositionSerialize.Instance.TestSerialization();
+        RuntimeCompositionSerialize.Instance.RunSerializationTest();
+    }
+
+    [Fact]
+    public void PartDiscoveryExceptionSerializeTest()
+    {
+        PartDiscoveryExceptionSerialize.Instance.RunSerializationTest();
     }
 
     private abstract class TypeSerializerTest<TObjectType>
@@ -99,7 +105,7 @@ public class SerializationFormatterTests
             {
                 for (int i = 0; i < headerCount; i++)
                 {
-                    this.Read(ref messagePackReader, context);
+                    this.ProcessMessagePackReader(ref messagePackReader, context);
                 }
             }
             finally
@@ -114,9 +120,9 @@ public class SerializationFormatterTests
             context.Security.DepthStep(ref messagePackReader);
             try
             {
-                for (int i = 0; i < headerCount * 2; i++)
+                for (int i = 0; i < headerCount * 2; i++) // *2 because we have key-value pairs count in the map header.
                 {
-                    this.Read(ref messagePackReader, context);
+                    this.ProcessMessagePackReader(ref messagePackReader, context);
                 }
             }
             finally
@@ -125,7 +131,7 @@ public class SerializationFormatterTests
             }
         }
 
-        private void Read(ref MessagePackReader reader, MessagePackSerializerOptions context)
+        private void ProcessMessagePackReader(ref MessagePackReader reader, MessagePackSerializerOptions context)
         {
             switch (reader.NextMessagePackType)
             {
@@ -141,14 +147,14 @@ public class SerializationFormatterTests
             }
         }
 
-        public void TestSerialization()
+        public void RunSerializationTest()
         {
-            TObjectType[] objectsToValidate = this.CreateObjectToSerialize();
+            TObjectType[] objectsToValidate = this.PrepareObjectsForSerialization();
 
             foreach (TObjectType objectToValidate in objectsToValidate)
             {
-                var reader = this.SerializeAndGetReader(objectToValidate, out MessagePackSerializerContext context);
-                this.Read(ref reader, context);
+                MessagePackReader reader = this.SerializeAndGetReader(objectToValidate, out MessagePackSerializerContext context);
+                this.ProcessMessagePackReader(ref reader, context);
 
                 bool isMessagePackReaderAtEnd = reader.End;
 
@@ -157,7 +163,7 @@ public class SerializationFormatterTests
             }
         }
 
-        protected abstract TObjectType[] CreateObjectToSerialize();
+        protected abstract TObjectType[] PrepareObjectsForSerialization();
     }
 
     private class MetaDataObjectSerialize : TypeSerializerTest<object?>
@@ -168,7 +174,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override object?[] CreateObjectToSerialize()
+        protected override object?[] PrepareObjectsForSerialization()
         {
             return new[]
             {
@@ -186,7 +192,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override IReadOnlyDictionary<string, object?>[] CreateObjectToSerialize()
+        protected override IReadOnlyDictionary<string, object?>[] PrepareObjectsForSerialization()
         {
             var testObject1 = new Dictionary<string, object?>()
             {
@@ -222,7 +228,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override AssemblyName[] CreateObjectToSerialize()
+        protected override AssemblyName[] PrepareObjectsForSerialization()
         {
             byte[] publicKey = this.GetPublicKeyFromExecutingAssembly();
             AssemblyName testObject = this.CreateAssemblyName("AssemblyA", new Version(1, 0), CultureInfo.CurrentCulture, @"C:\some\path\AssemblyA.dll", publicKey: publicKey);
@@ -266,7 +272,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override MemberRef[] CreateObjectToSerialize()
+        protected override MemberRef[] PrepareObjectsForSerialization()
         {
             return new MemberRef[]
             {
@@ -285,7 +291,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override TypeRef[] CreateObjectToSerialize()
+        protected override TypeRef[] PrepareObjectsForSerialization()
         {
             return new TypeRef[]
             {
@@ -304,7 +310,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override ComposableCatalog[] CreateObjectToSerialize()
+        protected override ComposableCatalog[] PrepareObjectsForSerialization()
         {
             var partDiscoverer = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
             var testExportPart = partDiscoverer.CreatePart(typeof(TestExport))!;
@@ -363,7 +369,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override ComposablePartDefinition[] CreateObjectToSerialize()
+        protected override ComposablePartDefinition[] PrepareObjectsForSerialization()
         {
             var partDiscoverer = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
             var testExportPart = partDiscoverer.CreatePart(typeof(TestExport))!;
@@ -419,7 +425,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override ImportDefinitionBinding[] CreateObjectToSerialize()
+        protected override ImportDefinitionBinding[] PrepareObjectsForSerialization()
         {
             var partDiscoverer = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
             var testExportPart = partDiscoverer.CreatePart(typeof(TestExport))!;
@@ -488,7 +494,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override ImportMetadataViewConstraint[] CreateObjectToSerialize()
+        protected override ImportMetadataViewConstraint[] PrepareObjectsForSerialization()
         {
             var importMetadataViewConstraint = ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(typeof(string), TestUtilities.Resolver), TestUtilities.Resolver);
 
@@ -504,7 +510,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override PartCreationPolicyConstraint[] CreateObjectToSerialize()
+        protected override PartCreationPolicyConstraint[] PrepareObjectsForSerialization()
         {
             var partCreationPolicyConstraint = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(CreationPolicy.NonShared)!;
 
@@ -520,7 +526,7 @@ public class SerializationFormatterTests
         {
         }
 
-        protected override RuntimeComposition[] CreateObjectToSerialize()
+        protected override RuntimeComposition[] PrepareObjectsForSerialization()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(SomeExport))! });
             var configuration = CompositionConfiguration.Create(catalog);
@@ -531,5 +537,27 @@ public class SerializationFormatterTests
 
         [Export]
         public class SomeExport { }
+    }
+
+    private class PartDiscoveryExceptionSerialize : TypeSerializerTest<PartDiscoveryException>
+    {
+        public static readonly PartDiscoveryExceptionSerialize Instance = new();
+
+        public PartDiscoveryExceptionSerialize()
+        {
+        }
+
+        protected override PartDiscoveryException[] PrepareObjectsForSerialization()
+        {
+            var exceptionToTest1 = new PartDiscoveryException("msg") { AssemblyPath = "/some path", ScannedType = typeof(string) };
+
+            Exception innerException4 = new InvalidOperationException("inner4");
+            Exception innerException3 = new InvalidOperationException("inner3", innerException4);
+            Exception innerException2 = new InvalidOperationException("inner2", innerException3);
+            Exception innerException1 = new InvalidOperationException("inner1", innerException2);
+            var exceptionToTest2 = new PartDiscoveryException("msg", innerException1) { AssemblyPath = "/some path", ScannedType = typeof(string) };
+
+            return new[] { exceptionToTest1, exceptionToTest2 };
+        }
     }
 }
