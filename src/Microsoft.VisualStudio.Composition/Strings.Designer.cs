@@ -613,6 +613,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is part of a type reference cycle or references a type with a reference cycle..
+        /// </summary>
+        internal static string TypeRefCycle {
+            get {
+                return ResourceManager.GetString("TypeRefCycle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to determine the primary sharing boundary for MEF part &quot;{0}&quot;..
         /// </summary>
         internal static string UnableToDeterminePrimarySharingBoundary {

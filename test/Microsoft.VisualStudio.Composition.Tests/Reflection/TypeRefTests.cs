@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests.Reflection
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -79,6 +80,30 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             Assert.Contains("Could not load type 'Fake assembly", actualException.Message);
         }
 
+        [Fact]
+        public void Get_DirectlyRecursiveType()
+        {
+            PartDiscoveryException ex = Assert.ThrowsAny<PartDiscoveryException>(() => TypeRef.Get(typeof(DirectlyRecursiveType), Resolver.DefaultInstance));
+            Assert.Same(typeof(DirectlyRecursiveType), ex.ScannedType);
+        }
+
+        [Fact]
+        public void Get_IndirectlyRecursiveType()
+        {
+            PartDiscoveryException ex = Assert.ThrowsAny<PartDiscoveryException>(() => TypeRef.Get(typeof(IndirectlyRecursiveTypeA), Resolver.DefaultInstance));
+            Assert.Same(typeof(IndirectlyRecursiveTypeA), ex.ScannedType);
+
+            Assert.NotNull(ex.InnerException);
+            ex = (PartDiscoveryException)ex.InnerException;
+            Assert.Same(typeof(IndirectlyRecursiveTypeB), ex.ScannedType);
+
+            Assert.NotNull(ex.InnerException);
+            ex = (PartDiscoveryException)ex.InnerException;
+            Assert.Same(typeof(IndirectlyRecursiveTypeA), ex.ScannedType);
+
+            Assert.Null(ex.InnerException);
+        }
+
         private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2, Guid mvidV1, Guid mvidV2)
         {
             AssemblyName assemblyNameV1 = new AssemblyName(assemblyNameV1String);
@@ -92,6 +117,27 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyIdentityV2, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
 
             Assert.NotEqual(typeRefV1, typeRefV2);
+        }
+
+        private class DirectlyRecursiveType : IEnumerable<DirectlyRecursiveType>
+        {
+            public IEnumerator<DirectlyRecursiveType> GetEnumerator() => throw new NotImplementedException();
+
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        }
+
+        private class IndirectlyRecursiveTypeA : IEnumerable<IndirectlyRecursiveTypeB>
+        {
+            public IEnumerator<IndirectlyRecursiveTypeB> GetEnumerator() => throw new NotImplementedException();
+
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        }
+
+        private class IndirectlyRecursiveTypeB : IEnumerable<IndirectlyRecursiveTypeA>
+        {
+            public IEnumerator<IndirectlyRecursiveTypeA> GetEnumerator() => throw new NotImplementedException();
+
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         }
     }
 }

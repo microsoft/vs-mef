@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -151,6 +152,40 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Single(result.DiscoveryErrors);
             Assert.Equal("Foo\\DoesNotExist.dll", result.DiscoveryErrors[0].AssemblyPath);
         }
+
+        [Fact]
+        public void CreatePart_RecursiveType()
+        {
+            AttributedPartDiscoveryV1 discovery = new(Resolver.DefaultInstance);
+            PartDiscoveryException ex = Assert.ThrowsAny<PartDiscoveryException>(() => discovery.CreatePart(typeof(DirectlyRecursiveType)));
+            this.output.WriteLine(ex.ToString());
+        }
+
+        [Fact]
+        public async Task CreateParts_RecursiveType()
+        {
+            AttributedPartDiscoveryV1 discovery = new(Resolver.DefaultInstance);
+            DiscoveredParts discovered = await discovery.CreatePartsAsync(typeof(DirectlyRecursiveType), typeof(ValidPart));
+
+            // Valid parts should not have been skipped.
+            ComposablePartDefinition part = Assert.Single(discovered.Parts);
+            Assert.Same(typeof(ValidPart), part.Type);
+
+            // Invalid parts should have been logged.
+            PartDiscoveryException ex = Assert.Single(discovered.DiscoveryErrors);
+            this.output.WriteLine(ex.ToString());
+        }
+
+        [System.ComponentModel.Composition.Export]
+        private class DirectlyRecursiveType : IEnumerable<DirectlyRecursiveType>
+        {
+            public IEnumerator<DirectlyRecursiveType> GetEnumerator() => throw new NotImplementedException();
+
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        }
+
+        [System.ComponentModel.Composition.Export]
+        private class ValidPart;
 
         private class SynchronousProgress<T> : IProgress<T>
         {
