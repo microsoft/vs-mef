@@ -123,4 +123,10 @@
   <data name="VSMEF001_Title" xml:space="preserve">
     <value>Importing property must have setter</value>
   </data>
+  <data name="VSMEF002_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" contains a mix of attributes from MEFv1 and MEFv2. Consolidate to just one variety of attributes.</value>
+  </data>
+  <data name="VSMEF002_Title" xml:space="preserve">
+    <value>Avoid mixing MEF attribute varieties</value>
+  </data>
 </root>

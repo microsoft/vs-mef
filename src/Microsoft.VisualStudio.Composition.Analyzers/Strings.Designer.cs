@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -75,6 +75,24 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
         internal static string VSMEF001_Title {
             get {
                 return ResourceManager.GetString("VSMEF001_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &quot;{0}&quot; contains a mix of attributes from MEFv1 and MEFv2. Consolidate to just one variety of attributes..
+        /// </summary>
+        internal static string VSMEF002_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF002_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid mixing MEF attribute varieties.
+        /// </summary>
+        internal static string VSMEF002_Title {
+            get {
+                return ResourceManager.GetString("VSMEF002_Title", resourceCulture);
             }
         }
     }

@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
+    using System.Globalization;
     using System.Runtime.Serialization;
     using MessagePack;
     using MessagePack.Formatters;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="PartDiscoveryException"/> class.
         /// </summary>
         /// <param name="message"><inheritdoc cref="Exception(string?)" path="/param[@name='message']"/></param>
-        public PartDiscoveryException(string message)
+        public PartDiscoveryException(string? message)
             : base(message)
         {
         }
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="message"><inheritdoc cref="Exception(string?, Exception?)" path="/param[@name='message']"/></param>
         /// <param name="innerException"><inheritdoc cref="Exception(string?, Exception?)" path="/param[@name='innerException']"/></param>
-        public PartDiscoveryException(string message, Exception innerException)
+        public PartDiscoveryException(string? message, Exception? innerException)
             : base(message, innerException)
         {
         }
@@ -204,6 +205,27 @@ namespace Microsoft.VisualStudio.Composition
                         writer.WriteNil();
                     }
                 }
+            }
+        }
+
+        [Serializable]
+        internal class RecursiveTypeException : PartDiscoveryException
+        {
+            public RecursiveTypeException(Type type, Exception? innerException)
+                : base(string.Format(CultureInfo.CurrentCulture, Strings.TypeRefCycle, type.FullName), innerException)
+            {
+                this.ScannedType = type;
+                this.AssemblyPath = type.Assembly.Location;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="RecursiveTypeException"/> class.
+            /// </summary>
+            /// <param name="info"><inheritdoc cref="Exception(SerializationInfo, StreamingContext)" path="/param[@name='info']"/></param>
+            /// <param name="context"><inheritdoc cref="Exception(SerializationInfo, StreamingContext)" path="/param[@name='context']"/></param>
+            protected RecursiveTypeException(SerializationInfo info, StreamingContext context)
+                : base(info, context)
+            {
             }
         }
     }

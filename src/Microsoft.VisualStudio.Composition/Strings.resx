@@ -354,4 +354,7 @@
   <data name="ErrorWhileScanningMember" xml:space="preserve">
     <value>Error occurred while scanning member: "{0}"</value>
   </data>
+  <data name="TypeRefCycle" xml:space="preserve">
+    <value>{0} is part of a type reference cycle or references a type with a reference cycle.</value>
+  </data>
 </root>
