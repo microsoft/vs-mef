@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
@@ -67,11 +67,7 @@ namespace Microsoft.VisualStudio.Composition
         public Type? ScannedType { get; set; }
 
         /// <inheritdoc/>
-#pragma warning disable CS8603 // Possible null reference return.
-#pragma warning disable RS0016 // Add public types and members to the declared API
-        public override string StackTrace => base.StackTrace ?? this.StackTraceInternal;
-#pragma warning restore RS0016 // Add public types and members to the declared API
-#pragma warning restore CS8603 // Possible null reference return.
+        public override string? StackTrace => base.StackTrace ?? this.StackTraceInternal;
 
         /// <inheritdoc/>
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
