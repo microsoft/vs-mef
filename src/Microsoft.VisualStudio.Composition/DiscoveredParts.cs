@@ -6,11 +6,7 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using MessagePack;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [MessagePackObject]
     public class DiscoveredParts

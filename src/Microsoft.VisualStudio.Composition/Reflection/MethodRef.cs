@@ -10,20 +10,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading.Tasks;
     using MessagePack;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackFormatter(typeof(MethodRefFormatter))]
+    [MessagePackObject]
     public class MethodRef : MemberRef, IEquatable<MethodRef>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        [IgnoreMember]
         internal virtual string DebuggerDisplay => this.ToString();
 
         public MethodRef(TypeRef declaringType, int metadataToken, string name, bool isStatic, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
@@ -43,6 +40,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.ParameterTypes = parameterTypes;
             this.Name = name;
             this.GenericMethodArguments = genericMethodArguments;
+        }
+
+        [SerializationConstructor]
+        private MethodRef(TypeRef declaringType, int metadataToken, bool isStatic, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
+          : this(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments)
+        {
         }
 
         public MethodRef(MethodBase method, Resolver resolver)
@@ -77,13 +80,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
-        [Key(4)]
+        [Key(3)]
         public override string Name { get; }
 
-        [Key(5)]
+        [Key(4)]
         public ImmutableArray<TypeRef> ParameterTypes { get; }
 
-        [Key(6)]
+        [Key(5)]
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
         [return: NotNullIfNotNull("method")]

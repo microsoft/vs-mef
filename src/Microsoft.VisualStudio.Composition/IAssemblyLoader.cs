@@ -5,7 +5,6 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Reflection;
-    using MessagePack;
 
     /// <summary>
     /// Supplies the functionality for loading assemblies.

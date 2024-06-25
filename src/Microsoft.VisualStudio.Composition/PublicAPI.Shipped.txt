@@ -207,7 +207,7 @@ Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.ImportMetadataVi
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.IsSatisfiedBy(Microsoft.VisualStudio.Composition.ExportDefinition! exportDefinition) -> bool
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.IsMetadataumValueRequired.get -> bool
-Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumRequirement(Microsoft.VisualStudio.Composition.Reflection.TypeRef! metadatumValueTypeRef, bool isMetadataumValueRequired) -> void
+Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumRequirement(Microsoft.VisualStudio.Composition.Reflection.TypeRef! valueType, bool required) -> void
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumValueType.get -> System.Type!
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumValueTypeRef.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef!
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.Requirements.get -> System.Collections.Immutable.ImmutableDictionary<string!, Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement>!
@@ -233,8 +233,8 @@ Microsoft.VisualStudio.Composition.PartDiscoveryException
 Microsoft.VisualStudio.Composition.PartDiscoveryException.AssemblyPath.get -> string?
 Microsoft.VisualStudio.Composition.PartDiscoveryException.AssemblyPath.set -> void
 Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException() -> void
-Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string! message) -> void
-Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string! message, System.Exception! innerException) -> void
+Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string? message) -> void
+Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string? message, System.Exception? innerException) -> void
 Microsoft.VisualStudio.Composition.PartDiscoveryException.ScannedType.get -> System.Type?
 Microsoft.VisualStudio.Composition.PartDiscoveryException.ScannedType.set -> void
 Microsoft.VisualStudio.Composition.Reflection.FieldRef
@@ -245,7 +245,7 @@ Microsoft.VisualStudio.Composition.Reflection.MemberRef
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.AssemblyName.get -> System.Reflection.AssemblyName!
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.DeclaringType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef!
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberInfo.get -> System.Reflection.MemberInfo!
-Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef! declaringType, System.Reflection.MemberInfo! cachedMemberInfo) -> void
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef! declaringType, System.Reflection.MemberInfo! memberInfo) -> void
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(System.Reflection.MemberInfo! memberInfo, Microsoft.VisualStudio.Composition.Resolver! resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MetadataToken.get -> int
 Microsoft.VisualStudio.Composition.Reflection.MethodRef

@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition
     /// two assemblies are equivalent.
     /// </summary>
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    [MessagePackFormatter(typeof(StrongAssemblyIdentityFormatter))]
+    [MessagePackObject]
     public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     {
         /// <summary>
@@ -35,12 +35,14 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the assembly's full name.
         /// </summary>
+        [Key(0)]
         public AssemblyName Name { get; }
 
         /// <summary>
         /// Gets the MVID for the assembly's manifest module. This is a unique identifier that represents individual
         /// builds of an assembly.
         /// </summary>
+        [Key(1)]
         public Guid Mvid { get; }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNullOrEmpty(assemblyFile, nameof(assemblyFile));
 
-            if (assemblyName == null)
+            if (assemblyName is null)
             {
                 assemblyName = AssemblyName.GetAssemblyName(assemblyFile);
             }

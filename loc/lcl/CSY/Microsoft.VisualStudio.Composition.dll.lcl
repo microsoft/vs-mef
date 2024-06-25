@@ -435,15 +435,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Only one OnImportsSatisfied method is supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Podporovaná je jenom jedna metoda OnImportsSatisfied.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";OnlySupportedOnWriteOperations" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Only supported on write operations.]]></Val>
@@ -566,6 +557,15 @@
           <Val><![CDATA[The type {0} is an unsupported type of metadata view.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Typ {0} není podporovaným typem zobrazení metadat.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";TypeRefCycle" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} is part of a type reference cycle or references a type with a reference cycle.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} je součástí cyklu odkazu na typ nebo odkazuje na typ s referenčním cyklem.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

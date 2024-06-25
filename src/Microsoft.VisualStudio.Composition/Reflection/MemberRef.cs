@@ -5,15 +5,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
     using System.Reflection;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading.Tasks;
     using MessagePack;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [Union(0, typeof(FieldRef))]
     [Union(1, typeof(PropertyRef))]
@@ -25,12 +19,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// The metadata token for this member if read from a persisted assembly.
         /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
         /// </summary>
+        [IgnoreMember]
         private readonly int? metadataToken;
 
         /// <summary>
         /// The <see cref="MemberInfo"/> that this value was instantiated with,
         /// or cached later when a metadata token was resolved.
         /// </summary>
+        [IgnoreMember]
         private MemberInfo? cachedMemberInfo;
 
         /// <summary>
@@ -44,14 +40,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.IsStatic = isStatic;
         }
 
-        protected MemberRef(TypeRef declaringType, MemberInfo cachedMemberInfo)
+        protected MemberRef(TypeRef declaringType, MemberInfo memberInfo)
         {
             Requires.NotNull(declaringType, nameof(declaringType));
-            Requires.NotNull(cachedMemberInfo, nameof(cachedMemberInfo));
+            Requires.NotNull(memberInfo, nameof(memberInfo));
 
             this.DeclaringType = declaringType;
-            this.cachedMemberInfo = cachedMemberInfo;
-            this.IsStatic = cachedMemberInfo.IsStatic();
+            this.cachedMemberInfo = memberInfo;
+            this.IsStatic = memberInfo.IsStatic();
         }
 
         protected MemberRef(MemberInfo memberInfo, Resolver resolver)
@@ -67,20 +63,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         [IgnoreMember]
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
-        [Key(1)]
+        [IgnoreMember]
         public abstract string Name { get; }
+
+        [Key(1)]
+        public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
         [Key(2)]
         public bool IsStatic { get; }
 
-        [Key(3)]
-        public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
-
         [IgnoreMember]
         public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
+        [IgnoreMember]
         internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;
 
+        [IgnoreMember]
         internal Resolver Resolver => this.DeclaringType.Resolver;
 
         [return: NotNullIfNotNull("member")]

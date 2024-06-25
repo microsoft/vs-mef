@@ -4,19 +4,12 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using MessagePack;
-    using Microsoft.VisualStudio.Composition.Formatter;
-    using static Microsoft.VisualStudio.Composition.NetFxAdapters;
 
-    [Union(0, typeof(ImportConstraint))]
-    [Union(1, typeof(ExportMetadataValueImportConstraint))]
-    [Union(2, typeof(ExportTypeIdentityConstraint))]
-    [Union(3, typeof(ImportMetadataViewConstraint))]
-    [Union(4, typeof(PartCreationPolicyConstraint))]
+    [Union(0, typeof(ExportMetadataValueImportConstraint))]
+    [Union(1, typeof(ExportTypeIdentityConstraint))]
+    [Union(2, typeof(ImportMetadataViewConstraint))]
+    [Union(3, typeof(PartCreationPolicyConstraint))]
     public interface IImportSatisfiabilityConstraint : IEquatable<IImportSatisfiabilityConstraint>
     {
         bool IsSatisfiedBy(ExportDefinition exportDefinition);

@@ -4,4 +4,3 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-VSMEF001 | Usage | Error | VSMEF001PropertyMustHaveSetter

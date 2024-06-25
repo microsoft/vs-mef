@@ -8,15 +8,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
     using MessagePack;
+    using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [MessagePackFormatter(typeof(TypeRefObjectFormatter))]
-
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         /// <summary>
@@ -26,6 +25,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         private string DebuggerDisplay => this.FullName + (this.IsArray ? "[]" : string.Empty);
 
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
+
+        /// <summary>
+        /// A recycled pool of dictionaries used to detect recursion when resolving types.
+        /// </summary>
+        private static ThreadLocal<HashSet<Type>> recursionControl = new(() => new());
 
         private readonly Resolver resolver;
 
@@ -89,29 +93,49 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(type, nameof(type));
 
-            this.resolver = resolver;
-            this.resolvedType = type;
-            this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
-            this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
-            this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
-            this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
-
-            this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(type, out var elementType)
-                ? TypeRef.Get(elementType, resolver)
-                : this;
-
-            var arrayElementType = this.ArrayElementType;
-            Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
-            this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
-            this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
-            this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
-            this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
-                ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
-                : ImmutableArray<TypeRef>.Empty;
-
-            if (!shallow)
+            HashSet<Type> recursionControlDictionary = recursionControl.Value!;
+            if (!shallow && !recursionControlDictionary.Add(type))
             {
-                this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
+                throw new PartDiscoveryException.RecursiveTypeException(type, null);
+            }
+
+            try
+            {
+                this.resolver = resolver;
+                this.resolvedType = type;
+                this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
+                this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
+                this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
+                this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
+
+                this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(type, out var elementType)
+                    ? TypeRef.Get(elementType, resolver)
+                    : this;
+
+                var arrayElementType = this.ArrayElementType;
+                Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
+                this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
+                this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
+                this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
+                this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
+                    ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
+                    : ImmutableArray<TypeRef>.Empty;
+
+                if (!shallow)
+                {
+                    this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
+                }
+            }
+            catch (PartDiscoveryException.RecursiveTypeException ex)
+            {
+                throw new PartDiscoveryException.RecursiveTypeException(type, ex);
+            }
+            finally
+            {
+                if (!shallow)
+                {
+                    recursionControlDictionary.Remove(type);
+                }
             }
         }
 
@@ -449,6 +473,110 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 }
 
                 return true;
+            }
+        }
+
+        private class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
+        {
+            public static readonly TypeRefObjectFormatter Instance = new();
+
+            private TypeRefObjectFormatter()
+            {
+            }
+
+            /// <inheritdoc/>
+            public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                if (reader.TryReadNil())
+                {
+                    return null;
+                }
+
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    var actualCount = reader.ReadArrayHeader();
+                    if (actualCount != 8)
+                    {
+                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {10}, Actual: {actualCount}");
+                    }
+
+                    IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
+
+                    StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
+                    int metadataToken = reader.ReadInt32();
+                    string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                    TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
+                    int genericTypeParameterCount = reader.ReadInt32();
+                    ImmutableArray<TypeRef> genericTypeArguments = typeRefFormatter.Deserialize(ref reader, options);
+
+                    bool shallow = false;
+                    ImmutableArray<TypeRef> baseTypes;
+                    if (!reader.TryReadNil())
+                    {
+                        baseTypes = typeRefFormatter.Deserialize(ref reader, options);
+                    }
+                    else
+                    {
+                        baseTypes = ImmutableArray<TypeRef>.Empty;
+                        shallow = true;
+                    }
+
+                    TypeRef? elementType;
+                    if (!reader.TryReadNil())
+                    {
+                        elementType = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader, options);
+                    }
+                    else
+                    {
+                        elementType = null;
+                    }
+
+                    return TypeRef.Get(options.CompositionResolver(), assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
+            }
+
+            /// <inheritdoc/>
+            public void Serialize(ref MessagePackWriter writer, TypeRef? value, MessagePackSerializerOptions options)
+            {
+                if (value is null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+
+                writer.WriteArrayHeader(8);
+
+                options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
+                writer.Write(value.MetadataToken);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
+                options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
+                writer.Write(value.GenericTypeParameterCount);
+
+                IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
+                typeRefFormatter.Serialize(ref writer, value.GenericTypeArguments, options);
+
+                if (!value.IsShallow)
+                {
+                    typeRefFormatter.Serialize(ref writer, value.BaseTypes, options);
+                }
+                else
+                {
+                    writer.WriteNil();
+                }
+
+                if (!value.ElementTypeRef.Equals(value))
+                {
+                    options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ElementTypeRef, options);
+                }
+                else
+                {
+                    writer.WriteNil();
+                }
             }
         }
     }
