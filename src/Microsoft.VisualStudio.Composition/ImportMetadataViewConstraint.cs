@@ -14,7 +14,6 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [MessagePackFormatter(typeof(ImportMetadataViewConstraintFormatter))]
     public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty, resolver: null);
@@ -216,14 +215,8 @@ namespace Microsoft.VisualStudio.Composition
             public bool IsMetadataumValueRequired { get; private set; }
         }
 
-        private class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<ImportMetadataViewConstraint?>
+        internal class ImportMetadataViewConstraintFormatter(Resolver compositionResolver) : IMessagePackFormatter<ImportMetadataViewConstraint?>
         {
-            public static readonly ImportMetadataViewConstraintFormatter Instance = new();
-
-            private ImportMetadataViewConstraintFormatter()
-            {
-            }
-
             public ImportMetadataViewConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 if (reader.TryReadNil())
@@ -241,7 +234,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     var requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
-                    return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
+                    return new ImportMetadataViewConstraint(requirements, compositionResolver);
                 }
                 finally
                 {

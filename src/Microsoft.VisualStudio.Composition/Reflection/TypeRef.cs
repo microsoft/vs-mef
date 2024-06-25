@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackFormatter(typeof(TypeRefObjectFormatter))]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         /// <summary>
@@ -451,14 +450,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        private class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
+        internal class TypeRefObjectFormatter(Resolver compositionResolver) : IMessagePackFormatter<TypeRef?>
         {
-            public static readonly TypeRefObjectFormatter Instance = new();
-
-            private TypeRefObjectFormatter()
-            {
-            }
-
             /// <inheritdoc/>
             public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
@@ -507,7 +500,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                         elementType = null;
                     }
 
-                    return TypeRef.Get(options.CompositionResolver(), assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
+                    return TypeRef.Get(compositionResolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
                 }
                 finally
                 {

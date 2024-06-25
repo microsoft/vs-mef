@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.Composition.Formatter;
 using Microsoft.VisualStudio.Composition.Reflection;
 
 [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
-[MessagePackFormatter(typeof(ComposablePartDefinitionFormatter))]
 public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
 {
     /// <inheritdoc cref="ComposablePartDefinition(TypeRef, IReadOnlyDictionary{string, object?}, IReadOnlyCollection{ExportDefinition}, IReadOnlyDictionary{MemberRef, IReadOnlyCollection{ExportDefinition}}, IEnumerable{ImportDefinitionBinding}, string?, IReadOnlyList{MethodRef}, MethodRef?, IReadOnlyList{ImportDefinitionBinding}?, CreationPolicy, bool, IEnumerable{AssemblyName})" />
@@ -351,13 +350,9 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
         this.ImportingConstructorOrFactoryRef?.GetInputAssemblies(assemblies);
     }
 
-    private class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition?>
+    internal class ComposablePartDefinitionFormatter(Resolver compositionResolver) : IMessagePackFormatter<ComposablePartDefinition?>
     {
-        public static readonly ComposablePartDefinitionFormatter Instance = new();
-
-        private ComposablePartDefinitionFormatter()
-        {
-        }
+        private readonly MetadataDictionaryFormatter metadataDictionaryFormatter = new(compositionResolver);
 
         /// <inheritdoc/>
         public ComposablePartDefinition? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -377,7 +372,7 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
                 }
 
                 TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+                IReadOnlyDictionary<string, object?> partMetadata = this.metadataDictionaryFormatter.Deserialize(ref reader, options);
 
                 IMessagePackFormatter<IReadOnlyList<ExportDefinition>> exportDefinitionFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>();
                 IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();
@@ -447,7 +442,7 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
             writer.WriteArrayHeader(11);
 
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
-            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
+            this.metadataDictionaryFormatter.Serialize(ref writer, value.Metadata, options);
 
             IMessagePackFormatter<IReadOnlyCollection<ExportDefinition>> exportDefinitionFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>();
             IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();

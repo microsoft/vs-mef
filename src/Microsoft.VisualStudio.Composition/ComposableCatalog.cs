@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [MessagePackFormatter(typeof(ComposableCatalogFormatter))]
     public class ComposableCatalog : IEquatable<ComposableCatalog>
     {
         /// <summary>
@@ -263,14 +262,8 @@ namespace Microsoft.VisualStudio.Composition
             return false;
         }
 
-        private class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog?>
+        internal class ComposableCatalogFormatter(Resolver compositionResolver) : IMessagePackFormatter<ComposableCatalog?>
         {
-            public static readonly ComposableCatalogFormatter Instance = new();
-
-            private ComposableCatalogFormatter()
-            {
-            }
-
             /// <inheritdoc/>
             public ComposableCatalog? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
@@ -290,7 +283,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
-                    return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
+                    return ComposableCatalog.Create(compositionResolver).AddParts(composablePartDefinition);
                 }
                 finally
                 {

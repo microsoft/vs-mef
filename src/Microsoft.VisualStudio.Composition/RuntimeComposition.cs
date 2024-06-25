@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [MessagePackFormatter(typeof(RuntimeCompositionFormatter))]
     public class RuntimeComposition : IEquatable<RuntimeComposition>
     {
         private readonly ImmutableHashSet<RuntimePart> parts;
@@ -320,7 +319,6 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         [DebuggerDisplay("{" + nameof(ImportingSiteElementType) + "}")]
-        [MessagePackFormatter(typeof(RuntimeImportFormatter))]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private NullableBool isLazy;
@@ -592,14 +590,8 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition?>
+        internal class RuntimeCompositionFormatter(Resolver compositionResolver) : IMessagePackFormatter<RuntimeComposition?>
         {
-            public static readonly RuntimeCompositionFormatter Instance = new();
-
-            private RuntimeCompositionFormatter()
-            {
-            }
-
             /// <inheritdoc/>
             public RuntimeComposition? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
@@ -621,7 +613,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Deserialize(ref reader, options);
 
-                    return RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, options.CompositionResolver());
+                    return RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, compositionResolver);
                 }
                 finally
                 {
@@ -645,13 +637,9 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport?>
+        internal class RuntimeImportFormatter(Resolver compositionResolver) : IMessagePackFormatter<RuntimeImport?>
         {
-            public static readonly RuntimeImportFormatter Instance = new();
-
-            private RuntimeImportFormatter()
-            {
-            }
+            private readonly MetadataDictionaryFormatter metadataDictionaryFormatter = new(compositionResolver);
 
             private enum RuntimeImportFlags : byte
             {
@@ -714,7 +702,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
-                    IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+                    IReadOnlyDictionary<string, object?> metadata = this.metadataDictionaryFormatter.Deserialize(ref reader, options);
                     IReadOnlyCollection<string> exportFactorySharingBoundaries;
                     if (isExportFactory)
                     {
@@ -788,7 +776,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.SatisfyingExports, options);
 
-                MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
+                this.metadataDictionaryFormatter.Serialize(ref writer, value.Metadata, options);
                 if (value.IsExportFactory)
                 {
                     options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);

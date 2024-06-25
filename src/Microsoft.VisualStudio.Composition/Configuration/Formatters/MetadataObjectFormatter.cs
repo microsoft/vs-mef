@@ -11,14 +11,8 @@ using MessagePack.Formatters;
 using Microsoft.VisualStudio.Composition.Reflection;
 using static Microsoft.VisualStudio.Composition.LazyMetadataWrapper;
 
-internal class MetadataObjectFormatter : IMessagePackFormatter<object?>
+internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessagePackFormatter<object?>
 {
-    public static readonly MetadataObjectFormatter Instance = new();
-
-    private MetadataObjectFormatter()
-    {
-    }
-
     public void Serialize(ref MessagePackWriter messagePackWriter, object? value, MessagePackSerializerOptions options)
     {
         if (value is null)
@@ -38,7 +32,7 @@ internal class MetadataObjectFormatter : IMessagePackFormatter<object?>
                 messagePackWriter.WriteArrayHeader(3);
 
                 messagePackWriter.Write((byte)ObjectType.Array);
-                TypeRef? elementTypeRef = TypeRef.Get(value.GetType().GetElementType(), options.CompositionResolver());
+                TypeRef? elementTypeRef = TypeRef.Get(value.GetType().GetElementType(), compositionResolver);
                 typeRefFormatter.Serialize(ref messagePackWriter, elementTypeRef, options);
 
                 messagePackWriter.WriteArrayHeader(array.Length);
@@ -145,7 +139,7 @@ internal class MetadataObjectFormatter : IMessagePackFormatter<object?>
 
             case Type objectType when typeof(Type).GetTypeInfo().IsAssignableFrom(objectType):
                 messagePackWriter.WriteArrayHeader(2);
-                TypeRef typeRefValue = TypeRef.Get((Type)value, options.CompositionResolver());
+                TypeRef typeRefValue = TypeRef.Get((Type)value, compositionResolver);
                 messagePackWriter.Write((byte)ObjectType.Type);
                 typeRefFormatter.Serialize(ref messagePackWriter, typeRefValue, options);
                 break;
@@ -262,7 +256,7 @@ internal class MetadataObjectFormatter : IMessagePackFormatter<object?>
 
                     case ObjectType.TypeArraySubstitution:
                         IReadOnlyList<TypeRef> typeRefArray = typeRefFormatterCollection.Deserialize(ref messagePackReader, options);
-                        deserializedValue = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, options.CompositionResolver());
+                        deserializedValue = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, compositionResolver);
                         break;
 
                     case ObjectType.Typeless:

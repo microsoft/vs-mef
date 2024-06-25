@@ -4,6 +4,9 @@
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="MessagePackAnalyzer.json" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- This reference is just so the analyzers package is brought in by our NuGet package. -->
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj">
       <PrivateAssets>none</PrivateAssets>
@@ -23,6 +26,7 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
+    <AdditionalFiles Include="MessagePackAnalyzer.json" />
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

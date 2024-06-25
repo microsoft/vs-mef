@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition
             return Task.Run(() =>
             {
                 var context = new MessagePackSerializerContext(composition.Resolver);
-                MessagePackSerializer.Serialize(cacheStream, composition, context, cancellationToken);
+                MessagePackSerializer.Serialize(cacheStream, composition, context.DefaultOptions, cancellationToken);
             });
         }
 
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(resolver, nameof(resolver));
 
             var context = new MessagePackSerializerContext(resolver);
-            return await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, context, cancellationToken);
+            return await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, context.DefaultOptions, cancellationToken);
         }
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))

@@ -7,13 +7,9 @@ using System.Collections.Immutable;
 using MessagePack;
 using MessagePack.Formatters;
 
-internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
+internal class MetadataDictionaryFormatter(Resolver compositionResolver) : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
 {
-    public static readonly MetadataDictionaryFormatter Instance = new();
-
-    private MetadataDictionaryFormatter()
-    {
-    }
+    private readonly MetadataObjectFormatter metadataObjectFormatter = new(compositionResolver);
 
     /// <inheritdoc/>
     public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
@@ -33,14 +29,14 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
         // Unwrap the metadata if its an instance of LazyMetaDataWrapper, the wrapper may end up
         // implicitly resolving TypeRefs to Types which is undesirable.
         value = LazyMetadataWrapper.TryUnwrap(value);
-        serializedMetadata = new LazyMetadataWrapper(value.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, options.CompositionResolver());
+        serializedMetadata = new LazyMetadataWrapper(value.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, compositionResolver);
 
         var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
 
         foreach (KeyValuePair<string, object?> item in serializedMetadata)
         {
             stringFormatter.Serialize(ref writer, item.Key, options);
-            MetadataObjectFormatter.Instance.Serialize(ref writer, item.Value, options);
+            this.metadataObjectFormatter.Serialize(ref writer, item.Value, options);
         }
     }
 
@@ -65,7 +61,7 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
                 for (int i = 0; i < count; i++)
                 {
                     string? key = stringFormatter.Deserialize(ref reader, options);
-                    object? value = MetadataObjectFormatter.Instance.Deserialize(ref reader, options);
+                    object? value = this.metadataObjectFormatter.Deserialize(ref reader, options);
 
                     builder.Add(key, value);
                 }
@@ -78,7 +74,7 @@ internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDict
             metadata = builder.ToImmutable();
         }
 
-        return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, options.CompositionResolver());
+        return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, compositionResolver);
     }
 }
 

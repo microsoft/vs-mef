@@ -18,9 +18,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest!.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
@@ -58,9 +58,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest!.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
@@ -94,9 +94,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest!.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
