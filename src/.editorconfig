@@ -89,3 +89,6 @@ dotnet_diagnostic.SA1615.severity = suggestion
 
 # CA2249: Consider using 'string.Contains' instead of 'string.IndexOf'
 dotnet_diagnostic.CA2249.severity = silent
+
+# VSTHRD111: Use ConfigureAwait(bool)
+dotnet_diagnostic.VSTHRD111.severity = warning

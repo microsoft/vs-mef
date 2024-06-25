@@ -5,15 +5,13 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq}")]
+    [MessagePackObject]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(string contractName, IReadOnlyDictionary<string, object?> metadata)
@@ -29,8 +27,10 @@ namespace Microsoft.VisualStudio.Composition
             this.Metadata = metadata;
         }
 
+        [Key(0)]
         public string ContractName { get; private set; }
 
+        [Key(1)]
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public override bool Equals(object? obj)

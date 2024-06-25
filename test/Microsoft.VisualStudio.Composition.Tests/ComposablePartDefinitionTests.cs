@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     ImmutableList.Create<MethodRef>(),
-                    new MethodRef(typeRef, metadataToken: 1000, name: ConstructorInfo.ConstructorName, isStatic: true, parameterTypes: ImmutableArray<TypeRef>.Empty, genericMethodArguments: ImmutableArray<TypeRef>.Empty),
+                    new MethodRef(typeRef, 1000, ConstructorInfo.ConstructorName, isStatic: true, parameterTypes: ImmutableArray<TypeRef>.Empty, genericMethodArguments: ImmutableArray<TypeRef>.Empty),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     ImmutableList.Create<MethodRef>(),
-                    new MethodRef(typeRef, metadataToken: 1001, name: ConstructorInfo.ConstructorName, isStatic: true, parameterTypes: ImmutableArray<TypeRef>.Empty, genericMethodArguments: ImmutableArray<TypeRef>.Empty),
+                    new MethodRef(typeRef, 1001, ConstructorInfo.ConstructorName, isStatic: true, parameterTypes: ImmutableArray<TypeRef>.Empty, genericMethodArguments: ImmutableArray<TypeRef>.Empty),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
