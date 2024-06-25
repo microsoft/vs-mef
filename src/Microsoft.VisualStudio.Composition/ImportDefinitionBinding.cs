@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
@@ -242,11 +242,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 try
                 {
-                    var actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 6)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(ImportDefinitionBinding)}. Expected: {6}, Actual: {actualCount}");
-                    }
+                    reader.ReadArrayHeaderOfLength(6);
 
                     ImportDefinition importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
                     IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();

@@ -276,12 +276,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 try
                 {
-                    var actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 1)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposableCatalog)}. Expected: {1}, Actual: {actualCount}");
-                    }
-
+                    reader.ReadArrayHeaderOfLength(1);
                     IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
                     return ComposableCatalog.Create(compositionResolver).AddParts(composablePartDefinition);
                 }

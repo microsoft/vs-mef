@@ -365,11 +365,7 @@ public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
             options.Security.DepthStep(ref reader);
             try
             {
-                var actualCount = reader.ReadArrayHeader();
-                if (actualCount != 11)
-                {
-                    throw new MessagePackSerializationException($"Invalid array count for type {nameof(ComposablePartDefinition)}. Expected: {11}, Actual: {actualCount}");
-                }
+                reader.ReadArrayHeaderOfLength(11);
 
                 TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                 IReadOnlyDictionary<string, object?> partMetadata = this.metadataDictionaryFormatter.Deserialize(ref reader, options);

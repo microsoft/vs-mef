@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
@@ -145,11 +145,7 @@ namespace Microsoft.VisualStudio.Composition
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    int actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 1)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {1}, Actual: {actualCount}");
-                    }
+                    reader.ReadArrayHeaderOfLength(1);
 
                     CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
                     return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);

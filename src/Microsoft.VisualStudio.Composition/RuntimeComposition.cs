@@ -336,11 +336,7 @@ namespace Microsoft.VisualStudio.Composition
                     options.Security.DepthStep(ref reader);
                     try
                     {
-                        int actualCount = reader.ReadArrayHeader();
-                        if (actualCount != 7)
-                        {
-                            throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {9}, Actual: {actualCount}");
-                        }
+                        reader.ReadArrayHeaderOfLength(7);
 
                         var importingCtor = default(MethodRef);
                         IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
@@ -610,11 +606,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        var actualCount = reader.ReadArrayHeader();
-                        if (actualCount != 7)
-                        {
-                            throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeImport)}. Expected: {7}, Actual: {actualCount}");
-                        }
+                        reader.ReadArrayHeaderOfLength(7);
 
                         options.Security.DepthStep(ref reader);
 
@@ -846,11 +838,7 @@ namespace Microsoft.VisualStudio.Composition
                 try
                 {
                     options.Security.DepthStep(ref reader);
-                    var actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 2)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimeComposition)}. Expected: {2}, Actual: {actualCount}");
-                    }
+                    reader.ReadArrayHeaderOfLength(2);
 
                     IReadOnlyCollection<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Deserialize(ref reader, options);
 
