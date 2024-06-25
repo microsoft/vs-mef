@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.Composition
             public bool IsMetadataumValueRequired { get; private set; }
         }
 
-        internal class ImportMetadataViewConstraintFormatter(Resolver compositionResolver) : IMessagePackFormatter<ImportMetadataViewConstraint?>
+        internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<ImportMetadataViewConstraint?>
         {
             public ImportMetadataViewConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {

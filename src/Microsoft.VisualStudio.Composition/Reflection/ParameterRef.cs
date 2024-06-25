@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackFormatter(typeof(ParameterRefFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>
@@ -95,11 +95,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.DeclaringType.GetInputAssemblies(assemblies);
         }
 
-        private class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
+        private class Formatter : IMessagePackFormatter<ParameterRef?>
         {
-            public static readonly ParameterRefFormatter Instance = new();
+            public static readonly Formatter Instance = new();
 
-            private ParameterRefFormatter()
+            private Formatter()
             {
             }
 

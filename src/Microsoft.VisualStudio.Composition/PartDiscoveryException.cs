@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     /// An exception that may be thrown during MEF part discovery.
     /// </summary>
     [Serializable]
-    [MessagePackFormatter(typeof(PartDiscoveryExceptionFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class PartDiscoveryException : Exception
     {
         internal string? StackTraceInternal = string.Empty;
@@ -81,11 +81,11 @@ namespace Microsoft.VisualStudio.Composition
             info.AddValue(nameof(this.ScannedType), this.ScannedType);
         }
 
-        private class PartDiscoveryExceptionFormatter : IMessagePackFormatter<PartDiscoveryException?>
+        private class Formatter : IMessagePackFormatter<PartDiscoveryException?>
         {
-            public static readonly PartDiscoveryExceptionFormatter Instance = new();
+            public static readonly Formatter Instance = new();
 
-            private PartDiscoveryExceptionFormatter()
+            private Formatter()
             {
             }
 

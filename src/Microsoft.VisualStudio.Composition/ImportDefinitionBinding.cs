@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [MessagePackFormatter(typeof(ImportDefinitionBindingFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {
         private bool? isLazy;
@@ -223,11 +223,11 @@ namespace Microsoft.VisualStudio.Composition
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
         }
 
-        private class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding?>
+        private class Formatter : IMessagePackFormatter<ImportDefinitionBinding?>
         {
-            public static readonly ImportDefinitionBindingFormatter Instance = new();
+            public static readonly Formatter Instance = new();
 
-            private ImportDefinitionBindingFormatter()
+            private Formatter()
             {
             }
 

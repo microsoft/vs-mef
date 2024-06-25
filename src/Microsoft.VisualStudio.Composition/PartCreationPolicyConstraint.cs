@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
-    [MessagePackFormatter(typeof(PartCreationPolicyConstraintFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         /// <summary>
@@ -128,11 +128,11 @@ namespace Microsoft.VisualStudio.Composition
         /// This formatter is designed to avoid invoking the constructor during deserialization,
         /// which helps to prevent the allocation of many redundant classes.
         /// </summary>
-        private class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
+        private class Formatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
         {
-            public static readonly PartCreationPolicyConstraintFormatter Instance = new();
+            public static readonly Formatter Instance = new();
 
-            private PartCreationPolicyConstraintFormatter()
+            private Formatter()
             {
             }
 

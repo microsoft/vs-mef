@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.Composition
             return false;
         }
 
-        internal class ComposableCatalogFormatter(Resolver compositionResolver) : IMessagePackFormatter<ComposableCatalog?>
+        internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<ComposableCatalog?>
         {
             /// <inheritdoc/>
             public ComposableCatalog? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)

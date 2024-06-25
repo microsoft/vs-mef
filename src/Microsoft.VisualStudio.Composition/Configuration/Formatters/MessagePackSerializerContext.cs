@@ -26,12 +26,12 @@ public class MessagePackSerializerContext
             {
                 new MetadataObjectFormatter(resolver),
                 new MetadataDictionaryFormatter(resolver),
-                new ImportMetadataViewConstraint.ImportMetadataViewConstraintFormatter(resolver),
-                new TypeRef.TypeRefObjectFormatter(resolver),
-                new RuntimeComposition.RuntimeCompositionFormatter(resolver),
-                new RuntimeComposition.RuntimeImportFormatter(resolver),
-                new ComposablePartDefinition.ComposablePartDefinitionFormatter(resolver),
-                new ComposableCatalog.ComposableCatalogFormatter(resolver),
+                new ImportMetadataViewConstraint.Formatter(resolver),
+                new TypeRef.Formatter(resolver),
+                new RuntimeComposition.Formatter(resolver),
+                new RuntimeComposition.RuntimeImport.Formatter(resolver),
+                new ComposablePartDefinition.Formatter(resolver),
+                new ComposableCatalog.Formatter(resolver),
                 AssemblyNameFormatter.Instance,
             });
         this.DefaultOptions = MessagePackSerializerOptions.Standard

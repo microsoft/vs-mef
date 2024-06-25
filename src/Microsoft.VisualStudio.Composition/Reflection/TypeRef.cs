@@ -450,7 +450,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        internal class TypeRefObjectFormatter(Resolver compositionResolver) : IMessagePackFormatter<TypeRef?>
+        internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<TypeRef?>
         {
             /// <inheritdoc/>
             public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
