@@ -12,7 +12,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
@@ -477,6 +476,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<TypeRef?>
         {
+            private const int ExpectedLength = 8;
+
             /// <inheritdoc/>
             public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
@@ -488,10 +489,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    var actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 8)
+                    int actualCount = reader.ReadArrayHeader();
+                    if (actualCount != ExpectedLength)
                     {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {10}, Actual: {actualCount}");
+                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {ExpectedLength}, Actual: {actualCount}");
                     }
 
                     IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
@@ -542,7 +543,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     return;
                 }
 
-                writer.WriteArrayHeader(8);
+                writer.WriteArrayHeader(ExpectedLength);
 
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
                 writer.Write(value.MetadataToken);

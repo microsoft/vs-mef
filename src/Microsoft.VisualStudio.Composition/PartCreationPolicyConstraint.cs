@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     /// <summary>
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches

@@ -9,7 +9,6 @@ using System.Composition;
 using System.Globalization;
 using System.Reflection;
 using MessagePack;
-using MessagePack.Resolvers;
 using Microsoft.VisualStudio.Composition.Reflection;
 using Xunit;
 

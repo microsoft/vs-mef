@@ -6,8 +6,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.IO;
     using MessagePack;
-    using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [MessagePackObject]
     public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
