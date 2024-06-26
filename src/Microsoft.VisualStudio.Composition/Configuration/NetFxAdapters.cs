@@ -10,6 +10,10 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.ComponentModel.Composition.ReflectionModel;
     using System.Linq;
+    using System.Reflection;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
     public static class NetFxAdapters
@@ -296,7 +300,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal class ImportConstraint : IImportSatisfiabilityConstraint
+        private class ImportConstraint : IImportSatisfiabilityConstraint
         {
             private readonly MefV1.Primitives.ImportDefinition definition;
 

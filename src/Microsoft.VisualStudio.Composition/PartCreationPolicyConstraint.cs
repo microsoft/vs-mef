@@ -9,13 +9,12 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     /// <summary>
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
-    [MessagePackFormatter(typeof(PartCreationPolicyConstraintFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         /// <summary>
@@ -128,11 +127,11 @@ namespace Microsoft.VisualStudio.Composition
         /// This formatter is designed to avoid invoking the constructor during deserialization,
         /// which helps to prevent the allocation of many redundant classes.
         /// </summary>
-        private class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
+        private class Formatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
         {
-            public static readonly PartCreationPolicyConstraintFormatter Instance = new();
+            public static readonly Formatter Instance = new();
 
-            private PartCreationPolicyConstraintFormatter()
+            private Formatter()
             {
             }
 
@@ -146,11 +145,7 @@ namespace Microsoft.VisualStudio.Composition
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    int actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 1)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {1}, Actual: {actualCount}");
-                    }
+                    reader.ReadArrayHeaderOfLength(1);
 
                     CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
                     return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);

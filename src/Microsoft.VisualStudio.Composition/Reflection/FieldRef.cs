@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         [SerializationConstructor]
         private FieldRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef fieldTypeRef, string name)
-        : this(declaringType, fieldTypeRef, metadataToken, name, isStatic)
+            : this(declaringType, fieldTypeRef, metadataToken, name, isStatic)
         {
         }
 

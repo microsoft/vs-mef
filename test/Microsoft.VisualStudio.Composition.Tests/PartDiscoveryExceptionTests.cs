@@ -6,21 +6,38 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System;
     using System.IO;
     using MessagePack;
-    using MessagePack.Resolvers;
     using Xunit;
 
     public class PartDiscoveryExceptionTests
     {
+#if !NETCOREAPP
+        [Fact]
+        public void ExceptionIsSerializable_BinaryFormatter()
+        {
+            var exception = new PartDiscoveryException("msg") { AssemblyPath = "/some path", ScannedType = typeof(string) };
+
+            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            var ms = new MemoryStream();
+            formatter.Serialize(ms, exception);
+
+            ms.Position = 0;
+            var actual = (PartDiscoveryException)formatter.Deserialize(ms);
+            Assert.Equal(exception!.Message, actual.Message);
+            Assert.Equal(exception.ScannedType, actual.ScannedType);
+            Assert.Equal(exception.AssemblyPath, actual.AssemblyPath);
+        }
+#endif
+
         [Fact]
         public void ExceptionIsSerializable()
         {
             var exceptionToTest = new PartDiscoveryException("msg") { AssemblyPath = "/some path", ScannedType = typeof(string) };
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest!.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
@@ -33,11 +50,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Exception innerException = new InvalidOperationException("inner");
             var exceptionToTest = new PartDiscoveryException("msg", innerException) { AssemblyPath = "/some path", ScannedType = typeof(string) };
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
@@ -56,11 +73,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var exceptionToTest = new PartDiscoveryException("msg", innerException1) { AssemblyPath = "/some path", ScannedType = typeof(string) };
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest!.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);
@@ -92,11 +109,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 exceptionToTest = ex;
             }
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
+            var context = new MessagePackSerializerContext(Resolver.DefaultInstance);
             var ms = new MemoryStream();
-            MessagePackSerializer.Serialize(ms, exceptionToTest, context);
+            MessagePackSerializer.Serialize(ms, exceptionToTest, context.DefaultOptions);
             ms.Position = 0;
-            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context);
+            PartDiscoveryException actual = MessagePackSerializer.Deserialize<PartDiscoveryException>(ms, context.DefaultOptions);
 
             Assert.Equal(exceptionToTest!.Message, actual.Message);
             Assert.Equal(exceptionToTest.ScannedType, actual.ScannedType);

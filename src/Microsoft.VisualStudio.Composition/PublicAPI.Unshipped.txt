@@ -4,9 +4,11 @@ Microsoft.VisualStudio.Composition.ComposablePartDefinition.ComposablePartDefini
 Microsoft.VisualStudio.Composition.ComposablePartDefinition.OnImportsSatisfiedMethodRefs.get -> System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.Reflection.MethodRef!>!
 Microsoft.VisualStudio.Composition.ComposablePartDefinition.OnImportsSatisfiedMethods.get -> System.Collections.Generic.IEnumerable<System.Reflection.MethodInfo!>!
 Microsoft.VisualStudio.Composition.MessagePackSerializerContext
-Microsoft.VisualStudio.Composition.MessagePackSerializerContext.CompositionResolver.get -> Microsoft.VisualStudio.Composition.Resolver!
-Microsoft.VisualStudio.Composition.MessagePackSerializerContext.MessagePackSerializerContext(MessagePack.IFormatterResolver! resolver, Microsoft.VisualStudio.Composition.Resolver! compositionResolver) -> void
+Microsoft.VisualStudio.Composition.MessagePackSerializerContext.DefaultOptions.get -> MessagePack.MessagePackSerializerOptions!
+Microsoft.VisualStudio.Composition.MessagePackSerializerContext.MessagePackSerializerContext(Microsoft.VisualStudio.Composition.Resolver! resolver) -> void
+Microsoft.VisualStudio.Composition.MessagePackSerializerContext.Resolver.get -> MessagePack.IFormatterResolver!
 Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.OnImportsSatisfiedMethodRefs.get -> System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.Reflection.MethodRef!>!
 Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.RuntimePart(Microsoft.VisualStudio.Composition.Reflection.TypeRef! type, Microsoft.VisualStudio.Composition.Reflection.MethodRef? importingConstructor, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport!>! importingConstructorArguments, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport!>! importingMembers, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeExport!>! exports, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.Reflection.MethodRef!>! onImportsSatisfiedMethods, string? sharingBoundary) -> void
+override Microsoft.VisualStudio.Composition.PartDiscoveryException.StackTrace.get -> string?
 override Microsoft.VisualStudio.Composition.Reflection.MethodRef.ToString() -> string!
 static Microsoft.VisualStudio.Composition.ExportProvider.TryGetExportingAssemblyName<T>(System.Lazy<T>! export, out System.Reflection.AssemblyName? assemblyName) -> bool

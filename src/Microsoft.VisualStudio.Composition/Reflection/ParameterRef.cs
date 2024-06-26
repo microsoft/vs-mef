@@ -10,10 +10,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackFormatter(typeof(ParameterRefFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>
@@ -95,11 +94,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.DeclaringType.GetInputAssemblies(assemblies);
         }
 
-        private class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
+        private class Formatter : IMessagePackFormatter<ParameterRef?>
         {
-            public static readonly ParameterRefFormatter Instance = new();
+            public static readonly Formatter Instance = new();
+            private const int ExpectedLength = 2;
 
-            private ParameterRefFormatter()
+            private Formatter()
             {
             }
 
@@ -114,9 +114,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 try
                 {
                     var actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 2)
+                    if (actualCount != ExpectedLength)
                     {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {2}, Actual: {actualCount}");
+                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {ExpectedLength}, Actual: {actualCount}");
                     }
 
                     options.Security.DepthStep(ref reader);
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     return;
                 }
 
-                writer.WriteArrayHeader(2);
+                writer.WriteArrayHeader(ExpectedLength);
 
                 options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
                 writer.Write(value.ParameterIndex);

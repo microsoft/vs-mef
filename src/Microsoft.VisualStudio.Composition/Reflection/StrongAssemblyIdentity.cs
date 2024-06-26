@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection.Metadata;
     using System.Reflection.PortableExecutable;
     using MessagePack;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     /// <summary>
     /// Metadata about a <see cref="Assembly"/> that is used to determine if

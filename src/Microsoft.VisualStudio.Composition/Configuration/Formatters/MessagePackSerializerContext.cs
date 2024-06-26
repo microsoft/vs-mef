@@ -11,58 +11,50 @@ using Microsoft.VisualStudio.Composition.Formatter;
 using Microsoft.VisualStudio.Composition.Reflection;
 
 /// <summary>
-/// Provides a context for MessagePack serialization with additional options.
-/// This class extends the <see cref="MessagePackSerializerOptions"/> class.
+/// Provides formatters and recommended resolvers for the data types declared in this assembly.
 /// </summary>
-/// <remarks>
-/// The <see cref="MessagePackSerializerContext"/> class is used to configure the serialization and deserialization process in MessagePack.
-/// It allows for customization of the serialization process by providing a resolver for formatters and a composition resolver.
-/// </remarks>
-public class MessagePackSerializerContext : MessagePackSerializerOptions
+public class MessagePackSerializerContext
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MessagePackSerializerContext"/> class.
-    /// Represents a context for MessagePack serialization with additional options.
     /// </summary>
-    /// <remarks>
-    /// This class extends the <see cref="MessagePackSerializerOptions"/> class.
-    /// </remarks>
-    public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
-        : base(Standard.WithResolver(GetIFormatterResolver(resolver)))
+    /// <param name="resolver">The assembly loader to use in the deserialized object tree.</param>
+    public MessagePackSerializerContext(Resolver resolver)
     {
-        this.CompositionResolver = compositionResolver;
-    }
-
-    public Resolver CompositionResolver { get; }
-
-    private static IFormatterResolver GetIFormatterResolver(IFormatterResolver formatterResolver)
-    {
-        return new DedupingResolver(CompositeResolver.Create(
+        this.Resolver = CompositeResolver.Create(
             new IMessagePackFormatter[]
             {
+                new MetadataObjectFormatter(resolver),
+                new MetadataDictionaryFormatter(resolver),
+                new ImportMetadataViewConstraint.Formatter(resolver),
+                new TypeRef.Formatter(resolver),
+                new RuntimeComposition.Formatter(resolver),
+                new RuntimeComposition.RuntimeImport.Formatter(resolver),
+                new ComposablePartDefinition.Formatter(resolver),
+                new ComposableCatalog.Formatter(resolver),
                 AssemblyNameFormatter.Instance,
-                MetadataDictionaryFormatter.Instance,
-                MetadataObjectFormatter.Instance,
-            },
-            new IFormatterResolver[]
-            {
-                 formatterResolver,
-            }));
+            });
+        this.DefaultOptions = MessagePackSerializerOptions.Standard
+            .WithResolver(new MyDedupingResolver(CompositeResolver.Create(
+                this.Resolver,
+                StandardResolverAllowPrivate.Instance)));
     }
 
-    private static readonly HashSet<Type> DedupingTypes =
-    [
-        typeof(string),
-        typeof(RuntimeComposition.RuntimeExport),
-        typeof(PropertyRef),
-        typeof(FieldRef),
-        typeof(ParameterRef),
-        typeof(TypeRef),
-        typeof(AssemblyName),
-        typeof(StrongAssemblyIdentity),
-    ];
+    /// <summary>
+    /// Gets a resolver that can be used to serialize and deserialize objects in this assembly.
+    /// </summary>
+    public IFormatterResolver Resolver { get; }
 
-    private class DedupingResolver : IFormatterResolver
+    /// <summary>
+    /// Gets the recommended options to use when serializing and deserializing objects in this assembly.
+    /// </summary>
+    /// <remarks>
+    /// This includes a resolver that combines <see cref="Resolver"/> with the <see cref="StandardResolverAllowPrivate"/> resolver
+    /// and a de-duping resolver so that certain types only serialize once when they are by-value or by-reference equal with each other.
+    /// </remarks>
+    public MessagePackSerializerOptions DefaultOptions { get; }
+
+    private class MyDedupingResolver : IFormatterResolver
     {
         private const sbyte ReferenceExtensionTypeCode = 1;
         private readonly Dictionary<Type, IMessagePackFormatter> dedupingFormatters = new();
@@ -71,10 +63,22 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
         private readonly Dictionary<object, int> serializedObjects = new();
         private int serializingObjectCounter;
 
-        internal DedupingResolver(IFormatterResolver inner)
+        internal MyDedupingResolver(IFormatterResolver inner)
         {
             this.inner = inner;
         }
+
+        private static readonly HashSet<Type> DedupingTypes =
+        [
+            typeof(string),
+            typeof(RuntimeComposition.RuntimeExport),
+            typeof(PropertyRef),
+            typeof(FieldRef),
+            typeof(ParameterRef),
+            typeof(TypeRef),
+            typeof(AssemblyName),
+            typeof(StrongAssemblyIdentity),
+        ];
 
         public IMessagePackFormatter<T>? GetFormatter<T>()
         {
@@ -99,9 +103,9 @@ public class MessagePackSerializerContext : MessagePackSerializerOptions
 
         private class DedupingFormatter<T> : IMessagePackFormatter<T>
         {
-            private readonly DedupingResolver owner;
+            private readonly MyDedupingResolver owner;
 
-            internal DedupingFormatter(DedupingResolver owner)
+            internal DedupingFormatter(MyDedupingResolver owner)
             {
                 this.owner = owner;
             }

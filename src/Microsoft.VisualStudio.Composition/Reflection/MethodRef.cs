@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         [SerializationConstructor]
         private MethodRef(TypeRef declaringType, int metadataToken, bool isStatic, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
-          : this(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments)
+            : this(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments)
         {
         }
 

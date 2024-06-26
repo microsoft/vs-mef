@@ -12,10 +12,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackFormatter(typeof(TypeRefObjectFormatter))]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         /// <summary>
@@ -476,13 +474,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        private class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
+        internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<TypeRef?>
         {
-            public static readonly TypeRefObjectFormatter Instance = new();
-
-            private TypeRefObjectFormatter()
-            {
-            }
+            private const int ExpectedLength = 8;
 
             /// <inheritdoc/>
             public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -495,10 +489,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    var actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 8)
+                    int actualCount = reader.ReadArrayHeader();
+                    if (actualCount != ExpectedLength)
                     {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {10}, Actual: {actualCount}");
+                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {ExpectedLength}, Actual: {actualCount}");
                     }
 
                     IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
@@ -532,7 +526,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                         elementType = null;
                     }
 
-                    return TypeRef.Get(options.CompositionResolver(), assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
+                    return TypeRef.Get(compositionResolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
                 }
                 finally
                 {
@@ -549,7 +543,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     return;
                 }
 
-                writer.WriteArrayHeader(8);
+                writer.WriteArrayHeader(ExpectedLength);
 
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
                 writer.Write(value.MetadataToken);

@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Reflection;
     using MessagePack;
-    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq} ({Cardinality})")]
     [MessagePackObject]

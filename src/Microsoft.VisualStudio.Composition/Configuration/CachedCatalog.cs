@@ -8,22 +8,18 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading;
     using System.Threading.Tasks;
     using MessagePack;
-    using MessagePack.Resolvers;
 
     public class CachedCatalog
     {
         protected static readonly Encoding TextEncoding = Encoding.UTF8;
 
-        public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
 
-            return Task.Run(() =>
-            {
-                var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, catalog.Resolver);
-                MessagePackSerializer.Serialize(cacheStream, catalog, context, cancellationToken);
-            });
+            MessagePackSerializerContext context = new(catalog.Resolver);
+            await MessagePackSerializer.SerializeAsync(cacheStream, catalog, context.DefaultOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
@@ -31,8 +27,8 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            var context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, resolver);
-            return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
+            MessagePackSerializerContext context = new(resolver);
+            return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context.DefaultOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

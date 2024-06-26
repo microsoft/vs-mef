@@ -9,7 +9,6 @@ using System.Composition;
 using System.Globalization;
 using System.Reflection;
 using MessagePack;
-using MessagePack.Resolvers;
 using Microsoft.VisualStudio.Composition.Reflection;
 using Xunit;
 
@@ -91,8 +90,8 @@ public class SerializationFormatterTests
     {
         private MessagePackReader SerializeAndGetReader(TObjectType objectToValidate, out MessagePackSerializerContext context)
         {
-            context = new MessagePackSerializerContext(StandardResolverAllowPrivate.Instance, Resolver.DefaultInstance);
-            var bytes = MessagePackSerializer.Serialize(objectToValidate, context);
+            context = new MessagePackSerializerContext(Resolver.DefaultInstance);
+            var bytes = MessagePackSerializer.Serialize(objectToValidate, context.DefaultOptions);
 
             return new MessagePackReader(bytes);
         }
@@ -154,7 +153,7 @@ public class SerializationFormatterTests
             foreach (TObjectType objectToValidate in objectsToValidate)
             {
                 MessagePackReader reader = this.SerializeAndGetReader(objectToValidate, out MessagePackSerializerContext context);
-                this.ProcessMessagePackReader(ref reader, context);
+                this.ProcessMessagePackReader(ref reader, context.DefaultOptions);
 
                 bool isMessagePackReaderAtEnd = reader.End;
 

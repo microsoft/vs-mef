@@ -23,6 +23,7 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
+    <AdditionalFiles Include="MessagePackAnalyzer.json" />
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     /// An exception that may be thrown during MEF part discovery.
     /// </summary>
     [Serializable]
-    [MessagePackFormatter(typeof(PartDiscoveryExceptionFormatter))]
+    [MessagePackFormatter(typeof(Formatter))]
     public class PartDiscoveryException : Exception
     {
         internal string? StackTraceInternal = string.Empty;
@@ -67,11 +67,7 @@ namespace Microsoft.VisualStudio.Composition
         public Type? ScannedType { get; set; }
 
         /// <inheritdoc/>
-#pragma warning disable CS8603 // Possible null reference return.
-#pragma warning disable RS0016 // Add public types and members to the declared API
-        public override string StackTrace => base.StackTrace ?? this.StackTraceInternal;
-#pragma warning restore RS0016 // Add public types and members to the declared API
-#pragma warning restore CS8603 // Possible null reference return.
+        public override string? StackTrace => base.StackTrace ?? this.StackTraceInternal;
 
         /// <inheritdoc/>
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -82,11 +78,11 @@ namespace Microsoft.VisualStudio.Composition
             info.AddValue(nameof(this.ScannedType), this.ScannedType);
         }
 
-        private class PartDiscoveryExceptionFormatter : IMessagePackFormatter<PartDiscoveryException?>
+        private class Formatter : IMessagePackFormatter<PartDiscoveryException?>
         {
-            public static readonly PartDiscoveryExceptionFormatter Instance = new();
+            public static readonly Formatter Instance = new();
 
-            private PartDiscoveryExceptionFormatter()
+            private Formatter()
             {
             }
 
@@ -100,11 +96,7 @@ namespace Microsoft.VisualStudio.Composition
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    int actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 5)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {5}, Actual: {actualCount}");
-                    }
+                    reader.ReadArrayHeaderOfLength(5);
 
                     string message = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                     string? assemblyPath = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
@@ -139,11 +131,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 Exception Deserialize(ref MessagePackReader reader)
                 {
-                    int actualCount = reader.ReadArrayHeader();
-                    if (actualCount != 2)
-                    {
-                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {2}, Actual: {actualCount}");
-                    }
+                    reader.ReadArrayHeaderOfLength(2);
 
                     var message = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 
