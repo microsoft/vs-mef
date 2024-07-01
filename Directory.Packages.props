@@ -11,8 +11,8 @@
     <MessagePackVersion>2.5.124</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="DiffPlex" Version="1.7.1" />
-    <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
+7    <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(CodefixTestingVersion)" />
@@ -59,7 +59,7 @@
     <GlobalPackageReference Include="Required" Version="1.0.0" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" />
-    <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" />
+    <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.139" />
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556" />
   </ItemGroup>
   <ItemGroup>
