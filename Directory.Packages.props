@@ -10,7 +10,7 @@
     <CodefixTestingVersion>1.1.1</CodefixTestingVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="DiffPlex" Version="1.7.1" />
+    <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(CodefixTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$(CodeAnalysisVersion)" />
