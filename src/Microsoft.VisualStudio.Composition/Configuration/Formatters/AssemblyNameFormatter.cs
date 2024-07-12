@@ -27,14 +27,15 @@ internal class AssemblyNameFormatter : IMessagePackFormatter<AssemblyName?>
         try
         {
             int actualCount = reader.ReadArrayHeader();
-            if (actualCount != 1)
+            if (actualCount != 2)
             {
                 throw new MessagePackSerializationException($"Invalid array count for type {nameof(StrongAssemblyIdentity)}. Expected: {1}, Actual: {actualCount}");
             }
 
-            string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+            var assemblyName = new AssemblyName(options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options));
+            assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
 
-            return new AssemblyName(fullName);
+            return assemblyName;
         }
         finally
         {
@@ -51,7 +52,8 @@ internal class AssemblyNameFormatter : IMessagePackFormatter<AssemblyName?>
             return;
         }
 
-        writer.WriteArrayHeader(1);
+        writer.WriteArrayHeader(2);
         options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
+        options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.CodeBase, options);
     }
 }
