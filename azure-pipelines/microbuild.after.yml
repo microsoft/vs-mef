@@ -12,7 +12,7 @@ steps:
   inputs:
     ApprovalListPathForCerts: $(Build.SourcesDirectory)\azure-pipelines\no_authenticode.txt
     TargetFolders: |
-      $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
+      $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - ${{ if parameters.IsOptProf }}:
