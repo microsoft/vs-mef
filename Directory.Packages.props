@@ -11,7 +11,7 @@
     <MessagePackVersion>2.5.124</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="DiffPlex" Version="1.7.2" />
+    <PackageVersion Include="DiffPlex" Version="1.7.1" />
     <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
     <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
@@ -62,11 +62,4 @@
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.139" />
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556" />
   </ItemGroup>
-<<<<<<<<< Temporary merge branch 1
-  <ItemGroup>
-    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-  </ItemGroup>
 </Project>
-=========
-</Project>
->>>>>>>>> Temporary merge branch 2
