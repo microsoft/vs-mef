@@ -15,7 +15,7 @@ Lightning fast MEF engine, supporting System.ComponentModel.Composition and Syst
 
 ### Features
 
-* A new, faster host for your existing MEF parts
+* A new, faster host for your existing MEF test parts
 * Reuse the MEF attributes you're already using
 * `ExportFactory<T>` support to create sub-containers with scoped lifetime (i.e. sharing boundaries)
 
