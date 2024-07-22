@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition
                 throw exception;
             }
 
-            if (!metadataViewsAndProviders.Any())
+            if (metadataViewsAndProviders.Count == 0)
             {
                 var exception = new ArgumentException(invalidArgExceptionMsg, nameof(metadataViewsAndProviders));
                 exception.Data.Add(invalidArgExceptionData, true);
