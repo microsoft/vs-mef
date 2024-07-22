@@ -53,6 +53,9 @@ namespace Microsoft.VisualStudio.Composition
 
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
+        private static readonly object BoxedTrue = true;
+        private static readonly object BoxedFalse = false;
+
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
             Requires.NotNull(reader, nameof(reader));
@@ -1070,9 +1073,9 @@ namespace Microsoft.VisualStudio.Composition
                         Type? elementType = this.ReadTypeRef().Resolve();
                         return this.ReadArray(this.reader, this.readObjectDelegate, elementType);
                     case ObjectType.BoolTrue:
-                        return true;
+                        return BoxedTrue;
                     case ObjectType.BoolFalse:
-                        return false;
+                        return BoxedFalse;
                     case ObjectType.Int64:
                         return this.reader.ReadInt64();
                     case ObjectType.UInt64:
