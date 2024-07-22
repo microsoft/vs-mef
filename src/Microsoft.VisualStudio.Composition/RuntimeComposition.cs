@@ -28,9 +28,11 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
             Requires.NotNull(resolver, nameof(resolver));
 
+            this.parts = ImmutableHashSet.CreateRange(parts);
+
             var invalidArgExceptionMsg = "Invalid arguments passed to generate runtime composition.";
             var invalidArgExceptionData = "InvalidCompositionException";
-            if (!parts.Any())
+            if (this.parts.Count == 0)
             {
                 var exception = new ArgumentException(invalidArgExceptionMsg, nameof(parts));
                 exception.Data.Add(invalidArgExceptionData, true);
@@ -46,7 +48,6 @@ namespace Microsoft.VisualStudio.Composition
                 throw exception;
             }
 
-            this.parts = ImmutableHashSet.CreateRange(parts);
             this.metadataViewsAndProviders = metadataViewsAndProviders;
             this.Resolver = resolver;
 
