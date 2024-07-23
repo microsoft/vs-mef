@@ -8,8 +8,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
+    using MessagePack;
+    using MessagePack.Formatters;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackFormatter(typeof(Formatter))]
     public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>
@@ -89,6 +92,59 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(assemblies, nameof(assemblies));
 
             this.DeclaringType.GetInputAssemblies(assemblies);
+        }
+
+        private class Formatter : IMessagePackFormatter<ParameterRef?>
+        {
+            public static readonly Formatter Instance = new();
+            private const int ExpectedLength = 2;
+
+            private Formatter()
+            {
+            }
+
+            /// <inheritdoc/>
+            public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                if (reader.TryReadNil())
+                {
+                    return null;
+                }
+
+                try
+                {
+                    var actualCount = reader.ReadArrayHeader();
+                    if (actualCount != ExpectedLength)
+                    {
+                        throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {ExpectedLength}, Actual: {actualCount}");
+                    }
+
+                    options.Security.DepthStep(ref reader);
+
+                    MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
+                    int parameterIndex = reader.ReadInt32();
+                    return new ParameterRef(method, parameterIndex);
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
+            }
+
+            /// <inheritdoc/>
+            public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
+            {
+                if (value is null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+
+                writer.WriteArrayHeader(ExpectedLength);
+
+                options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
+                writer.Write(value.ParameterIndex);
+            }
         }
     }
 }

@@ -8,10 +8,9 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.ComponentModel;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
+    using MessagePack;
+    using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
@@ -195,20 +194,61 @@ namespace Microsoft.VisualStudio.Composition
             return ImmutableDictionary<string, MetadatumRequirement>.Empty;
         }
 
+        [MessagePackObject]
         public struct MetadatumRequirement
         {
             public MetadatumRequirement(TypeRef valueType, bool required)
-                : this()
+                            : this()
             {
                 this.MetadatumValueTypeRef = valueType;
                 this.IsMetadataumValueRequired = required;
             }
 
+            [Key(0)]
             public TypeRef MetadatumValueTypeRef { get; private set; }
 
+            [IgnoreMember]
             public Type MetadatumValueType => this.MetadatumValueTypeRef.Resolve();
 
+            [Key(1)]
             public bool IsMetadataumValueRequired { get; private set; }
+        }
+
+        internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<ImportMetadataViewConstraint?>
+        {
+            public ImportMetadataViewConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                if (reader.TryReadNil())
+                {
+                    return null;
+                }
+
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    reader.ReadArrayHeaderOfLength(1);
+
+                    var requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
+                    return new ImportMetadataViewConstraint(requirements, compositionResolver);
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
+            }
+
+            public void Serialize(ref MessagePackWriter writer, ImportMetadataViewConstraint? value, MessagePackSerializerOptions options)
+            {
+                if (value is null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+
+                writer.WriteArrayHeader(1);
+
+                options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Serialize(ref writer, value.Requirements, options);
+            }
         }
     }
 }

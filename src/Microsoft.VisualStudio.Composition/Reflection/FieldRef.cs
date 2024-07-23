@@ -7,14 +7,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Reflection;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackObject]
     public class FieldRef : MemberRef, IEquatable<FieldRef>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        [IgnoreMember]
         private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
         public FieldRef(TypeRef declaringType, TypeRef fieldTypeRef, int metadataToken, string name, bool isStatic)
@@ -32,10 +35,19 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.FieldTypeRef = TypeRef.Get(field.FieldType, resolver);
         }
 
+        [SerializationConstructor]
+        private FieldRef(TypeRef declaringType, int metadataToken, bool isStatic, TypeRef fieldTypeRef, string name)
+            : this(declaringType, fieldTypeRef, metadataToken, name, isStatic)
+        {
+        }
+
+        [IgnoreMember]
         public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
 
+        [Key(3)]
         public TypeRef FieldTypeRef { get; }
 
+        [Key(4)]
         public override string Name { get; }
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
