@@ -3,6 +3,7 @@
 
 namespace Microsoft.VisualStudio.Composition.Formatter;
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using MessagePack;
 using MessagePack.Formatters;
@@ -48,28 +49,13 @@ internal class MetadataDictionaryFormatter(Resolver compositionResolver) : IMess
         }
 
         int count = reader.ReadMapHeader();
-        var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
 
         if (count == 0)
         {
             return ImmutableDictionary<string, object?>.Empty;
         }
 
-        var builder = ImmutableDictionary.CreateBuilder<string, object?>();
-
-        try
-        {
-            for (int i = 0; i < count; i++)
-            {
-                builder.Add(stringFormatter.Deserialize(ref reader, options), this.metadataObjectFormatter.Deserialize(ref reader, options));
-            }
-        }
-        finally
-        {
-            reader.Depth--;
-        }
-
-        return new LazyMetadataWrapper(builder.ToImmutable(), LazyMetadataWrapper.Direction.ToOriginalValue, compositionResolver);
+        return new LazyMetadataWrapper(this.metadataObjectFormatter.DeserializeMetadataObjects(ref reader, options, count), LazyMetadataWrapper.Direction.ToOriginalValue, compositionResolver);
     }
 }
 

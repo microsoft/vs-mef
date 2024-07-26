@@ -4,6 +4,8 @@
 namespace Microsoft.VisualStudio.Composition.Formatter;
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Reflection;
 using MessagePack;
@@ -151,13 +153,43 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
         }
     }
 
+    public ImmutableDictionary<string, object?> DeserializeMetadataObjects(ref MessagePackReader reader, MessagePackSerializerOptions options, int count)
+    {
+        var dictionary = new Dictionary<string, object?>(count);
+
+        try
+        {
+            var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
+            var typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
+            var guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
+            var typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>();
+
+            for (int i = 0; i < count; i++)
+            {
+                dictionary.Add(stringFormatter.Deserialize(ref reader, options), this.Deserialize(ref reader, options, stringFormatter, typeRefFormatter, guidFormatter, typeRefFormatterCollection));
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
+
+        return dictionary.ToImmutableDictionary();
+    }
+
     public object? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
-        var typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
-        var guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
-        var typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>();
+        return this.Deserialize(ref reader, options, options.Resolver.GetFormatterWithVerify<string>(), options.Resolver.GetFormatterWithVerify<TypeRef?>(), options.Resolver.GetFormatterWithVerify<Guid>(), options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>());
+    }
 
+    private object? Deserialize(
+        ref MessagePackReader reader,
+        MessagePackSerializerOptions options,
+        IMessagePackFormatter<string> stringFormatter,
+        IMessagePackFormatter<TypeRef?> typeRefFormatter,
+        IMessagePackFormatter<Guid> guidFormatter,
+        IMessagePackFormatter<IReadOnlyList<TypeRef>> typeRefFormatterCollection)
+    {
         return DeserializeObject(ref reader);
 
         object? DeserializeObject(ref MessagePackReader reader)

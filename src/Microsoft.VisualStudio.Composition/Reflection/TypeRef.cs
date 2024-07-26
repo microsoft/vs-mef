@@ -51,6 +51,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private ImmutableArray<TypeRef> baseTypes;
 
+        private static readonly Lazy<string> UnresolvableMetadataTokenString = new(() => Strings.UnresolvableMetadataToken);
+        private static readonly Lazy<string> NotATypeSpecString = new(() => Strings.NotATypeSpec);
+        private static readonly Lazy<string> NotGenericTypeDefinitionString = new(() => Strings.NotGenericTypeDefinition);
+        private static readonly Lazy<string> NotInitializedString = new(() => Strings.NotInitialized);
+
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
@@ -66,8 +71,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
-            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", Strings.NotATypeSpec);
-            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", Strings.UnresolvableMetadataToken);
+            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", NotATypeSpecString.Value);
+            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", UnresolvableMetadataTokenString.Value);
             Requires.NotNullOrEmpty(fullName, nameof(fullName));
 
             this.resolver = resolver;
@@ -101,8 +106,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             {
                 this.resolver = resolver;
                 this.resolvedType = type;
-                this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
-                this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
+
+                var assembly = type.GetTypeInfo().Assembly;
+                this.AssemblyName = resolver.GetNormalizedAssemblyName(assembly);
+                this.assemblyId = resolver.GetStrongAssemblyIdentity(assembly, this.AssemblyName);
                 this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
                 this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
 
@@ -111,10 +118,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     : this;
 
                 var arrayElementType = this.ArrayElementType;
+                var arrayElementTypeTypeInfo = arrayElementType.GetTypeInfo();
                 Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
-                this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
-                this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
-                this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
+                this.MetadataToken = arrayElementTypeTypeInfo.MetadataToken;
+                this.FullName = (arrayElementTypeTypeInfo.IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
+                this.GenericTypeParameterCount = arrayElementTypeTypeInfo.GenericTypeParameters.Length;
                 this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
                     ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
                     : ImmutableArray<TypeRef>.Empty;
@@ -314,8 +322,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public TypeRef MakeGenericTypeRef(ImmutableArray<TypeRef> genericTypeArguments)
         {
-            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", Strings.NotInitialized);
-            Verify.Operation(this.IsGenericTypeDefinition, Strings.NotGenericTypeDefinition);
+            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", NotInitializedString.Value);
+            Verify.Operation(this.IsGenericTypeDefinition, NotGenericTypeDefinitionString.Value);
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.

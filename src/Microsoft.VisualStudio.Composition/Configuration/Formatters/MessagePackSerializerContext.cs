@@ -104,30 +104,25 @@ public class MessagePackSerializerContext
         private class DedupingFormatter<T> : IMessagePackFormatter<T>
         {
             private readonly MyDedupingResolver owner;
+            private readonly bool isValueType;
 
             internal DedupingFormatter(MyDedupingResolver owner)
             {
                 this.owner = owner;
+                this.isValueType = typeof(T).IsValueType;
             }
 
             public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
-                if (!typeof(T).IsValueType && reader.TryReadNil())
+                if (!this.isValueType && reader.TryReadNil())
                 {
                     return default!;
                 }
 
                 if (reader.NextMessagePackType == MessagePackType.Extension)
                 {
-                    MessagePackReader provisionaryReader = reader.CreatePeekReader();
-                    ExtensionHeader extensionHeader = provisionaryReader.ReadExtensionFormatHeader();
-                    if (extensionHeader.TypeCode == ReferenceExtensionTypeCode)
-                    {
-                        int id = provisionaryReader.ReadInt32();
-                        reader = provisionaryReader;
-
-                        return (T)(this.owner.deserializedObjects[id] ?? throw new MessagePackSerializationException("Unexpected null element in shared object array. Dependency cycle?"));
-                    }
+                    reader.ReadExtensionFormatHeader();
+                    return (T)(this.owner.deserializedObjects[reader.ReadInt32()] ?? throw new MessagePackSerializationException("Unexpected null element in shared object array. Dependency cycle?"));
                 }
 
                 // Reserve our position in the array.
