@@ -42,39 +42,34 @@ internal class MetadataDictionaryFormatter(Resolver compositionResolver) : IMess
 
     public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty;
-
         if (reader.TryReadNil())
         {
-            return metadata;
+            return ImmutableDictionary<string, object?>.Empty;
         }
 
         int count = reader.ReadMapHeader();
         var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
 
-        if (count > 0)
+        if (count == 0)
         {
-            ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
-
-            try
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    string? key = stringFormatter.Deserialize(ref reader, options);
-                    object? value = this.metadataObjectFormatter.Deserialize(ref reader, options);
-
-                    builder.Add(key, value);
-                }
-            }
-            finally
-            {
-                reader.Depth--;
-            }
-
-            metadata = builder.ToImmutable();
+            return ImmutableDictionary<string, object?>.Empty;
         }
 
-        return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, compositionResolver);
+        var builder = ImmutableDictionary.CreateBuilder<string, object?>();
+
+        try
+        {
+            for (int i = 0; i < count; i++)
+            {
+                builder.Add(stringFormatter.Deserialize(ref reader, options), this.metadataObjectFormatter.Deserialize(ref reader, options));
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
+
+        return new LazyMetadataWrapper(builder.ToImmutable(), LazyMetadataWrapper.Direction.ToOriginalValue, compositionResolver);
     }
 }
 

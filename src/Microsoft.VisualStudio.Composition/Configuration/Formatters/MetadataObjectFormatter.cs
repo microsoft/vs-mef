@@ -153,43 +153,48 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
 
     public object? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return null;
-        }
-
         var stringFormatter = options.Resolver.GetFormatterWithVerify<string>();
         var typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef?>();
         var guidFormatter = options.Resolver.GetFormatterWithVerify<Guid>();
         var typeRefFormatterCollection = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>();
 
-        object? deserializedItem = null;
-        MessagePackType messagePackType = reader.NextMessagePackType;
+        return DeserializeObject(ref reader);
 
-        deserializedItem = messagePackType switch
+        object? DeserializeObject(ref MessagePackReader reader)
         {
-            MessagePackType.Boolean => reader.ReadBoolean(),
-            MessagePackType.Integer => reader.NextCode switch
+            if (reader.TryReadNil())
             {
-                MessagePackCode.Int64 => reader.ReadInt64(),
-                MessagePackCode.Int32 => reader.ReadInt32(),
-                MessagePackCode.UInt64 => reader.ReadUInt64(),
-                MessagePackCode.UInt32 => reader.ReadUInt32(),
-                MessagePackCode.Int16 => reader.ReadInt16(),
-                MessagePackCode.UInt16 => reader.ReadUInt16(),
-                MessagePackCode.Int8 => reader.ReadSByte(),
-                MessagePackCode.UInt8 => reader.ReadByte(),
-                _ => DeserializeCustomObject(ref reader),
-            },
-            MessagePackType.Float => reader.NextCode switch
+                return null;
+            }
+
+            return reader.NextMessagePackType switch
             {
-                MessagePackCode.Float32 => reader.ReadSingle(),
-                MessagePackCode.Float64 => reader.ReadDouble(),
+                MessagePackType.Boolean => reader.ReadBoolean(),
+                MessagePackType.Integer => ReadInteger(ref reader),
+                MessagePackType.Float => ReadFloat(ref reader),
                 _ => DeserializeCustomObject(ref reader),
-            },
+            };
+        }
+
+        object? ReadFloat(ref MessagePackReader reader) => reader.NextCode switch
+        {
+            MessagePackCode.Float32 => reader.ReadSingle(),
+            MessagePackCode.Float64 => reader.ReadDouble(),
             _ => DeserializeCustomObject(ref reader),
         };
-        return deserializedItem;
+
+        object ReadInteger(ref MessagePackReader reader) => reader.NextCode switch
+        {
+            MessagePackCode.Int64 => reader.ReadInt64(),
+            MessagePackCode.Int32 => reader.ReadInt32(),
+            MessagePackCode.UInt64 => reader.ReadUInt64(),
+            MessagePackCode.UInt32 => reader.ReadUInt32(),
+            MessagePackCode.Int16 => reader.ReadInt16(),
+            MessagePackCode.UInt16 => reader.ReadUInt16(),
+            MessagePackCode.Int8 => reader.ReadSByte(),
+            MessagePackCode.UInt8 => reader.ReadByte(),
+            _ => throw new MessagePackSerializationException("Unexpected integer type"),
+        };
 
         object? DeserializeCustomObject(ref MessagePackReader messagePackReader)
         {
@@ -209,10 +214,19 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
                         int arrayLength = messagePackReader.ReadArrayHeader();
                         var arrayObject = Array.CreateInstance(elementType, arrayLength);
 
-                        for (int i = 0; i < arrayObject.Length; i++)
+                        if (arrayObject is object[] objectArray)
                         {
-                            object? valueToSet = this.Deserialize(ref messagePackReader, options);
-                            arrayObject.SetValue(valueToSet, i);
+                            for (int i = 0; i < arrayLength; i++)
+                            {
+                                objectArray[i] = DeserializeObject(ref messagePackReader)!;
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < arrayLength; i++)
+                            {
+                                arrayObject.SetValue(DeserializeObject(ref messagePackReader), i);
+                            }
                         }
 
                         deserializedValue = arrayObject;
