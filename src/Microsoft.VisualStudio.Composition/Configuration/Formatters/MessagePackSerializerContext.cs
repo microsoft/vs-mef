@@ -120,8 +120,15 @@ public class MessagePackSerializerContext
 
                 if (reader.NextMessagePackType == MessagePackType.Extension)
                 {
-                    reader.ReadExtensionFormatHeader();
-                    return (T)(this.owner.deserializedObjects[reader.ReadInt32()] ?? throw new MessagePackSerializationException("Unexpected null element in shared object array. Dependency cycle?"));
+                    MessagePackReader provisionaryReader = reader.CreatePeekReader();
+                    ExtensionHeader extensionHeader = provisionaryReader.ReadExtensionFormatHeader();
+                    if (extensionHeader.TypeCode == ReferenceExtensionTypeCode)
+                    {
+                        int id = provisionaryReader.ReadInt32();
+                        reader = provisionaryReader;
+
+                        return (T)(this.owner.deserializedObjects[id] ?? throw new MessagePackSerializationException("Unexpected null element in shared object array. Dependency cycle?"));
+                    }
                 }
 
                 // Reserve our position in the array.

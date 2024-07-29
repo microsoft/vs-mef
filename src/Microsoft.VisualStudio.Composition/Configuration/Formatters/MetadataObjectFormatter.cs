@@ -153,7 +153,7 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
         }
     }
 
-    public ImmutableDictionary<string, object?> DeserializeMetadataObjects(ref MessagePackReader reader, MessagePackSerializerOptions options, int count)
+    internal ImmutableDictionary<string, object?> DeserializeMetadataObjects(ref MessagePackReader reader, MessagePackSerializerOptions options, int count)
     {
         var dictionary = new Dictionary<string, object?>(count);
 
@@ -202,31 +202,27 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
             return reader.NextMessagePackType switch
             {
                 MessagePackType.Boolean => reader.ReadBoolean(),
-                MessagePackType.Integer => ReadInteger(ref reader),
-                MessagePackType.Float => ReadFloat(ref reader),
+                MessagePackType.Integer => reader.NextCode switch
+                {
+                    MessagePackCode.Int64 => reader.ReadInt64(),
+                    MessagePackCode.Int32 => reader.ReadInt32(),
+                    MessagePackCode.UInt64 => reader.ReadUInt64(),
+                    MessagePackCode.UInt32 => reader.ReadUInt32(),
+                    MessagePackCode.Int16 => reader.ReadInt16(),
+                    MessagePackCode.UInt16 => reader.ReadUInt16(),
+                    MessagePackCode.Int8 => reader.ReadSByte(),
+                    MessagePackCode.UInt8 => reader.ReadByte(),
+                    _ => throw new MessagePackSerializationException("Unexpected integer type"),
+                },
+                MessagePackType.Float => reader.NextCode switch
+                {
+                    MessagePackCode.Float32 => reader.ReadSingle(),
+                    MessagePackCode.Float64 => reader.ReadDouble(),
+                    _ => DeserializeCustomObject(ref reader),
+                },
                 _ => DeserializeCustomObject(ref reader),
             };
         }
-
-        object? ReadFloat(ref MessagePackReader reader) => reader.NextCode switch
-        {
-            MessagePackCode.Float32 => reader.ReadSingle(),
-            MessagePackCode.Float64 => reader.ReadDouble(),
-            _ => DeserializeCustomObject(ref reader),
-        };
-
-        object ReadInteger(ref MessagePackReader reader) => reader.NextCode switch
-        {
-            MessagePackCode.Int64 => reader.ReadInt64(),
-            MessagePackCode.Int32 => reader.ReadInt32(),
-            MessagePackCode.UInt64 => reader.ReadUInt64(),
-            MessagePackCode.UInt32 => reader.ReadUInt32(),
-            MessagePackCode.Int16 => reader.ReadInt16(),
-            MessagePackCode.UInt16 => reader.ReadUInt16(),
-            MessagePackCode.Int8 => reader.ReadSByte(),
-            MessagePackCode.UInt8 => reader.ReadByte(),
-            _ => throw new MessagePackSerializationException("Unexpected integer type"),
-        };
 
         object? DeserializeCustomObject(ref MessagePackReader messagePackReader)
         {
