@@ -51,11 +51,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private ImmutableArray<TypeRef> baseTypes;
 
-        private static readonly Lazy<string> UnresolvableMetadataTokenString = new(() => Strings.UnresolvableMetadataToken);
-        private static readonly Lazy<string> NotATypeSpecString = new(() => Strings.NotATypeSpec);
-        private static readonly Lazy<string> NotGenericTypeDefinitionString = new(() => Strings.NotGenericTypeDefinition);
-        private static readonly Lazy<string> NotInitializedString = new(() => Strings.NotInitialized);
-
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
@@ -71,8 +66,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
-            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", NotATypeSpecString.Value);
-            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", UnresolvableMetadataTokenString.Value);
+            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, nameof(metadataToken), Strings.ResourceManager, nameof(Strings.NotATypeSpec));
+            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, nameof(metadataToken), Strings.ResourceManager, nameof(Strings.UnresolvableMetadataToken));
             Requires.NotNullOrEmpty(fullName, nameof(fullName));
 
             this.resolver = resolver;
@@ -322,8 +317,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public TypeRef MakeGenericTypeRef(ImmutableArray<TypeRef> genericTypeArguments)
         {
-            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", NotInitializedString.Value);
-            Verify.Operation(this.IsGenericTypeDefinition, NotGenericTypeDefinitionString.Value);
+            Requires.Argument(!genericTypeArguments.IsDefault, nameof(genericTypeArguments), Strings.ResourceManager, nameof(Strings.NotInitialized));
+            if (!this.IsGenericTypeDefinition)
+            {
+                Verify.FailOperation(Strings.NotGenericTypeDefinition);
+            }
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
