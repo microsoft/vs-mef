@@ -51,6 +51,16 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private ImmutableArray<TypeRef> baseTypes;
 
+        /// <summary>
+        /// Backing field for the lazily initialized <see cref="AssemblyName"/> property.
+        /// </summary>
+        private AssemblyName? cachedAssemblyName;
+
+        /// <summary>
+        /// Backing field for the lazily initialized <see cref="Assembly"/> property.
+        /// </summary>
+        private Assembly cachedAssembly;
+
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
@@ -71,7 +81,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNullOrEmpty(fullName, nameof(fullName));
 
             this.resolver = resolver;
-            this.AssemblyName = Resolver.GetNormalizedAssemblyName(assemblyName);
+            this.cachedAssemblyName = assemblyName;
             this.assemblyId = assemblyId;
             this.MetadataToken = metadataToken;
             this.FullName = fullName;
@@ -103,7 +113,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 this.resolvedType = type;
 
                 var assembly = type.GetTypeInfo().Assembly;
-                this.AssemblyName = resolver.GetNormalizedAssemblyName(assembly);
+                this.cachedAssembly = assembly;
                 this.assemblyId = resolver.GetStrongAssemblyIdentity(assembly, this.AssemblyName);
                 this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
                 this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
@@ -140,7 +150,20 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        public AssemblyName AssemblyName { get; }
+        public AssemblyName AssemblyName
+        {
+            get
+            {
+                if (this.cachedAssemblyName is not null)
+                {
+                    return Resolver.GetNormalizedAssemblyName(this.cachedAssemblyName);
+                }
+                else
+                {
+                    return this.Resolver.GetNormalizedAssemblyName(this.cachedAssembly);
+                }
+            }
+        }
 
         public int MetadataToken { get; private set; }
 
