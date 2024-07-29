@@ -103,18 +103,17 @@ public class MessagePackSerializerContext
 
         private class DedupingFormatter<T> : IMessagePackFormatter<T>
         {
+            private static readonly bool IsValueType = typeof(T).IsValueType;
             private readonly MyDedupingResolver owner;
-            private readonly bool isValueType;
 
             internal DedupingFormatter(MyDedupingResolver owner)
             {
                 this.owner = owner;
-                this.isValueType = typeof(T).IsValueType;
             }
 
             public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
-                if (!this.isValueType && reader.TryReadNil())
+                if (!IsValueType && reader.TryReadNil())
                 {
                     return default!;
                 }
