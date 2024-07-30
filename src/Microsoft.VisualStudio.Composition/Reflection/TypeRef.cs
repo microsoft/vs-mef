@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// Backing field for the lazily initialized <see cref="Assembly"/> property.
         /// </summary>
-        private Assembly cachedAssembly;
+        private Assembly? cachedAssembly;
 
         private TypeRef(
             Resolver resolver,
@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 }
                 else
                 {
-                    return this.Resolver.GetNormalizedAssemblyName(this.cachedAssembly);
+                    return this.Resolver.GetNormalizedAssemblyName(this.cachedAssembly!);
                 }
             }
         }
