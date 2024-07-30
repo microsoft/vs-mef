@@ -153,8 +153,15 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
         }
     }
 
+    public object? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        return this.Deserialize(ref reader, options, options.Resolver.GetFormatterWithVerify<string>(), options.Resolver.GetFormatterWithVerify<TypeRef?>(), options.Resolver.GetFormatterWithVerify<Guid>(), options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>());
+    }
+
     internal ImmutableDictionary<string, object?> DeserializeMetadataObjects(ref MessagePackReader reader, MessagePackSerializerOptions options, int count)
     {
+        options.Security.DepthStep(ref reader);
+
         var dictionary = new Dictionary<string, object?>(count);
 
         try
@@ -175,11 +182,6 @@ internal class MetadataObjectFormatter(Resolver compositionResolver) : IMessageP
         }
 
         return dictionary.ToImmutableDictionary();
-    }
-
-    public object? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-    {
-        return this.Deserialize(ref reader, options, options.Resolver.GetFormatterWithVerify<string>(), options.Resolver.GetFormatterWithVerify<TypeRef?>(), options.Resolver.GetFormatterWithVerify<Guid>(), options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>());
     }
 
     private object? Deserialize(

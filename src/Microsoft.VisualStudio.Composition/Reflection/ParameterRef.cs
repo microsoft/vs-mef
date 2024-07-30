@@ -111,6 +111,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     return null;
                 }
 
+                options.Security.DepthStep(ref reader);
                 try
                 {
                     var actualCount = reader.ReadArrayHeader();
