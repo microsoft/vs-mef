@@ -8,9 +8,12 @@
     <CodeAnalysisVersion>3.11.0</CodeAnalysisVersion>
     <CodeAnalysisVersionForTesting>4.8.0</CodeAnalysisVersionForTesting>
     <CodefixTestingVersion>1.1.1</CodefixTestingVersion>
+    <MessagePackVersion>2.5.124</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
+    <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
+    <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(CodefixTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$(CodeAnalysisVersion)" />
