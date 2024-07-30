@@ -55,11 +55,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
-        private static MessagePackSerializerOptions messagePackSerializerOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePack.Resolvers.CompositeResolver.Create(
-                            new[]
-                            {
-                                MessagePack.Resolvers.TypelessObjectResolver.Instance,
-                            }));
+        private static readonly MessagePackSerializerOptions MessagePackSerializerOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePack.Resolvers.TypelessObjectResolver.Instance);
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -1058,7 +1054,9 @@ namespace Microsoft.VisualStudio.Composition
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         this.writer.Flush();
-                        MessagePackSerializer.Typeless.Serialize(this.writer.BaseStream, value, messagePackSerializerOptions);
+                        byte[] typeLessData = MessagePackSerializer.Typeless.Serialize(value, MessagePackSerializerOptions);
+                        this.writer.Write(typeLessData.Length);
+                        this.writer.Write(typeLessData);
                     }
                 }
             }
@@ -1123,7 +1121,9 @@ namespace Microsoft.VisualStudio.Composition
                         IReadOnlyList<TypeRef?> typeRefArray = this.ReadList(this.reader, this.readTypeRefDelegate);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
-                        return MessagePackSerializer.Typeless.Deserialize(this.reader.BaseStream, messagePackSerializerOptions);
+                        int typelessDataLength = this.reader.ReadInt32();
+                        byte[] bytes = this.reader.ReadBytes(typelessDataLength);
+                        return MessagePackSerializer.Typeless.Deserialize(bytes, MessagePackSerializerOptions);
                     default:
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
                 }
