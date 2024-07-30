@@ -78,6 +78,13 @@ public class MessagePackSerializerContext
             typeof(TypeRef),
             typeof(AssemblyName),
             typeof(StrongAssemblyIdentity),
+            typeof(PartCreationPolicyConstraint),
+            typeof(Guid),
+            typeof(ImportMetadataViewConstraint),
+            typeof(ExportDefinition),
+            typeof(PartDiscoveryException),
+            typeof(ImportCardinality),
+            typeof(IReadOnlyDictionary<string, object?>),
         ];
 
         public IMessagePackFormatter<T>? GetFormatter<T>()
