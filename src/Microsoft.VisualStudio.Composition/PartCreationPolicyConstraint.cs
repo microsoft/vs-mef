@@ -4,17 +4,17 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
-    using MessagePack;
-    using MessagePack.Formatters;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
-    [MessagePackFormatter(typeof(Formatter))]
     public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         /// <summary>
@@ -120,54 +120,6 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             return this.RequiredCreationPolicy == other.RequiredCreationPolicy;
-        }
-
-        /// <summary>
-        /// A custom formatter for the <see cref="PartCreationPolicyConstraint"/> class.
-        /// This formatter is designed to avoid invoking the constructor during deserialization,
-        /// which helps to prevent the allocation of many redundant classes.
-        /// </summary>
-        private class Formatter : IMessagePackFormatter<PartCreationPolicyConstraint?>
-        {
-            public static readonly Formatter Instance = new();
-
-            private Formatter()
-            {
-            }
-
-            public PartCreationPolicyConstraint? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-            {
-                if (reader.TryReadNil())
-                {
-                    return null;
-                }
-
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    reader.ReadArrayHeaderOfLength(1);
-
-                    CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
-                    return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-            }
-
-            public void Serialize(ref MessagePackWriter writer, PartCreationPolicyConstraint? value, MessagePackSerializerOptions options)
-            {
-                if (value is null)
-                {
-                    writer.WriteNil();
-                    return;
-                }
-
-                writer.WriteArrayHeader(1);
-
-                options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.RequiredCreationPolicy, options);
-            }
         }
     }
 }

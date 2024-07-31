@@ -14,9 +14,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Resolves assemblies that MEF needs at runtime.
-    /// </summary>
     public class Resolver
     {
         /// <summary>

@@ -5,28 +5,26 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Reflection;
-    using MessagePack;
+    using System.Runtime.InteropServices;
+    using System.Text;
+    using System.Threading.Tasks;
 
-    [Union(0, typeof(FieldRef))]
-    [Union(1, typeof(PropertyRef))]
-    [Union(2, typeof(MethodRef))]
-    [MessagePackObject]
     public abstract class MemberRef : IEquatable<MemberRef>
     {
         /// <summary>
         /// The metadata token for this member if read from a persisted assembly.
         /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
         /// </summary>
-        [IgnoreMember]
         private readonly int? metadataToken;
 
         /// <summary>
         /// The <see cref="MemberInfo"/> that this value was instantiated with,
         /// or cached later when a metadata token was resolved.
         /// </summary>
-        [IgnoreMember]
         private MemberInfo? cachedMemberInfo;
 
         /// <summary>
@@ -57,28 +55,20 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
         }
 
-        [Key(0)]
         public TypeRef DeclaringType { get; }
 
-        [IgnoreMember]
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
-        [IgnoreMember]
         public abstract string Name { get; }
 
-        [Key(1)]
-        public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
-
-        [Key(2)]
         public bool IsStatic { get; }
 
-        [IgnoreMember]
+        public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
+
         public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
-        [IgnoreMember]
         internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;
 
-        [IgnoreMember]
         internal Resolver Resolver => this.DeclaringType.Resolver;
 
         [return: NotNullIfNotNull("member")]

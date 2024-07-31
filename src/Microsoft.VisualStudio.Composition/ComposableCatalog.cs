@@ -6,13 +6,13 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using MessagePack;
-    using MessagePack.Formatters;
-    using Microsoft.VisualStudio.Composition.Formatter;
+    using System.Text;
+    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class ComposableCatalog : IEquatable<ComposableCatalog>
@@ -260,45 +260,6 @@ namespace Microsoft.VisualStudio.Composition
             contractName = null;
             typeArguments = null;
             return false;
-        }
-
-        internal class Formatter(Resolver compositionResolver) : IMessagePackFormatter<ComposableCatalog?>
-        {
-            /// <inheritdoc/>
-            public ComposableCatalog? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-            {
-                if (reader.TryReadNil())
-                {
-                    return null;
-                }
-
-                options.Security.DepthStep(ref reader);
-
-                try
-                {
-                    reader.ReadArrayHeaderOfLength(1);
-                    IReadOnlyCollection<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Deserialize(ref reader, options);
-                    return ComposableCatalog.Create(compositionResolver).AddParts(composablePartDefinition);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-            }
-
-            /// <inheritdoc/>
-            public void Serialize(ref MessagePackWriter writer, ComposableCatalog? value, MessagePackSerializerOptions options)
-            {
-                if (value is null)
-                {
-                    writer.WriteNil();
-                    return;
-                }
-
-                writer.WriteArrayHeader(1);
-
-                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
-            }
         }
     }
 }
