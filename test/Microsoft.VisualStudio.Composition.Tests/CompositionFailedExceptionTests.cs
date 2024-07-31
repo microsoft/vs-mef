@@ -35,10 +35,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             var ms = new MemoryStream();
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
             formatter.Serialize(ms, exception);
 
             ms.Position = 0;
             var actual = (CompositionFailedException)formatter.Deserialize(ms);
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
             Assert.Equal(exception!.Message, actual.Message);
 
             Assert.Equal(exception.ErrorsAsString, actual.ErrorsAsString);
