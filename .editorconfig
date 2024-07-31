@@ -188,9 +188,5 @@ dotnet_diagnostic.CA1062.severity = warning
 # CA2016: Forward the CancellationToken parameter
 dotnet_diagnostic.CA2016.severity = warning
 
-# We should drop use of the BinaryFormatter and bring back this warning.
-# SYSLIB0011: Type or member is obsolete
-dotnet_diagnostic.SYSLIB0011.severity = suggestion
-
 [*.sln]
 indent_style = tab
