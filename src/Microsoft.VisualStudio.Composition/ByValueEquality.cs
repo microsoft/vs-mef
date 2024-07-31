@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     if (x.GetType().IsArray)
                     {
-                        return ArrayEquals((Array)x, (Array)y, v => v);
+                        return this.ArrayEquals((Array)x, (Array)y);
                     }
                     else
                     {
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                private static bool ArrayEquals(Array xArray, Array yArray, Func<object?, object?> translator)
+                private bool ArrayEquals(Array xArray, Array yArray)
                 {
                     if (xArray.Length != yArray.Length)
                     {
@@ -268,7 +268,9 @@ namespace Microsoft.VisualStudio.Composition
 
                     for (int i = 0; i < xArray.Length; i++)
                     {
-                        if (!EqualityComparer<object?>.Default.Equals(translator(xArray.GetValue(i)), translator(yArray.GetValue(i))))
+                        object? xValue = xArray.GetValue(i);
+                        object? yValue = yArray.GetValue(i);
+                        if (!this.Equals(xValue, yValue))
                         {
                             return false;
                         }
