@@ -52,6 +52,25 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(new string[] { "First", "Second" }.SequenceEqual(stringArrayValue[bIndex]));
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ImportingPartViaMetadataView), typeof(PartWithMultipleStringArrayCustomMetadata))]
+        public void MultipleCustomExportMetadataValuesWithStringArray_MetadataView(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPartViaMetadataView>();
+            string?[]? metadataValue = importingPart.CustomStringArrayMetadataViewImport?.Metadata.SomeName;
+            Assert.NotNull(metadataValue);
+            Assert.Equal(2, metadataValue.Length);
+            Assert.Contains("b", metadataValue);
+            Assert.Contains("c", metadataValue);
+
+            string[][]? stringArrayValue = importingPart.CustomStringArrayMetadataViewImport?.Metadata.StringArray;
+            Assert.NotNull(stringArrayValue);
+            Assert.Equal(2, stringArrayValue.Length);
+            int bIndex = metadataValue[0] == "b" ? 0 : 1;
+            int cIndex = bIndex == 0 ? 1 : 0;
+            Assert.Empty(stringArrayValue[cIndex]);
+            Assert.True(new string[] { "First", "Second" }.SequenceEqual(stringArrayValue[bIndex]));
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ImportingPart), typeof(PartWithSingleCustomMetadata))]
         public void SingleCustomExportMetadataValuesForOneKeyV1(IContainer container)
         {
@@ -115,6 +134,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public Lazy<PartWithSingleCustomMetadata, IDictionary<string, object?>>? SingleCustomMetadataImport { get; set; }
         }
 
+        [Export]
+        [MefV1.Export]
+        public class ImportingPartViaMetadataView
+        {
+            [Import(AllowDefault = true)]
+            [MefV1.Import(AllowDefault = true)]
+            public Lazy<PartWithMultipleStringArrayCustomMetadata, ICustomMetadataWithStringArray>? CustomStringArrayMetadataViewImport { get; set; }
+        }
+
         [MetadataAttribute, MefV1.MetadataAttribute]
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
         public class CustomMetadataAttribute : Attribute
@@ -127,6 +155,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class CustomMetadataWithStringArrayAttribute : CustomMetadataAttribute
         {
             public string[] StringArray { get; set; } = [];
+        }
+
+        public interface ICustomMetadataWithStringArray
+        {
+            string?[] SomeName { get; }
+
+            string[][] StringArray { get; }
         }
     }
 }

@@ -244,9 +244,6 @@
   <data name="PartIsNotShared" xml:space="preserve">
     <value>Part is not shared.</value>
   </data>
-  <data name="UnresolvableMetadataToken" xml:space="preserve">
-    <value>Unresolvable metadata token.</value>
-  </data>
   <data name="WrongLength" xml:space="preserve">
     <value>Wrong length.</value>
   </data>

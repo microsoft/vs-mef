@@ -685,15 +685,6 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unresolvable metadata token..
-        /// </summary>
-        internal static string UnresolvableMetadataToken {
-            get {
-                return ResourceManager.GetString("UnresolvableMetadataToken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unsupported format: {0}..
         /// </summary>
         internal static string UnsupportedFormat {
