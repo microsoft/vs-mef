@@ -263,11 +263,11 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private static string GetExportsList(IEnumerable<ExportDefinitionBinding> exports)
+        private static string GetExportsList(IReadOnlyList<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(exports, nameof(exports));
 
-            return exports.Any()
+            return exports.Count > 0
                 ? Environment.NewLine + string.Join(Environment.NewLine, exports.Select(export => "    " + GetDiagnosticLocation(export)))
                 : string.Empty;
         }

@@ -66,7 +66,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
             Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", Strings.NotATypeSpec);
-            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", Strings.UnresolvableMetadataToken);
             Requires.NotNullOrEmpty(fullName, nameof(fullName));
 
             this.resolver = resolver;
@@ -225,7 +224,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     Module manifest;
                     if (ResolverExtensions.TryUseFastReflection(this, out manifest))
                     {
-                        resolvedType = manifest.ResolveType(this.MetadataToken);
+                        if (this.MetadataToken == (int)MetadataTokenType.Type)
+                        {
+                            // The only case we know of for this path is an array.
+                            // In which case, resolve the element type, and we'll make it an array below.
+                            Assumes.True(this.IsArray);
+                            resolvedType = this.ElementTypeRef.ResolvedType;
+                        }
+                        else
+                        {
+                            resolvedType = manifest.ResolveType(this.MetadataToken);
+                        }
                     }
                     else
                     {
