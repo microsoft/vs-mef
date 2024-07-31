@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (export.Key is MethodInfo method)
                 {
                     var exportAttributes = export.Value;
-                    if (exportAttributes.Any())
+                    if (exportAttributes.Length > 0)
                     {
                         foreach (var exportAttribute in exportAttributes)
                         {

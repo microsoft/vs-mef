@@ -79,12 +79,14 @@ namespace Microsoft.VisualStudio.Composition
         {
             private readonly Func<RuntimeComposition.RuntimeExport?> readRuntimeExportDelegate;
             private readonly Func<RuntimeComposition.RuntimeImport> readRuntimeImportDelegate;
+            private readonly Func<MethodRef?> readMethodRefDelegate;
 
             internal SerializationContext(BinaryReader reader, Resolver resolver)
                 : base(reader, resolver)
             {
                 this.readRuntimeExportDelegate = this.ReadRuntimeExport;
                 this.readRuntimeImportDelegate = this.ReadRuntimeImport;
+                this.readMethodRefDelegate = this.ReadMethodRef;
             }
 
             internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
@@ -92,6 +94,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 this.readRuntimeExportDelegate = this.ReadRuntimeExport;
                 this.readRuntimeImportDelegate = this.ReadRuntimeImport;
+                this.readMethodRefDelegate = this.ReadMethodRef;
             }
 
             private enum RuntimeImportFlags : byte
@@ -217,7 +220,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     var importingMembers = this.ReadList(this.reader, this.readRuntimeImportDelegate);
-                    IReadOnlyList<MethodRef> onImportsSatisfiedMethods = this.ReadList(this.reader, this.ReadMethodRef)!;
+                    IReadOnlyList<MethodRef> onImportsSatisfiedMethods = this.ReadList(this.reader, this.readMethodRefDelegate)!;
                     var sharingBoundary = this.ReadString();
 
                     return new RuntimeComposition.RuntimePart(
