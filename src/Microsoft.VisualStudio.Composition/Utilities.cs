@@ -11,30 +11,11 @@ namespace Microsoft.VisualStudio.Composition
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using MessagePack;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal static class Utilities
     {
         private const string CompositionErrorHeaderFormat = "----- CompositionError level {0} ------";
-
-        /// <summary>
-        /// Reads an array header and verifies that it has the expected length.
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        /// <param name="expectedLength">The expected length.</param>
-        /// <returns>The actual length read. Always equal to <paramref name="expectedLength"/>.</returns>
-        /// <exception cref="MessagePackSerializationException">Thrown if the actual length does not equal <paramref name="expectedLength"/>.</exception>
-        internal static int ReadArrayHeaderOfLength(this ref MessagePackReader reader, int expectedLength)
-        {
-            int actualLength = reader.ReadArrayHeader();
-            if (actualLength != expectedLength)
-            {
-                throw new MessagePackSerializationException($"Expected array length {expectedLength} but length was {actualLength}.");
-            }
-
-            return actualLength;
-        }
 
         internal static void WriteErrors(TextWriter textWriter, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errorStack)
         {

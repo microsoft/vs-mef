@@ -111,10 +111,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 var catalog = ComposableCatalog.Create(resolver)
                     .AddParts(discoveredParts);
                 var configuration = CompositionConfiguration.Create(catalog);
-                using MemoryStream scratchStream = new();
-                this.cacheManager.SaveAsync(configuration, scratchStream).GetAwaiter().GetResult();
-                scratchStream.Position = 0;
-                scratchStream.CopyTo(cacheStream);
+                this.cacheManager.SaveAsync(configuration, cacheStream).GetAwaiter().GetResult();
                 metadataToken = GetMetadataTokenForDefaultCtor(catalog.Parts.Single(p => p.TypeRef.FullName == typeof(DiscoverablePart1).FullName).Type);
             }
 

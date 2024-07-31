@@ -6,18 +6,13 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Globalization;
     using System.Runtime.Serialization;
-    using MessagePack;
-    using MessagePack.Formatters;
 
     /// <summary>
     /// An exception that may be thrown during MEF part discovery.
     /// </summary>
     [Serializable]
-    [MessagePackFormatter(typeof(Formatter))]
     public class PartDiscoveryException : Exception
     {
-        internal string? StackTraceInternal = string.Empty;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PartDiscoveryException"/> class.
         /// </summary>
@@ -67,133 +62,12 @@ namespace Microsoft.VisualStudio.Composition
         public Type? ScannedType { get; set; }
 
         /// <inheritdoc/>
-        public override string? StackTrace => base.StackTrace ?? this.StackTraceInternal;
-
-        /// <inheritdoc/>
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
 
             info.AddValue(nameof(this.AssemblyPath), this.AssemblyPath);
             info.AddValue(nameof(this.ScannedType), this.ScannedType);
-        }
-
-        private class Formatter : IMessagePackFormatter<PartDiscoveryException?>
-        {
-            public static readonly Formatter Instance = new();
-
-            private Formatter()
-            {
-            }
-
-            public PartDiscoveryException? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-            {
-                if (reader.TryReadNil())
-                {
-                    return null;
-                }
-
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    reader.ReadArrayHeaderOfLength(5);
-
-                    string message = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                    string? assemblyPath = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
-                    Type? scannedType = options.Resolver.GetFormatterWithVerify<Type?>().Deserialize(ref reader, options);
-                    string? stackTrace = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
-
-                    if (!reader.TryReadNil())
-                    {
-                        Exception innerExceptionObj = Deserialize(ref reader);
-
-                        return new PartDiscoveryException(message, innerExceptionObj)
-                        {
-                            AssemblyPath = assemblyPath,
-                            ScannedType = scannedType,
-                            StackTraceInternal = stackTrace,
-                        };
-                    }
-                    else
-                    {
-                        return new PartDiscoveryException(message)
-                        {
-                            AssemblyPath = assemblyPath,
-                            ScannedType = scannedType,
-                            StackTraceInternal = stackTrace,
-                        };
-                    }
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-
-                Exception Deserialize(ref MessagePackReader reader)
-                {
-                    reader.ReadArrayHeaderOfLength(2);
-
-                    var message = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-
-                    Exception innerException;
-
-                    if (!reader.TryReadNil())
-                    {
-                        var innerExceptionObj = Deserialize(ref reader);
-                        innerException = new Exception(message, innerExceptionObj);
-                    }
-                    else
-                    {
-                        innerException = new Exception(message);
-                    }
-
-                    return innerException;
-                }
-            }
-
-            public void Serialize(ref MessagePackWriter writer, PartDiscoveryException? value, MessagePackSerializerOptions options)
-            {
-                if (value is null)
-                {
-                    writer.WriteNil();
-                    return;
-                }
-
-                writer.WriteArrayHeader(5);
-
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Message, options);
-                options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.AssemblyPath, options);
-                options.Resolver.GetFormatterWithVerify<Type?>().Serialize(ref writer, value.ScannedType, options);
-                options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.StackTrace, options);
-
-                if (value.InnerException is not null)
-                {
-                    int depthLevel = 0;
-                    Serialize(ref writer, ref depthLevel, value.InnerException);
-                }
-                else
-                {
-                    writer.WriteNil();
-                }
-
-                void Serialize(ref MessagePackWriter writer, ref int depthLevel, Exception innerException)
-                {
-                    writer.WriteArrayHeader(2);
-
-                    options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, innerException.Message, options);
-
-                    if (innerException.InnerException is not null && depthLevel < 2)
-                    {
-                        depthLevel++; // Avoid infinite recursion.
-
-                        Serialize(ref writer, ref depthLevel, innerException.InnerException);
-                    }
-                    else
-                    {
-                        writer.WriteNil();
-                    }
-                }
-            }
         }
 
         [Serializable]

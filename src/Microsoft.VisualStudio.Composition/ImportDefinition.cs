@@ -10,20 +10,18 @@ namespace Microsoft.VisualStudio.Composition
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using MessagePack;
+    using System.Text;
+    using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq} ({Cardinality})")]
-    [MessagePackObject]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        [IgnoreMember]
         private readonly ImmutableList<IImportSatisfiabilityConstraint> exportConstraints;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v2 attributes.
         /// </summary>
-        [SerializationConstructor]
         public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
         {
             Requires.NotNullOrEmpty(contractName, nameof(contractName));
@@ -47,26 +45,21 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        [Key(0)]
         public string ContractName { get; private set; }
 
-        [Key(1)]
         public ImportCardinality Cardinality { get; private set; }
-
-        [Key(2)]
-        public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
-
-        [Key(3)]
-        public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints
-        {
-            get { return this.exportConstraints; }
-        }
 
         /// <summary>
         /// Gets the sharing boundaries created when the export factory is used.
         /// </summary>
-        [Key(4)]
         public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
+
+        public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
+
+        public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints
+        {
+            get { return this.exportConstraints; }
+        }
 
         public ImportDefinition WithExportConstraints(IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints)
         {
