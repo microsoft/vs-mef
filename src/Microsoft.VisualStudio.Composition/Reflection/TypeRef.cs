@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
-            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", Strings.NotATypeSpec);
+            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, nameof(metadataToken), Strings.ResourceManager, nameof(Strings.NotATypeSpec));
             Requires.NotNullOrEmpty(fullName, nameof(fullName));
 
             this.resolver = resolver;
@@ -322,8 +322,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public TypeRef MakeGenericTypeRef(ImmutableArray<TypeRef> genericTypeArguments)
         {
-            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", Strings.NotInitialized);
-            Verify.Operation(this.IsGenericTypeDefinition, Strings.NotGenericTypeDefinition);
+            Requires.Argument(!genericTypeArguments.IsDefault, nameof(genericTypeArguments), Strings.ResourceManager, nameof(Strings.NotInitialized));
+            if (!this.IsGenericTypeDefinition)
+            {
+                Verify.FailOperation(Strings.NotGenericTypeDefinition);
+            }
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
