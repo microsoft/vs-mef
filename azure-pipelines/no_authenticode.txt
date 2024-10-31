@@ -1,3 +1,5 @@
+bin\packages\release\vsix\_manifest\manifest.cat,sbom signed
+bin\packages\release\vsix\_manifest\spdx_2.2\manifest.cat,sbom signed
 *\nerdbank.netstandardbridge.dll,oss
 *\opensoftware.dgmlbuilder.dll,oss
 *\tools\*\dotnettoolsettings.xml,microbuild does not yet sign this
