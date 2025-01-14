@@ -21,7 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.MSBuildExtension" PrivateAssets="all" />
-    <PackageReference Include="Nullable" PrivateAssets="all" />
   </ItemGroup>
   <Import Project="Microsoft.VisualStudio.Composition.AppHost.targets" />
 </Project>

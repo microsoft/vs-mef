@@ -5,7 +5,7 @@
          and most importantly our analyzer test dependencies bring their own copy of vs-mef, leading to a 'last one wins' file overwrite
          issue if we were to share a directory with vs-mef tests that makes testing unstable. -->
     <BaseOutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\Microsoft.VisualStudio.Composition.Analyzers.Tests</BaseOutputPath>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
@@ -15,7 +15,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit" />
   </ItemGroup>

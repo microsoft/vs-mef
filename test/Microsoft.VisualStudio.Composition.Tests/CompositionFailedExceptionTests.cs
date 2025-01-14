@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     public class CompositionFailedExceptionTests
     {
+#if NETFRAMEWORK
         [Fact]
         public void ExceptionIsSerializable()
         {
@@ -51,6 +52,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ////Assert.Equal(1, actual.Errors.Peek().Count);
             ////Assert.Equal(exception.Errors!.Peek().Single().Message, actual.Errors.Peek().Single().Message);
         }
+#endif
 
         [Export]
         public class Tree

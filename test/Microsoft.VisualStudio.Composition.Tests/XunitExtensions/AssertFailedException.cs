@@ -23,6 +23,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
         }
 
+#if NET
+        [Obsolete]
+#endif
         protected AssertFailedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
