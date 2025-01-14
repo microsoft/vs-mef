@@ -62,6 +62,9 @@ namespace Microsoft.VisualStudio.Composition
         public Type? ScannedType { get; set; }
 
         /// <inheritdoc/>
+#if NET
+        [Obsolete]
+#endif
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
