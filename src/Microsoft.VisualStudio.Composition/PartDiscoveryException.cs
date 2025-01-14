@@ -44,6 +44,9 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="info"><inheritdoc cref="Exception(SerializationInfo, StreamingContext)" path="/param[@name='info']"/></param>
         /// <param name="context"><inheritdoc cref="Exception(SerializationInfo, StreamingContext)" path="/param[@name='context']"/></param>
+#if NET
+        [Obsolete]
+#endif
         protected PartDiscoveryException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
@@ -88,6 +91,9 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             /// <param name="info"><inheritdoc cref="Exception(SerializationInfo, StreamingContext)" path="/param[@name='info']"/></param>
             /// <param name="context"><inheritdoc cref="Exception(SerializationInfo, StreamingContext)" path="/param[@name='context']"/></param>
+#if NET
+            [Obsolete]
+#endif
             protected RecursiveTypeException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
             {

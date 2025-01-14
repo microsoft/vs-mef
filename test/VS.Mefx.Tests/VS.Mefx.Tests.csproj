@@ -8,7 +8,6 @@
   <ItemGroup>
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="Nullable" />
     <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="xunit.runner.console" />
     <PackageReference Include="xunit.runner.visualstudio" />

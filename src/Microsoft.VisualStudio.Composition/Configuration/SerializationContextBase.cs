@@ -8,6 +8,7 @@
 
 #pragma warning disable CS8602 // possible dereference of null reference
 #pragma warning disable CS8604 // null reference as argument
+#pragma warning disable SYSLIB0044 // AssemblyName.CodeBase is obsolete
 
 namespace Microsoft.VisualStudio.Composition
 {
