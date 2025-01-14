@@ -7,15 +7,13 @@ updates:
   directory: /
   schedule:
     interval: weekly
-  groups:
-    nerdbank-gitversioning:
-      patterns:
-      - nbgv
-      - nerdbank.gitversioning
-    xunit:
-      patterns:
-      - 'xunit*'
-- package-ecosystem: dotnet-sdk
-  directory: /
-  schedule:
-    interval: monthly
+  ignore:
+  # # We want to match the minimum target .NET runtime
+  - dependency-name: System.Collections.Immutable
+  - dependency-name: System.Reflection.Metadata
+  - dependency-name: System.Threading.Tasks.Dataflow
+  # We need to be careful to update these only for tests, or when we intend to drop older IDE support:
+  - dependency-name: Microsoft.CodeAnalysis
+  - dependency-name: Microsoft.CodeAnalysis.CSharp
+  - dependency-name: Microsoft.CodeAnalysis.CSharp.Workspaces
+  - dependency-name: Microsoft.CodeAnalysis.VisualBasic.Workspaces
