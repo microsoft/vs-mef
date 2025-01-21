@@ -1,8 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<LCX SchemaVersion="6.0"
-  Name="D:\a\_work\1\s\bin\Microsoft.VisualStudio.Composition.VSMefx\Release\net8.0\vsmefx.dll"
-  PsrId="211" FileType="1" SrcCul="en-US" TgtCul="ru-RU"
-  xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
+<LCX SchemaVersion="6.0" Name="D:\a\_work\1\s\bin\Microsoft.VisualStudio.Composition.VSMefx\Release\net8.0\vsmefx.dll" PsrId="211" FileType="1" SrcCul="en-US" TgtCul="ru-RU" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
   <OwnedComments>
     <Cmt Name="Dev" />
     <Cmt Name="LcxAdmin" />
@@ -11,10 +8,8 @@
   <Item ItemId=";Managed Resources" ItemType="0" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
   </Item>
-  <Item ItemId=";Microsoft.VisualStudio.Composition.VSMefx.Strings.resources" ItemType="0"
-    PsrId="211" Leaf="false">
-    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false"
-      Path=" \ ;Managed Resources \ 0 \ 0" />
+  <Item ItemId=";Microsoft.VisualStudio.Composition.VSMefx.Strings.resources" ItemType="0" PsrId="211" Leaf="false">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
     <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
       <Item ItemId=";AllRejectionsMessage" ItemType="0" PsrId="211" Leaf="true">
@@ -376,7 +371,7 @@
       <Str Cat="Text">
         <Val><![CDATA[Microsoft]]></Val>
         <Tgt Cat="Text" Stat="Loc" Orig="New">
-          <Val><![CDATA[Microsoft]]></Val>
+          <Val><![CDATA[Майкрософт]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
