@@ -8,7 +8,7 @@
     <CodeAnalysisVersion>3.11.0</CodeAnalysisVersion>
     <CodeAnalysisVersionForTesting>4.8.0</CodeAnalysisVersionForTesting>
     <CodefixTestingVersion>1.1.1</CodefixTestingVersion>
-    <MessagePackVersion>2.5.124</MessagePackVersion>
+    <MessagePackVersion>2.5.192</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
