@@ -46,8 +46,6 @@ Adds a VS MEF system with a pre-computed, cached MEF graph.
 
 ## Microsoft.VisualStudio.Composition.VSMefx
 
-[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.VSMefx.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition.VSMefx)
-
 A diagnostic tool to understand catalogs, compositions and diagnose issues in them.
 
 [Learn more about this package](src/Microsoft.VisualStudio.Composition.VSMefx/README.md).
