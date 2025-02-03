@@ -75,7 +75,7 @@ extends:
         parameters:
           Is1ESPT: true
           RealSign: false
-          # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+          ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
           EnableAPIScan: ${{ parameters.EnableAPIScan }}
           windowsPool: VSEngSS-MicroBuild2022-1ES
           linuxPool:
