@@ -395,7 +395,7 @@
       <Str Cat="Text">
         <Val><![CDATA[© Microsoft Corporation. All rights reserved.]]></Val>
         <Tgt Cat="Text" Stat="Loc" Orig="New">
-          <Val><![CDATA[© Microsoft Corporation. Todos los derechos reservados.]]></Val>
+          <Val><![CDATA[© Microsoft Corporation. Reservados todos los derechos.]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
