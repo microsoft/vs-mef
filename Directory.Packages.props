@@ -52,7 +52,7 @@
     <PackageVersion Update="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$(CodeAnalysisVersionForTesting)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$(CodeAnalysisVersionForTesting)" />
     <PackageVersion Update="System.Collections.Immutable" Version="7.0.0" />
-    <PackageVersion Update="System.Reflection.Metadata" Version="7.0.0" />
+    <PackageVersion Update="System.Reflection.Metadata" Version="7.0.2" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Required" Version="1.0.0" />
