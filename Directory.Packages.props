@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <MicroBuildVersion>2.0.171</MicroBuildVersion>
+    <MicroBuildVersion>2.0.187</MicroBuildVersion>
     <CodeAnalysisVersion>3.11.0</CodeAnalysisVersion>
     <CodeAnalysisVersionForTesting>4.8.0</CodeAnalysisVersionForTesting>
     <CodefixTestingVersion>1.1.2</CodefixTestingVersion>
@@ -40,12 +40,6 @@
     <PackageVersion Include="xunit.runner.console" Version="2.5.3" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
-  <ItemGroup Label="Library.Template">
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
-    <PackageVersion Include="xunit" Version="2.9.2" />
-  </ItemGroup>
   <ItemGroup Condition="'$(IsTestProject)'=='true'">
     <PackageVersion Update="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersionForTesting)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.CSharp" Version="$(CodeAnalysisVersionForTesting)" />
@@ -53,6 +47,12 @@
     <PackageVersion Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$(CodeAnalysisVersionForTesting)" />
     <PackageVersion Update="System.Collections.Immutable" Version="7.0.0" />
     <PackageVersion Update="System.Reflection.Metadata" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup Label="Library.Template">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Required" Version="1.0.0" />
