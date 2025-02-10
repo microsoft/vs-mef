@@ -21,6 +21,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.Analyzers.CSharp\Microsoft.VisualStudio.Composition.Analyzers.CSharp.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.Analyzers.VB\Microsoft.VisualStudio.Composition.Analyzers.VB.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj" />
   </ItemGroup>
 
   <ItemGroup>
