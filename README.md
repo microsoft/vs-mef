@@ -2,14 +2,13 @@
 
 [![Build Status](https://dev.azure.com/azure-public/vside/_apis/build/status/vs-mef)](https://dev.azure.com/azure-public/vside/_build/latest?definitionId=17)
 [![codecov](https://codecov.io/gh/Microsoft/vs-mef/branch/main/graph/badge.svg)](https://codecov.io/gh/Microsoft/vs-mef)
-[![Join the chat at https://gitter.im/vs-mef/Lobby](https://badges.gitter.im/vs-mef/Lobby.svg)](https://gitter.im/vs-mef/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This repo contains the Visual Studio team's implementation of .NET's managed extensibility framework.
 It is broken up into several NuGet packages, as listed below.
 
 ## Microsoft.VisualStudio.Composition
 
-[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition)
+[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.svg)](https://www.nuget.org/packages/Microsoft.VisualStudio.Composition)
 
 Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.
 
@@ -30,7 +29,7 @@ Lightning fast MEF engine, supporting System.ComponentModel.Composition and Syst
 
 ## Microsoft.VisualStudio.Composition.Analyzers
 
-[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.Analyzers.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition.Analyzers)
+[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.Analyzers.svg)](https://www.nuget.org/packages/Microsoft.VisualStudio.Composition.Analyzers)
 
 Analyzers for MEF consumers to help identify common errors in MEF parts.
 
@@ -38,7 +37,7 @@ Analyzers for MEF consumers to help identify common errors in MEF parts.
 
 ## Microsoft.VisualStudio.Composition.AppHost
 
-[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.AppHost.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition.AppHost)
+[![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.AppHost.svg)](https://www.nuget.org/packages/Microsoft.VisualStudio.Composition.AppHost)
 
 Adds a VS MEF system with a pre-computed, cached MEF graph.
 
