@@ -10,7 +10,7 @@ the expected output.
 
 ## Adding Tests
 
-The program makes it relatively easy to add a new test to run by adding a file of name [TestName].txt into the TestData folder.
+The program makes it relatively easy to add a new test to run by adding a file of name `[TestName].txt` into the TestData folder.
 The file should have the following format:
 
 ```
