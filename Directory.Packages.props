@@ -35,15 +35,15 @@
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-    <PackageVersion Include="xunit.extensibility.execution" Version="2.9.2" />
-    <PackageVersion Include="xunit.runner.console" Version="2.5.3" />
-    <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.console" Version="2.9.3" />
+    <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
   </ItemGroup>
   <ItemGroup Label="Library.Template">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
-    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Required" Version="1.0.0" />
