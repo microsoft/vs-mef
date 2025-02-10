@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsAnalyzerProject>true</IsAnalyzerProject>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+    <Description>Analyzers for MEF consumers to help identify common errors in MEF parts.</Description>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageId>Microsoft.VisualStudio.Composition.Analyzers</PackageId>
+    <PackageTags>MEF;Analyzers</PackageTags>
+
+    <!-- Analyzers should not be added to the lib folder. -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <IncludeSymbols>false</IncludeSymbols>
+
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildOutputs</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="tools\*.ps1" Pack="true" PackagePath="tools\" />
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <PackageReference>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <ProjectReference>
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers.CSharp\Microsoft.VisualStudio.Composition.Analyzers.CSharp.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers.VB\Microsoft.VisualStudio.Composition.Analyzers.VB.csproj" />
+  </ItemGroup>
+
+  <Target Name="PackBuildOutputs" DependsOnTargets="ResolveProjectReferences;SatelliteDllsProjectOutputGroup;SatelliteDllsProjectOutputGroupDependencies">
+    <ItemGroup>
+      <!-- Analysis of C# projects -->
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers\cs\" />
+      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupDependency)" PackagePath="analyzers\cs\%(SatelliteDllsProjectOutputGroupDependency.DestinationSubDirectory)" Condition=" '%(SatelliteDllsProjectOutputGroupDependency.DestinationSubDirectory)' != '' " />
+      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupOutput->'%(FinalOutputPath)')" PackagePath="analyzers\cs\%(SatelliteDllsProjectOutputGroupOutput.Culture)\" />
+      <TfmSpecificPackageFile Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="'%(FileName)' != 'Microsoft.VisualStudio.Composition.Analyzers.VB'" PackagePath="analyzers\cs\" />
+
+      <!-- Analysis of VB projects -->
+      <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers\vb\" />
+      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupDependency)" PackagePath="analyzers\vb\%(SatelliteDllsProjectOutputGroupDependency.DestinationSubDirectory)" Condition=" '%(SatelliteDllsProjectOutputGroupDependency.DestinationSubDirectory)' != '' " />
+      <TfmSpecificPackageFile Include="@(SatelliteDllsProjectOutputGroupOutput->'%(FinalOutputPath)')" PackagePath="analyzers\vb\%(SatelliteDllsProjectOutputGroupOutput.Culture)\" />
+      <TfmSpecificPackageFile Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="'%(FileName)' != 'Microsoft.VisualStudio.Composition.Analyzers.CSharp'" PackagePath="analyzers\vb\" />
+    </ItemGroup>
+  </Target>
+</Project>

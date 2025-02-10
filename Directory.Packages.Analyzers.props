@@ -5,8 +5,10 @@
   <ItemGroup>
     <!-- These versions carefully chosen to support VS 2019 Update 11. -->
     <PackageVersion Update="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersionForAnalyzers)" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.Common" Version="$(CodeAnalysisVersionForAnalyzers)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.CSharp" Version="$(CodeAnalysisVersionForAnalyzers)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$(CodeAnalysisVersionForAnalyzers)" />
+    <PackageVersion Update="Microsoft.CodeAnalysis.VisualBasic" version="$(CodeAnalysisVersionForAnalyzers)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$(CodeAnalysisVersionForAnalyzers)" />
     <PackageVersion Update="System.Collections.Immutable" Version="5.0.0" />
     <PackageVersion Update="System.Memory" Version="4.5.4" />
