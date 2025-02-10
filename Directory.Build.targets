@@ -10,4 +10,5 @@
   </ItemGroup>
 
   <Import Project="azure-pipelines\NuGetSbom.targets" Condition="'$(IsPackable)'!='false'" />
+  <Import Project="Directory.Packages.Analyzers.props" Condition="'$(IsAnalyzerProject)'=='true'" />
 </Project>
