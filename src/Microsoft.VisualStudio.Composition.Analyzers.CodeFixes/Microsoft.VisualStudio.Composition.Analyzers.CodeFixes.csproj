@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsAnalyzerProject>true</IsAnalyzerProject>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
     <Description>Analyzers for MEF consumers to help identify common errors in MEF parts.</Description>
     <DevelopmentDependency>true</DevelopmentDependency>
