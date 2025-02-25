@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- This reference is just so the analyzers package is brought in by our NuGet package. -->
-    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj">
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj">
       <PrivateAssets>none</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
