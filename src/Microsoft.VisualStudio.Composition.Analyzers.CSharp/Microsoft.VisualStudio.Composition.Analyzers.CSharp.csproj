@@ -4,6 +4,7 @@
     <IsPackable>false</IsPackable>
     <IsAnalyzerProject>true</IsAnalyzerProject>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
