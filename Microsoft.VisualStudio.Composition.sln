@@ -93,6 +93,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.Analyzers.CodeFixes", "src\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj", "{898924AE-F646-4D65-BD39-48E9ACFD8A98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.BenchmarkTests", "test\Microsoft.VisualStudio.Composition.BenchmarkTests\Microsoft.VisualStudio.Composition.BenchmarkTests.csproj", "{4F877631-1CDF-4972-F091-9253454D314C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -199,6 +201,10 @@ Global
 		{898924AE-F646-4D65-BD39-48E9ACFD8A98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{898924AE-F646-4D65-BD39-48E9ACFD8A98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{898924AE-F646-4D65-BD39-48E9ACFD8A98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F877631-1CDF-4972-F091-9253454D314C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F877631-1CDF-4972-F091-9253454D314C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F877631-1CDF-4972-F091-9253454D314C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F877631-1CDF-4972-F091-9253454D314C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -230,6 +236,7 @@ Global
 		{B549FB28-EEB8-4DDC-8E3E-2D81027B96F8} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{DDF990F0-124A-4942-8CC0-C8E33F13A297} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{898924AE-F646-4D65-BD39-48E9ACFD8A98} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
+		{4F877631-1CDF-4972-F091-9253454D314C} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {595F7089-18B6-4D24-8F38-7FFCCE2F5F0E}
