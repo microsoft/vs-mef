@@ -37,9 +37,9 @@ namespace Microsoft.VisualStudio.Composition
             ConstructorInfo? ctor = FindConstructor(metadataViewType.GetTypeInfo());
             Requires.Argument(ctor is not null, nameof(metadataViewType), "No public constructor with the required signature found.");
 
-            // Avoid creating a new ImmutableDictionary if the passed in metadata is already of that form
-            var metadataAsImmutableDictionary = metadata as ImmutableDictionary<string, object?> ?? ImmutableDictionary.CreateRange(metadata);
-            return ctor.Invoke(new object[] { metadataAsImmutableDictionary });
+            // Avoid creating a new ImmutableDictionary if the passed in metadata is already of the form required by the constructor.
+            object metadataMaybeWrapped = ctor.GetParameters()[0].ParameterType.IsAssignableFrom(metadata.GetType()) ? metadata : ImmutableDictionary.CreateRange(metadata);
+            return ctor.Invoke([metadataMaybeWrapped]);
         }
 
         private static ConstructorInfo? FindConstructor(TypeInfo metadataType)
