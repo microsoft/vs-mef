@@ -8,9 +8,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Microsoft.VisualStudio.Composition.Reflection;
 
     /// <summary>
     /// Supports metadata views that are concrete classes with a public constructor
@@ -39,7 +36,10 @@ namespace Microsoft.VisualStudio.Composition
         {
             ConstructorInfo? ctor = FindConstructor(metadataViewType.GetTypeInfo());
             Requires.Argument(ctor is not null, nameof(metadataViewType), "No public constructor with the required signature found.");
-            return ctor.Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
+
+            // Avoid creating a new ImmutableDictionary if the passed in metadata is already of the form required by the constructor.
+            object metadataMaybeWrapped = ctor.GetParameters()[0].ParameterType.IsAssignableFrom(metadata.GetType()) ? metadata : ImmutableDictionary.CreateRange(metadata);
+            return ctor.Invoke([metadataMaybeWrapped]);
         }
 
         private static ConstructorInfo? FindConstructor(TypeInfo metadataType)
