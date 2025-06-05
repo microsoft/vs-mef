@@ -7,7 +7,7 @@
     <MicroBuildVersion>2.0.187</MicroBuildVersion>
     <CodeAnalysisVersion>4.13.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.2</CodefixTestingVersion>
-    <MessagePackVersion>2.5.192</MessagePackVersion>
+    <MessagePackVersion>2.5.198</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
