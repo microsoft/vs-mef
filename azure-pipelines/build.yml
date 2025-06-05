@@ -71,6 +71,10 @@ parameters:
   type: boolean
   default: true
 
+- name: PublishCodeCoverage
+  type: boolean
+  default: true
+
 # Whether this is a special one-off build for inserting into VS for a validation insertion PR (that will never be merged).
 - name: SkipCodesignVerify
   type: boolean
@@ -279,8 +283,16 @@ jobs:
       - macOS
     pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
     condition: succeededOrFailed()
+    variables:
+      ONEES_ENFORCED_CODEQL_ENABLED: false # CodeQL runs on build jobs, we don't need it here
     ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
       templateContext:
+        ${{ if not(parameters.RealSign) }}:
+          mb:
+            signing: # if the build is test-signed, install the signing plugin so that CSVTestSignPolicy.xml is available
+              enabled: true
+              zipSources: false
+              signType: test
         outputParentDirectory: $(Build.ArtifactStagingDirectory)
         outputs:
           - output: pipelineArtifact
@@ -299,7 +311,7 @@ jobs:
       parameters:
         EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
         EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
-    - ${{ if parameters.RunTests }}:
+    - ${{ if and(parameters.RunTests, parameters.PublishCodeCoverage) }}:
       - template: publish-codecoverage.yml
         parameters:
           EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
