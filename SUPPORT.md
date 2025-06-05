@@ -2,14 +2,15 @@
 
 ## How to file issues and get help
 
-This project uses GitHub Issues to track bugs and feature requests. Please search the existing
-issues before filing new issues to avoid duplicates.  For new issues, file your bug or
-feature request as a new Issue.
+This project uses GitHub Issues to track bugs and feature requests.
+Please search the existing issues before filing new issues to avoid duplicates.
+For new issues, file your bug or feature request as a new Issue.
 
-For help and questions about using this project, please **REPO MAINTAINER: INSERT INSTRUCTIONS HERE
-FOR HOW TO ENGAGE REPO OWNERS OR COMMUNITY FOR HELP. COULD BE A STACK OVERFLOW TAG OR OTHER
-CHANNEL. WHERE WILL YOU HELP PEOPLE?**.
+Note that this repo is primarily used for Visual Studio and related products and support will be focused on those scenarios.
 
 ## Microsoft Support Policy
 
-Support for this library is limited to the resources listed above.
+Microsoft support for this software is available only for its use in officially supported products such as Visual Studio.
+Support and servicing is limited to the latest released version.
+For more information, see [Visual Studio Product Lifecycle and Servicing](https://learn.microsoft.com/visualstudio/productinfo/vs-servicing).
+Assisted support is available from a professional support engineer by opening a ticket with the [Microsoft assisted support team](https://support.serviceshub.microsoft.com/supportforbusiness/onboarding).
