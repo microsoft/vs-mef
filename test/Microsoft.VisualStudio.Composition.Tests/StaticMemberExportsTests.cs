@@ -221,6 +221,29 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public static string StaticMethod() => "StaticMethodValue";
         }
 
+        // Test class with mixed static and instance exports
+        public class ClassWithMixedExports
+        {
+            private static bool constructorCalled = false;
+
+            public static bool ConstructorCalled
+            {
+                get { return constructorCalled; }
+                set { constructorCalled = value; }
+            }
+
+            public ClassWithMixedExports()
+            {
+                constructorCalled = true;
+            }
+
+            [MefV1.Export("StaticMixed")]
+            public static string StaticExport = "StaticValue";
+
+            [MefV1.Export("InstanceMixed")]
+            public string InstanceExport => "InstanceValue";
+        }
+
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports))]
         public void StaticFieldExportDoesNotInstantiateClass(IContainer container)
         {
@@ -246,6 +269,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var value = container.GetExportedValue<Func<string>>("StaticMethod");
             Assert.Equal("StaticMethodValue", value());
             Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static method export");
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithMixedExports))]
+        public void StaticExportInMixedClassDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithMixedExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("StaticMixed");
+            Assert.Equal("StaticValue", value);
+            Assert.False(ClassWithMixedExports.ConstructorCalled, "Constructor should not be called when accessing only static export");
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithMixedExports))]
+        public void InstanceExportInMixedClassDoesInstantiateClass(IContainer container)
+        {
+            ClassWithMixedExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("InstanceMixed");
+            Assert.Equal("InstanceValue", value);
+            Assert.True(ClassWithMixedExports.ConstructorCalled, "Constructor should be called when accessing instance export");
         }
     }
 }
