@@ -213,7 +213,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [MefV1.Export("StaticField")]
-            [MefV2.Export("StaticField")]
             public static string StaticField = "StaticFieldValue";
 
             [MefV1.Export("StaticProperty")]
@@ -221,7 +220,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public static string StaticProperty => "StaticPropertyValue";
 
             [MefV1.Export("StaticMethod")]
-            [MefV2.Export("StaticMethod")]
             public static string StaticMethod() => "StaticMethodValue";
         }
 
@@ -242,7 +240,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [MefV1.Export("StaticMixed")]
-            [MefV2.Export("StaticMixed")]
             public static string StaticExport = "StaticValue";
 
             [MefV1.Export("InstanceMixed")]
@@ -250,7 +247,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public string InstanceExport => "InstanceValue";
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ClassWithStaticMemberExports))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
         public void StaticFieldExportDoesNotInstantiateClass(IContainer container)
         {
             ClassWithStaticMemberExports.ConstructorCalled = false;
@@ -268,7 +265,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static property export");
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ClassWithStaticMemberExports))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
         public void StaticMethodExportDoesNotInstantiateClass(IContainer container)
         {
             ClassWithStaticMemberExports.ConstructorCalled = false;
@@ -277,7 +274,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static method export");
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ClassWithMixedExports))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithMixedExports))]
         public void StaticExportInMixedClassDoesNotInstantiateClass(IContainer container)
         {
             ClassWithMixedExports.ConstructorCalled = false;
