@@ -194,5 +194,58 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.ImportMany("Property")]
             public List<Lazy<string, IDictionary<string, object>>> ImportingMember { get; set; } = null!;
         }
+
+        // Test class to verify static members don't cause instantiation
+        public class ClassWithStaticMemberExports
+        {
+            private static bool constructorCalled = false;
+
+            public static bool ConstructorCalled
+            {
+                get { return constructorCalled; }
+                set { constructorCalled = value; }
+            }
+
+            public ClassWithStaticMemberExports()
+            {
+                constructorCalled = true;
+            }
+
+            [MefV1.Export("StaticField")]
+            public static string StaticField = "StaticFieldValue";
+
+            [MefV1.Export("StaticProperty")]
+            public static string StaticProperty => "StaticPropertyValue";
+
+            [MefV1.Export("StaticMethod")]
+            public static string StaticMethod() => "StaticMethodValue";
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports))]
+        public void StaticFieldExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("StaticField");
+            Assert.Equal("StaticFieldValue", value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static field export");
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports))]
+        public void StaticPropertyExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("StaticProperty");
+            Assert.Equal("StaticPropertyValue", value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static property export");
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports))]
+        public void StaticMethodExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<Func<string>>("StaticMethod");
+            Assert.Equal("StaticMethodValue", value());
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static method export");
+        }
     }
 }
