@@ -294,7 +294,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (export.MemberRef != null && export.Member!.IsStatic())
                 {
                     partLifecycle = null;
-                    return lazy ? ConstructLazyStaticExportedValue(export) : 
+                    return lazy ? ConstructLazyStaticExportedValue(export) :
                                   ConstructStaticExportedValue(export);
                 }
 

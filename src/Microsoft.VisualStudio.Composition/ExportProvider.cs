@@ -568,7 +568,7 @@ namespace Microsoft.VisualStudio.Composition
                 memberValueFactory = () =>
                 {
                     Verify.NotDisposed(this);
-                    
+
                     // For static members, we don't need to instantiate the declaring type
                     if (exportingMemberRef.IsStatic())
                     {
