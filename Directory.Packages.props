@@ -35,7 +35,7 @@
     <PackageVersion Include="System.Composition.AttributedModel" Version="9.0.0" />
     <PackageVersion Include="System.Composition" Version="9.0.0" />
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageVersion Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="8.0.1" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.1" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.console" Version="2.9.3" />
