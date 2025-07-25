@@ -95,5 +95,23 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
                 return ResourceManager.GetString("VSMEF002_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type "{0}" does not implement the exported type "{1}". This may be an authoring mistake..
+        /// </summary>
+        internal static string VSMEF003_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF003_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exported type not implemented by exporting class.
+        /// </summary>
+        internal static string VSMEF003_Title {
+            get {
+                return ResourceManager.GetString("VSMEF003_Title", resourceCulture);
+            }
+        }
     }
 }

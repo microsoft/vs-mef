@@ -7,3 +7,4 @@ to help you avoid common mistakes while authoring MEF parts.
 ID | Title
 --|--
 VSMEF001 | Importing property must have setter
+VSMEF003 | Exported type not implemented by exporting class
