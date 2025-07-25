@@ -1,133 +1,126 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+namespace Microsoft.VisualStudio.Composition.Analyzers;
 
-namespace Microsoft.VisualStudio.Composition.Analyzers
+/// <summary>
+/// Creates a diagnostic when `[Export(typeof(T))]` is applied to a class that does not implement T.
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
 {
     /// <summary>
-    /// Creates a diagnostic when `[Export(typeof(T))]` is applied to a class that does not implement T.
+    /// The ID for diagnostics reported by this analyzer.
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
+    public const string Id = "VSMEF003";
+
+    /// <summary>
+    /// The descriptor used for diagnostics created by this rule.
+    /// </summary>
+    internal static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+        id: Id,
+        title: Strings.VSMEF003_Title,
+        messageFormat: Strings.VSMEF003_MessageFormat,
+        helpLinkUri: Utils.GetHelpLink(Id),
+        category: "Usage",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    /// <inheritdoc/>
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
     {
-        /// <summary>
-        /// The ID for diagnostics reported by this analyzer.
-        /// </summary>
-        public const string Id = "VSMEF003";
+        context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-        /// <summary>
-        /// The descriptor used for diagnostics created by this rule.
-        /// </summary>
-        internal static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-            id: Id,
-            title: Strings.VSMEF003_Title,
-            messageFormat: Strings.VSMEF003_MessageFormat,
-            helpLinkUri: Utils.GetHelpLink(Id),
-            category: "Usage",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        /// <inheritdoc/>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-
-        /// <inheritdoc/>
-        public override void Initialize(AnalysisContext context)
+        context.RegisterCompilationStartAction(context =>
         {
-            context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-
-            context.RegisterCompilationStartAction(context =>
+            // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
+            if (context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
             {
-                // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
-                if (context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
-                {
-                    INamedTypeSymbol? mefV1ExportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
-                    INamedTypeSymbol? mefV2ExportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
-                    context.RegisterSymbolAction(
-                        context => AnalyzeTypeDeclaration(context, mefV1ExportAttribute, mefV2ExportAttribute),
-                        SymbolKind.NamedType);
-                }
-            });
+                INamedTypeSymbol? mefV1ExportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
+                INamedTypeSymbol? mefV2ExportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
+                context.RegisterSymbolAction(
+                    context => AnalyzeTypeDeclaration(context, mefV1ExportAttribute, mefV2ExportAttribute),
+                    SymbolKind.NamedType);
+            }
+        });
+    }
+
+    private static void AnalyzeTypeDeclaration(SymbolAnalysisContext context, INamedTypeSymbol? mefV1ExportAttribute, INamedTypeSymbol? mefV2ExportAttribute)
+    {
+        var namedType = (INamedTypeSymbol)context.Symbol;
+
+        // Skip interfaces, enums, delegates - only analyze classes
+        if (namedType.TypeKind != TypeKind.Class)
+        {
+            return;
         }
 
-        private static void AnalyzeTypeDeclaration(SymbolAnalysisContext context, INamedTypeSymbol? mefV1ExportAttribute, INamedTypeSymbol? mefV2ExportAttribute)
+        Location? location = namedType.Locations.FirstOrDefault();
+        if (location is null)
         {
-            var namedType = (INamedTypeSymbol)context.Symbol;
+            // We won't have anywhere to publish a diagnostic anyway.
+            return;
+        }
 
-            // Skip interfaces, enums, delegates - only analyze classes
-            if (namedType.TypeKind != TypeKind.Class)
+        foreach (var attributeData in namedType.GetAttributes())
+        {
+            // Check if this is an Export attribute
+            if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
+                SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ExportAttribute))
             {
-                return;
-            }
-
-            Location? location = namedType.Locations.FirstOrDefault();
-            if (location is null)
-            {
-                // We won't have anywhere to publish a diagnostic anyway.
-                return;
-            }
-
-            foreach (var attributeData in namedType.GetAttributes())
-            {
-                // Check if this is an Export attribute
-                if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
-                    SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ExportAttribute))
+                // Check if the export attribute has a type argument
+                if (attributeData.ConstructorArguments.Length > 0)
                 {
-                    // Check if the export attribute has a type argument
-                    if (attributeData.ConstructorArguments.Length > 0)
+                    var firstArgument = attributeData.ConstructorArguments[0];
+                    if (firstArgument.Kind == TypedConstantKind.Type && firstArgument.Value is INamedTypeSymbol exportedType)
                     {
-                        var firstArgument = attributeData.ConstructorArguments[0];
-                        if (firstArgument.Kind == TypedConstantKind.Type && firstArgument.Value is INamedTypeSymbol exportedType)
+                        // Check if the exporting type implements or inherits from the exported type
+                        if (!IsTypeCompatible(namedType, exportedType))
                         {
-                            // Check if the exporting type implements or inherits from the exported type
-                            if (!IsTypeCompatible(namedType, exportedType))
-                            {
-                                context.ReportDiagnostic(Diagnostic.Create(
-                                    Descriptor,
-                                    location,
-                                    namedType.Name,
-                                    exportedType.ToDisplayString()));
-                            }
+                            context.ReportDiagnostic(Diagnostic.Create(
+                                Descriptor,
+                                location,
+                                namedType.Name,
+                                exportedType.ToDisplayString()));
                         }
                     }
                 }
             }
         }
+    }
 
-        private static bool IsTypeCompatible(INamedTypeSymbol implementingType, INamedTypeSymbol exportedType)
+    private static bool IsTypeCompatible(INamedTypeSymbol implementingType, INamedTypeSymbol exportedType)
+    {
+        // If they're the same type, it's compatible
+        if (SymbolEqualityComparer.Default.Equals(implementingType, exportedType))
         {
-            // If they're the same type, it's compatible
-            if (SymbolEqualityComparer.Default.Equals(implementingType, exportedType))
-            {
-                return true;
-            }
-
-            // Check if implementing type inherits from exported type (for classes)
-            if (exportedType.TypeKind == TypeKind.Class)
-            {
-                var currentType = implementingType.BaseType;
-                while (currentType != null)
-                {
-                    if (SymbolEqualityComparer.Default.Equals(currentType, exportedType))
-                    {
-                        return true;
-                    }
-                    currentType = currentType.BaseType;
-                }
-            }
-
-            // Check if implementing type implements exported interface
-            if (exportedType.TypeKind == TypeKind.Interface)
-            {
-                return implementingType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, exportedType));
-            }
-
-            return false;
+            return true;
         }
+
+        // Check if implementing type inherits from exported type (for classes)
+        if (exportedType.TypeKind == TypeKind.Class)
+        {
+            var currentType = implementingType.BaseType;
+            while (currentType != null)
+            {
+                if (SymbolEqualityComparer.Default.Equals(currentType, exportedType))
+                {
+                    return true;
+                }
+                currentType = currentType.BaseType;
+            }
+        }
+
+        // Check if implementing type implements exported interface
+        if (exportedType.TypeKind == TypeKind.Interface)
+        {
+            return implementingType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, exportedType));
+        }
+
+        return false;
     }
 }

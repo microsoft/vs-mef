@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Threading.Tasks;
-using Xunit;
 using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF003ExportTypeMismatchAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 using VerifyVB = VisualBasicCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF003ExportTypeMismatchAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
@@ -12,13 +9,14 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
     [Fact]
     public async Task ExportingClassItself_ProducesNoDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-[Export(typeof(Test))]
-class Test
-{
-}";
+            [Export(typeof(Test))]
+            class Test
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -26,17 +24,18 @@ class Test
     [Fact]
     public async Task ExportingImplementedInterface_ProducesNoDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-interface ITest
-{
-}
+            interface ITest
+            {
+            }
 
-[Export(typeof(ITest))]
-class Test : ITest
-{
-}";
+            [Export(typeof(ITest))]
+            class Test : ITest
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -44,17 +43,18 @@ class Test : ITest
     [Fact]
     public async Task ExportingBaseClass_ProducesNoDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-class BaseTest
-{
-}
+            class BaseTest
+            {
+            }
 
-[Export(typeof(BaseTest))]
-class Test : BaseTest
-{
-}";
+            [Export(typeof(BaseTest))]
+            class Test : BaseTest
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -62,17 +62,18 @@ class Test : BaseTest
     [Fact]
     public async Task ExportingUnimplementedInterface_ProducesDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-interface ITest
-{
-}
+            interface ITest
+            {
+            }
 
-[Export(typeof(ITest))]
-class [|Test|]
-{
-}";
+            [Export(typeof(ITest))]
+            class [|Test|]
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -80,17 +81,18 @@ class [|Test|]
     [Fact]
     public async Task ExportingUnrelatedClass_ProducesDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-class OtherClass
-{
-}
+            class OtherClass
+            {
+            }
 
-[Export(typeof(OtherClass))]
-class [|Test|]
-{
-}";
+            [Export(typeof(OtherClass))]
+            class [|Test|]
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -98,15 +100,16 @@ class [|Test|]
     [Fact]
     public async Task ExportingUnimplementedInterface_ProducesDiagnostic_VB()
     {
-        string test = @"
-Imports System.Composition
+        string test = """
+            Imports System.Composition
 
-Interface ITest
-End Interface
+            Interface ITest
+            End Interface
 
-<Export(GetType(ITest))>
-Class [|Test|]
-End Class";
+            <Export(GetType(ITest))>
+            Class [|Test|]
+            End Class
+            """;
 
         await VerifyVB.VerifyAnalyzerAsync(test);
     }
@@ -114,13 +117,14 @@ End Class";
     [Fact]
     public async Task ExportWithoutTypeArgument_ProducesNoDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-[Export]
-class Test
-{
-}";
+            [Export]
+            class Test
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -128,13 +132,14 @@ class Test
     [Fact]
     public async Task ExportWithContractName_ProducesNoDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-[Export(""SomeContract"")]
-class Test
-{
-}";
+            [Export("SomeContract")]
+            class Test
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -142,17 +147,18 @@ class Test
     [Fact]
     public async Task MefV1ExportingUnimplementedInterface_ProducesDiagnostic()
     {
-        string test = @"
-using System.ComponentModel.Composition;
+        string test = """
+            using System.ComponentModel.Composition;
 
-interface ITest
-{
-}
+            interface ITest
+            {
+            }
 
-[Export(typeof(ITest))]
-class [|Test|]
-{
-}";
+            [Export(typeof(ITest))]
+            class [|Test|]
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -160,17 +166,18 @@ class [|Test|]
     [Fact]
     public async Task MefV1ExportingImplementedInterface_ProducesNoDiagnostic()
     {
-        string test = @"
-using System.ComponentModel.Composition;
+        string test = """
+            using System.ComponentModel.Composition;
 
-interface ITest
-{
-}
+            interface ITest
+            {
+            }
 
-[Export(typeof(ITest))]
-class Test : ITest
-{
-}";
+            [Export(typeof(ITest))]
+            class Test : ITest
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -178,22 +185,23 @@ class Test : ITest
     [Fact]
     public async Task MultipleExportsWithMismatch_ProducesDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-interface ITest
-{
-}
+            interface ITest
+            {
+            }
 
-interface IOther
-{
-}
+            interface IOther
+            {
+            }
 
-[Export(typeof(ITest))]
-[Export(typeof(IOther))]
-class [|Test|] : ITest
-{
-}";
+            [Export(typeof(ITest))]
+            [Export(typeof(IOther))]
+            class [|Test|] : ITest
+            {
+            }
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
@@ -201,22 +209,23 @@ class [|Test|] : ITest
     [Fact]
     public async Task NonClassTypes_ProduceNoDiagnostic()
     {
-        string test = @"
-using System.Composition;
+        string test = """
+            using System.Composition;
 
-[Export(typeof(ITest))]
-interface ITest
-{
-}
+            [Export(typeof(ITest))]
+            interface ITest
+            {
+            }
 
-[Export(typeof(TestEnum))]
-enum TestEnum
-{
-    Value
-}
+            [Export(typeof(TestEnum))]
+            enum TestEnum
+            {
+                Value
+            }
 
-[Export(typeof(TestDelegate))]
-delegate void TestDelegate();";
+            [Export(typeof(TestDelegate))]
+            delegate void TestDelegate();
+            """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
