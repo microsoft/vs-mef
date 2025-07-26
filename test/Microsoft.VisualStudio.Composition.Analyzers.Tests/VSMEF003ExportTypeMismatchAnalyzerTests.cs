@@ -224,4 +224,136 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task PropertyExportingMatchingType_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            interface ITest
+            {
+            }
+
+            class TestClass
+            {
+                [Export(typeof(ITest))]
+                public ITest TestProperty => throw new System.NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task PropertyExportingCompatibleType_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            interface ITest
+            {
+            }
+
+            class ConcreteTest : ITest
+            {
+            }
+
+            class TestClass
+            {
+                [Export(typeof(ITest))]
+                public ConcreteTest TestProperty => throw new System.NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task PropertyExportingIncompatibleType_ProducesDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            interface ITest
+            {
+            }
+
+            interface IOther
+            {
+            }
+
+            class TestClass
+            {
+                [Export(typeof(ITest))]
+                public IOther [|TestProperty|] => throw new System.NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task PropertyExportingUnrelatedClass_ProducesDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            class TestType
+            {
+            }
+
+            class OtherType
+            {
+            }
+
+            class TestClass
+            {
+                [Export(typeof(TestType))]
+                public OtherType [|TestProperty|] => throw new System.NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV1PropertyExportingIncompatibleType_ProducesDiagnostic()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface ITest
+            {
+            }
+
+            interface IOther
+            {
+            }
+
+            class TestClass
+            {
+                [Export(typeof(ITest))]
+                public IOther [|TestProperty|] => throw new System.NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task PropertyExportWithoutTypeArgument_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            class TestClass
+            {
+                [Export]
+                public string TestProperty => throw new System.NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }

@@ -4,7 +4,8 @@
 namespace Microsoft.VisualStudio.Composition.Analyzers;
 
 /// <summary>
-/// Creates a diagnostic when `[Export(typeof(T))]` is applied to a class that does not implement T.
+/// Creates a diagnostic when `[Export(typeof(T))]` is applied to a class that does not implement T,
+/// or to a property whose type is not compatible with T.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
@@ -47,6 +48,9 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
                 context.RegisterSymbolAction(
                     context => AnalyzeTypeDeclaration(context, mefV1ExportAttribute, mefV2ExportAttribute),
                     SymbolKind.NamedType);
+                context.RegisterSymbolAction(
+                    context => AnalyzePropertyDeclaration(context, mefV1ExportAttribute, mefV2ExportAttribute),
+                    SymbolKind.Property);
             }
         });
     }
@@ -91,6 +95,40 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
+    private static void AnalyzePropertyDeclaration(SymbolAnalysisContext context, INamedTypeSymbol? mefV1ExportAttribute, INamedTypeSymbol? mefV2ExportAttribute)
+    {
+        var property = (IPropertySymbol)context.Symbol;
+
+        Location? location = property.Locations.FirstOrDefault();
+        if (location is null)
+        {
+            // We won't have anywhere to publish a diagnostic anyway.
+            return;
+        }
+
+        foreach (var attributeData in property.GetAttributes())
+        {
+            // Check if this is an Export attribute
+            if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
+                SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ExportAttribute))
+            {
+                // Check if the export attribute has a type argument
+                if (attributeData.ConstructorArguments is [{ Kind: TypedConstantKind.Type, Value: INamedTypeSymbol exportedType }, ..])
+                {
+                    // Check if the property type is compatible with the exported type
+                    if (!IsPropertyTypeCompatible(property.Type, exportedType))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            Descriptor,
+                            location,
+                            property.Name,
+                            exportedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+                    }
+                }
+            }
+        }
+    }
+
     private static bool IsTypeCompatible(INamedTypeSymbol implementingType, INamedTypeSymbol exportedType)
     {
         // If they're the same type, it's compatible
@@ -118,6 +156,23 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         if (exportedType.TypeKind == TypeKind.Interface)
         {
             return implementingType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, exportedType));
+        }
+
+        return false;
+    }
+
+    private static bool IsPropertyTypeCompatible(ITypeSymbol propertyType, INamedTypeSymbol exportedType)
+    {
+        // If they're the same type, it's compatible
+        if (SymbolEqualityComparer.Default.Equals(propertyType, exportedType))
+        {
+            return true;
+        }
+
+        // If property type is a named type, use the same logic as for classes
+        if (propertyType is INamedTypeSymbol namedPropertyType)
+        {
+            return IsTypeCompatible(namedPropertyType, exportedType);
         }
 
         return false;
