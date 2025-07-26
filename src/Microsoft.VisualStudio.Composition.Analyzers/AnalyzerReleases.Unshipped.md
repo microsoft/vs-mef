@@ -4,3 +4,4 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
+VSMEF003 | Usage | Warning | Exported type not implemented by exporting class
