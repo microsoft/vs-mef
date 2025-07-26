@@ -210,21 +210,16 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
     public async Task NonClassTypes_ProduceNoDiagnostic()
     {
         string test = """
-            using System.Composition;
+            using System.ComponentModel.Composition;
 
-            [Export(typeof(ITest))]
-            interface ITest
+            class ITest
             {
-            }
+                [Export(typeof(ITest))]
+                public ITest TestProperty => throw new System.NotImplementedException();
 
-            [Export(typeof(TestEnum))]
-            enum TestEnum
-            {
-                Value
+                [Export("Method")]
+                public void TestMethod() => throw new System.NotImplementedException();
             }
-
-            [Export(typeof(TestDelegate))]
-            delegate void TestDelegate();
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);

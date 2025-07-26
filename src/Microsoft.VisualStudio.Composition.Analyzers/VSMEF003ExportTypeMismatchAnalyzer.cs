@@ -17,7 +17,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// The descriptor used for diagnostics created by this rule.
     /// </summary>
-    internal static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+    internal static readonly DiagnosticDescriptor Descriptor = new(
         id: Id,
         title: Strings.VSMEF003_Title,
         messageFormat: Strings.VSMEF003_MessageFormat,
@@ -38,7 +38,9 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(context =>
         {
             // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
-            if (context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
+            if (context.Compilation.ReferencedAssemblyNames.Any(i =>
+                string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
             {
                 INamedTypeSymbol? mefV1ExportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
                 INamedTypeSymbol? mefV2ExportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
@@ -73,20 +75,16 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
                 SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ExportAttribute))
             {
                 // Check if the export attribute has a type argument
-                if (attributeData.ConstructorArguments.Length > 0)
+                if (attributeData.ConstructorArguments is [{ Kind: TypedConstantKind.Type, Value: INamedTypeSymbol exportedType }, ..])
                 {
-                    var firstArgument = attributeData.ConstructorArguments[0];
-                    if (firstArgument.Kind == TypedConstantKind.Type && firstArgument.Value is INamedTypeSymbol exportedType)
+                    // Check if the exporting type implements or inherits from the exported type
+                    if (!IsTypeCompatible(namedType, exportedType))
                     {
-                        // Check if the exporting type implements or inherits from the exported type
-                        if (!IsTypeCompatible(namedType, exportedType))
-                        {
-                            context.ReportDiagnostic(Diagnostic.Create(
-                                Descriptor,
-                                location,
-                                namedType.Name,
-                                exportedType.ToDisplayString()));
-                        }
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            Descriptor,
+                            location,
+                            namedType.Name,
+                            exportedType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
                     }
                 }
             }
@@ -111,6 +109,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
                 {
                     return true;
                 }
+
                 currentType = currentType.BaseType;
             }
         }
