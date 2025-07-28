@@ -113,5 +113,23 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
                 return ResourceManager.GetString("VSMEF004_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &quot;{0}&quot; has multiple constructors annotated with [ImportingConstructor]. Only one constructor should be marked as importing..
+        /// </summary>
+        internal static string VSMEF005_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF005_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple importing constructors.
+        /// </summary>
+        internal static string VSMEF005_Title {
+            get {
+                return ResourceManager.GetString("VSMEF005_Title", resourceCulture);
+            }
+        }
     }
 }

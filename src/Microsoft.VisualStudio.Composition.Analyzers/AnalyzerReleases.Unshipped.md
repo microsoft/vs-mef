@@ -5,3 +5,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 VSMEF004 | Usage | Error | VSMEF004ExportWithoutImportingConstructor
+VSMEF005 | Usage | Error | VSMEF005MultipleImportingConstructors
