@@ -3,10 +3,8 @@
 
 namespace Microsoft.VisualStudio.Composition.Analyzers;
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -28,7 +26,7 @@ public class VSMEF005MultipleImportingConstructorsAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// The descriptor used for diagnostics created by this rule.
     /// </summary>
-    internal static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+    internal static readonly DiagnosticDescriptor Descriptor = new(
         id: Id,
         title: Strings.VSMEF005_Title,
         messageFormat: Strings.VSMEF005_MessageFormat,
@@ -52,125 +50,54 @@ public class VSMEF005MultipleImportingConstructorsAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(context =>
         {
             // Only run if MEF assemblies are referenced
-            bool mefV1AttributesPresent = context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase));
-            bool mefV2AttributesPresent = context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase));
-            if (mefV1AttributesPresent || mefV2AttributesPresent)
+            if (Utils.ReferencesMefAttributes(context.Compilation))
             {
                 context.RegisterSymbolAction(context => AnalyzeSymbol(context), SymbolKind.NamedType);
             }
         });
-    }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-        var symbol = (INamedTypeSymbol)context.Symbol;
-
-        // Only analyze classes
-        if (symbol.TypeKind != TypeKind.Class)
+        static void AnalyzeSymbol(SymbolAnalysisContext context)
         {
-            return;
-        }
+            var symbol = (INamedTypeSymbol)context.Symbol;
 
-        // Find all constructors with ImportingConstructor attributes
-        var importingConstructors = new List<IMethodSymbol>();
-
-        foreach (var constructor in symbol.Constructors)
-        {
-            if (constructor.IsStatic)
+            // Only analyze classes
+            if (symbol.TypeKind is not TypeKind.Class)
             {
-                continue;
+                return;
             }
 
-            foreach (var attribute in constructor.GetAttributes())
+            // Find all constructors with ImportingConstructor attributes
+            var importingConstructors = new List<IMethodSymbol>();
+
+            foreach (var constructor in symbol.Constructors)
             {
-                if (IsImportingConstructorAttribute(attribute.AttributeClass))
+                if (constructor.IsStatic)
                 {
-                    importingConstructors.Add(constructor);
-                    break; // Found one ImportingConstructor attribute on this constructor, no need to check for more
+                    continue;
+                }
+
+                foreach (var attribute in constructor.GetAttributes())
+                {
+                    if (Utils.IsImportingConstructorAttribute(attribute.AttributeClass))
+                    {
+                        importingConstructors.Add(constructor);
+                        break; // Found one ImportingConstructor attribute on this constructor, no need to check for more
+                    }
+                }
+            }
+
+            // Report diagnostic if more than one constructor has ImportingConstructor attribute
+            if (importingConstructors.Count > 1)
+            {
+                // Report on each importing constructor
+                foreach (var constructor in importingConstructors)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Descriptor,
+                        constructor.Locations[0],
+                        symbol.Name));
                 }
             }
         }
-
-        // Report diagnostic if more than one constructor has ImportingConstructor attribute
-        if (importingConstructors.Count > 1)
-        {
-            // Report on each importing constructor
-            foreach (var constructor in importingConstructors)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    Descriptor,
-                    constructor.Locations[0],
-                    symbol.Name));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Determines whether the specified attribute type is an importing constructor attribute.
-    /// </summary>
-    /// <param name="attributeType">The attribute type to check.</param>
-    /// <returns><see langword="true"/> if the attribute type is an importing constructor attribute; otherwise, <see langword="false"/>.</returns>
-    /// <remarks>
-    /// This method checks for both MEF v1 and MEF v2 importing constructor attributes, including custom attributes that derive from the base importing constructor attribute types.
-    /// </remarks>
-    private static bool IsImportingConstructorAttribute(INamedTypeSymbol? attributeType)
-    {
-        return IsAttributeOfType(attributeType, "ImportingConstructorAttribute", MefV1ImportingConstructorNamespace.AsSpan()) ||
-               IsAttributeOfType(attributeType, "ImportingConstructorAttribute", MefV2ImportingConstructorNamespace.AsSpan());
-    }
-
-    /// <summary>
-    /// Determines whether the specified attribute type matches the expected type and namespace, including inheritance hierarchy.
-    /// </summary>
-    /// <param name="attributeType">The attribute type to check.</param>
-    /// <param name="attributeTypeName">The expected attribute type name.</param>
-    /// <param name="expectedNamespace">The expected namespace components.</param>
-    /// <returns><see langword="true"/> if the attribute type matches; otherwise, <see langword="false"/>.</returns>
-    private static bool IsAttributeOfType(INamedTypeSymbol? attributeType, string attributeTypeName, ReadOnlySpan<string> expectedNamespace)
-    {
-        if (attributeType is null)
-        {
-            return false;
-        }
-
-        // Check the attribute type itself and its base types
-        var current = attributeType;
-        while (current is not null)
-        {
-            if (current.Name == attributeTypeName && IsNamespaceMatch(current.ContainingNamespace, expectedNamespace))
-            {
-                return true;
-            }
-
-            current = current.BaseType;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the specified namespace matches the expected namespace components.
-    /// </summary>
-    /// <param name="actual">The actual namespace to check.</param>
-    /// <param name="expectedNames">The expected namespace components in reverse order (leaf to root).</param>
-    /// <returns><see langword="true"/> if the namespace matches; otherwise, <see langword="false"/>.</returns>
-    private static bool IsNamespaceMatch(INamespaceSymbol? actual, ReadOnlySpan<string> expectedNames)
-    {
-        if (actual is null or { IsGlobalNamespace: true })
-        {
-            return expectedNames.Length == 0;
-        }
-
-        if (expectedNames.Length == 0)
-        {
-            return false;
-        }
-
-        if (actual.Name != expectedNames[expectedNames.Length - 1])
-        {
-            return false;
-        }
-
-        return IsNamespaceMatch(actual.ContainingNamespace, expectedNames.Slice(0, expectedNames.Length - 1));
     }
 }

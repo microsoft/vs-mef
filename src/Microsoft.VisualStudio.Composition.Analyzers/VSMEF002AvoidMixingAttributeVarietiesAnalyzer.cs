@@ -8,7 +8,7 @@ public class VSMEF002AvoidMixingAttributeVarietiesAnalyzer : DiagnosticAnalyzer
 {
     public const string Id = "VSMEF002";
 
-    internal static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+    internal static readonly DiagnosticDescriptor Descriptor = new(
         id: Id,
         title: Strings.VSMEF002_Title,
         messageFormat: Strings.VSMEF002_MessageFormat,
