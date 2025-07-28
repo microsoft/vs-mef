@@ -131,5 +131,32 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
                 return ResourceManager.GetString("VSMEF005_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The import "{0}" has AllowDefault = true but is not nullable. Consider making the type nullable or removing AllowDefault..
+        /// </summary>
+        internal static string VSMEF006_AllowDefaultWithoutNullable_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF006_AllowDefaultWithoutNullable_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The import "{0}" is nullable but does not have AllowDefault = true. Consider adding AllowDefault = true or making the type non-nullable..
+        /// </summary>
+        internal static string VSMEF006_NullableWithoutAllowDefault_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF006_NullableWithoutAllowDefault_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import nullability and AllowDefault mismatch.
+        /// </summary>
+        internal static string VSMEF006_Title {
+            get {
+                return ResourceManager.GetString("VSMEF006_Title", resourceCulture);
+            }
+        }
     }
 }
