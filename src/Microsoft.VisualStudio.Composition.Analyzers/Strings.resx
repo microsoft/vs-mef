@@ -129,4 +129,10 @@
   <data name="VSMEF002_Title" xml:space="preserve">
     <value>Avoid mixing MEF attribute varieties</value>
   </data>
+  <data name="VSMEF004_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" defines exports but has non-default constructors that are not annotated with [ImportingConstructor]. Add a parameterless constructor, or annotate a constructor with [ImportingConstructor].</value>
+  </data>
+  <data name="VSMEF004_Title" xml:space="preserve">
+    <value>Exported type missing importing constructor</value>
+  </data>
 </root>

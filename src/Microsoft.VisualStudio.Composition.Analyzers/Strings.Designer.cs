@@ -95,5 +95,23 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
                 return ResourceManager.GetString("VSMEF002_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &quot;{0}&quot; defines exports but has non-default constructors that are not annotated with [ImportingConstructor]. Add a parameterless constructor, or annotate a constructor with [ImportingConstructor]..
+        /// </summary>
+        internal static string VSMEF004_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF004_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exported type missing importing constructor.
+        /// </summary>
+        internal static string VSMEF004_Title {
+            get {
+                return ResourceManager.GetString("VSMEF004_Title", resourceCulture);
+            }
+        }
     }
 }
