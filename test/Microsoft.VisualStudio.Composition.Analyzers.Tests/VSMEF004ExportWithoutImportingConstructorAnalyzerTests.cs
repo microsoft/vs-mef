@@ -371,8 +371,8 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             using System.ComponentModel.Composition;
 
             [AttributeUsage(AttributeTargets.Class)]
-            class MyExportAttribute : ExportAttribute 
-            { 
+            class MyExportAttribute : ExportAttribute
+            {
                 public MyExportAttribute() : base() { }
             }
 
@@ -397,8 +397,8 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             using System.Composition;
 
             [AttributeUsage(AttributeTargets.Class)]
-            class MyExportAttribute : ExportAttribute 
-            { 
+            class MyExportAttribute : ExportAttribute
+            {
                 public MyExportAttribute() : base() { }
             }
 

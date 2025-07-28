@@ -181,7 +181,7 @@ class Service
     public Service(string parameter) { }
 }
 
-// MEF v2  
+// MEF v2
 [System.Composition.Export]
 class Service
 {
