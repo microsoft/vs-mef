@@ -75,6 +75,22 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
     }
 
     [Fact]
+    public async Task ClassWithExportAndImportingPrimaryConstructor_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            [method: ImportingConstructor]
+            class Foo(string parameter)
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task ClassWithExportAndMultipleConstructorsOneImporting_NoWarning()
     {
         string test = """
@@ -109,6 +125,22 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
                 public {|#0:Foo|}(string parameter)
                 {
                 }
+            }
+            """;
+
+        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
+        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+    }
+
+    [Fact]
+    public async Task ClassWithExportAndPrimaryDefaultConstructorWithoutImportingConstructor_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class {|#0:Foo|}(string parameter)
+            {
             }
             """;
 
