@@ -25,12 +25,8 @@ internal static class Utils
             string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static readonly ImmutableArray<string> MefV1ExportAttributeNamespace = ImmutableArray.Create("System", "ComponentModel", "Composition");
-    private static readonly ImmutableArray<string> MefV2ExportAttributeNamespace = ImmutableArray.Create("System", "Composition");
-    private static readonly ImmutableArray<string> MefV1ImportingConstructorNamespace = ImmutableArray.Create("System", "ComponentModel", "Composition");
-    private static readonly ImmutableArray<string> MefV2ImportingConstructorNamespace = ImmutableArray.Create("System", "Composition");
-    private static readonly ImmutableArray<string> MefV1ImportNamespace = ImmutableArray.Create("System", "ComponentModel", "Composition");
-    private static readonly ImmutableArray<string> MefV2ImportNamespace = ImmutableArray.Create("System", "Composition");
+    private static readonly ImmutableArray<string> MefV1AttributeNamespace = ImmutableArray.Create("System", "ComponentModel", "Composition");
+    private static readonly ImmutableArray<string> MefV2AttributeNamespace = ImmutableArray.Create("System", "Composition");
 
     /// <summary>
     /// Determines whether the specified attribute type is a MEF export attribute.
@@ -48,8 +44,8 @@ internal static class Utils
         }
 
         // Check if it's a direct Export attribute or derived from one
-        return IsAttributeOfType(attributeType, "ExportAttribute", MefV1ExportAttributeNamespace.AsSpan()) ||
-               IsAttributeOfType(attributeType, "ExportAttribute", MefV2ExportAttributeNamespace.AsSpan());
+        return IsAttributeOfType(attributeType, "ExportAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ExportAttribute", MefV2AttributeNamespace.AsSpan());
     }
 
     /// <summary>
@@ -68,8 +64,8 @@ internal static class Utils
         }
 
         // Check if it's a direct ImportingConstructor attribute or derived from one
-        return IsAttributeOfType(attributeType, "ImportingConstructorAttribute", MefV1ImportingConstructorNamespace.AsSpan()) ||
-               IsAttributeOfType(attributeType, "ImportingConstructorAttribute", MefV2ImportingConstructorNamespace.AsSpan());
+        return IsAttributeOfType(attributeType, "ImportingConstructorAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ImportingConstructorAttribute", MefV2AttributeNamespace.AsSpan());
     }
 
     /// <summary>
@@ -79,7 +75,7 @@ internal static class Utils
     /// <param name="attributeTypeName">The expected attribute type name.</param>
     /// <param name="expectedNamespace">The expected namespace components.</param>
     /// <returns><see langword="true"/> if the attribute type matches; otherwise, <see langword="false"/>.</returns>
-    public static bool IsAttributeOfType(INamedTypeSymbol attributeType, string attributeTypeName, ReadOnlySpan<string> expectedNamespace)
+    private static bool IsAttributeOfType(INamedTypeSymbol attributeType, string attributeTypeName, ReadOnlySpan<string> expectedNamespace)
     {
         // Check the attribute type itself and its base types
         var current = attributeType;
@@ -205,10 +201,10 @@ internal static class Utils
             return false;
         }
 
-        return IsAttributeOfType(attributeType, "ImportAttribute", MefV1ImportNamespace.AsSpan()) ||
-               IsAttributeOfType(attributeType, "ImportAttribute", MefV2ImportNamespace.AsSpan()) ||
-               IsAttributeOfType(attributeType, "ImportManyAttribute", MefV1ImportNamespace.AsSpan()) ||
-               IsAttributeOfType(attributeType, "ImportManyAttribute", MefV2ImportNamespace.AsSpan());
+        return IsAttributeOfType(attributeType, "ImportAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ImportAttribute", MefV2AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ImportManyAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ImportManyAttribute", MefV2AttributeNamespace.AsSpan());
     }
 
     public static bool GetAllowDefaultValue(AttributeData importAttribute)
