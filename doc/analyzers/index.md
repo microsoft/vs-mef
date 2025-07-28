@@ -9,3 +9,5 @@ ID | Title
 VSMEF001 | Importing property must have setter
 VSMEF002 | Avoid mixing MEF attribute libraries
 VSMEF004 | Exported type missing importing constructor
+VSMEF005 | Multiple importing constructors
+VSMEF006 | Import nullability and AllowDefault mismatch
