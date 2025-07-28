@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF004ExportWithoutImportingConstructorAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF004ExportWithoutImportingConstructorAnalyzer, Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.VSMEF004ExportWithoutImportingConstructorCodeFixProvider>;
 
 public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
 {
@@ -564,4 +564,62 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task ClassWithExportAndNonDefaultConstructor_CodeFixAddsImportingConstructorAttribute()
+    {
+        string testCode = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Service
+            {
+                [System.ComponentModel.Composition.ImportingConstructor]
+                public Service(string config) { }
+            }
+            """;
+
+        var expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
+    }
+
+    [Fact]
+    public async Task ClassWithMefV2ExportAndNonDefaultConstructor_CodeFixAddsImportingConstructorAttribute()
+    {
+        string testCode = """
+            using System.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System.Composition;
+
+            [Export]
+            class Service
+            {
+                [System.Composition.ImportingConstructor]
+                public Service(string config) { }
+            }
+            """;
+
+        var expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
+    }
+
+    // TODO: Add test for second code action (parameterless constructor) when framework supports testing multiple code actions
 }
