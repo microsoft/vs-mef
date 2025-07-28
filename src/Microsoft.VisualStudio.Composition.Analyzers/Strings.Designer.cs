@@ -158,5 +158,23 @@ namespace Microsoft.VisualStudio.Composition.Analyzers {
                 return ResourceManager.GetString("VSMEF006_Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type "{0}" imports the same contract "{1}" multiple times. Each contract should only be imported once per type..
+        /// </summary>
+        internal static string VSMEF007_MessageFormat {
+            get {
+                return ResourceManager.GetString("VSMEF007_MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate import contract.
+        /// </summary>
+        internal static string VSMEF007_Title {
+            get {
+                return ResourceManager.GetString("VSMEF007_Title", resourceCulture);
+            }
+        }
     }
 }
