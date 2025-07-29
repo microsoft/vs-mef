@@ -129,4 +129,10 @@
   <data name="VSMEF002_Title" xml:space="preserve">
     <value>Avoid mixing MEF attribute varieties</value>
   </data>
+  <data name="VSMEF003_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" does not implement the exported type "{1}". This may be an authoring mistake.</value>
+  </data>
+  <data name="VSMEF003_Title" xml:space="preserve">
+    <value>Exported type not implemented by exporting class</value>
+  </data>
 </root>
