@@ -49,7 +49,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [Import]
                 public string StringValue { get; set; }
-                
+
                 [Import]
                 public int IntValue { get; set; }
             }
@@ -69,7 +69,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [Import]
                 public string {|#0:Value1|} { get; set; }
-                
+
                 [Import]
                 public string {|#1:Value2|} { get; set; }
             }
@@ -124,7 +124,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [Import]
                 public string {|#0:PropertyValue|} { get; set; }
-                
+
                 [ImportingConstructor]
                 public Foo([Import] string {|#1:constructorValue|})
                 {
@@ -154,7 +154,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [Import("Contract1")]
                 public string Value1 { get; set; }
-                
+
                 [Import("Contract2")]
                 public string Value2 { get; set; }
             }
@@ -174,7 +174,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [Import("SameContract")]
                 public string {|#0:Value1|} { get; set; }
-                
+
                 [Import("SameContract")]
                 public string {|#1:Value2|} { get; set; }
             }
@@ -202,7 +202,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [Import]
                 public string {|#0:Value1|} { get; set; }
-                
+
                 [Import]
                 public string {|#1:Value2|} { get; set; }
             }

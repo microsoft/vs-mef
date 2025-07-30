@@ -10,7 +10,7 @@ class Foo
 {
     [Import]
     public string Value1 { get; set; }
-    
+
     [Import]
     public string Value2 { get; set; }
 }
@@ -28,7 +28,7 @@ class Service
 {
     [Import]
     public ILogger Logger1 { get; set; }
-    
+
     [Import]
     public ILogger Logger2 { get; set; }  // Duplicate import
 }
@@ -56,7 +56,7 @@ class Service
 {
     [Import]
     public ILogger PropertyLogger { get; set; }
-    
+
     [ImportingConstructor]
     public Service([Import] ILogger constructorLogger)
     {
@@ -73,7 +73,7 @@ class Service
 {
     [Import("MyContract")]
     public string Value1 { get; set; }
-    
+
     [Import("MyContract")]
     public string Value2 { get; set; }  // Same contract name
 }
@@ -89,7 +89,7 @@ class Service
 {
     [Import]
     public ILogger Logger { get; set; }
-    
+
     [Import]
     public IConfiguration Configuration { get; set; }  // Different type
 }
@@ -103,7 +103,7 @@ class Service
 {
     [Import("PrimaryLogger")]
     public ILogger Logger1 { get; set; }
-    
+
     [Import("SecondaryLogger")]
     public ILogger Logger2 { get; set; }  // Different contract name
 }
@@ -117,7 +117,7 @@ class Service
 {
     [ImportMany]
     public IEnumerable<IPlugin> Plugins { get; set; }
-    
+
     [ImportMany]
     public IEnumerable<IHandler> Handlers { get; set; }  // Different element type
 }
@@ -135,7 +135,7 @@ class Service
 {
     [Import("PrimaryDatabase")]
     public IDatabase PrimaryDb { get; set; }
-    
+
     [Import("SecondaryDatabase")]
     public IDatabase SecondaryDb { get; set; }
 }
@@ -164,7 +164,7 @@ class Service
 {
     [Import]
     public ILogger Logger { get; set; }
-    
+
     // Use the same logger instance throughout the class
 }
 ```
@@ -191,7 +191,7 @@ class CompositeService : ICompositeService
         PrimaryLogger = primaryLogger;
         SecondaryLogger = secondaryLogger;
     }
-    
+
     public ILogger PrimaryLogger { get; }
     public ILogger SecondaryLogger { get; }
 }

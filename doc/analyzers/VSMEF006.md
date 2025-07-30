@@ -120,6 +120,6 @@ class Foo
 Following this analyzer's recommendations helps ensure:
 
 1. **Consistency**: Nullable annotations accurately reflect the runtime behavior
-2. **Safety**: Reduces null reference exceptions at runtime  
+2. **Safety**: Reduces null reference exceptions at runtime
 3. **Clarity**: Makes the intent clear to other developers reading the code
 4. **Tooling support**: Enables better IntelliSense and static analysis
