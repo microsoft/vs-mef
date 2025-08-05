@@ -41,6 +41,44 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
     }
 
     [Fact]
+    public async Task ExportingImplementedGenericTypeInterface_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            interface ITest<T> where T : class
+            {
+            }
+
+            [Export(typeof(ITest<>))]
+            class Test<T> : ITest<T> where T : class
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportingImplementedMultiGenericTypeInterface_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            interface ITest<T,V> where T : class where V : class
+            {
+            }
+
+            [Export(typeof(ITest<,>))]
+            class Test<A,B> : ITest<A,B> where A : class where B : class
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task ExportingBaseClass_ProducesNoDiagnostic()
     {
         string test = """
