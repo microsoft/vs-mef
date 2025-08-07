@@ -155,7 +155,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         // Check if implementing type implements exported interface
         if (exportedType.TypeKind == TypeKind.Interface)
         {
-            return implementingType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, exportedType));
+            return implementingType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i.IsGenericType ? i.ConstructUnboundGenericType() : i, exportedType));
         }
 
         return false;
