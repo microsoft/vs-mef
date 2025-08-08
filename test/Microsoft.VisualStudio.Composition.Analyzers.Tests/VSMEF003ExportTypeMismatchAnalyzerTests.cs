@@ -41,6 +41,33 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
     }
 
     [Fact]
+    public async Task ExportingImplementedMultiTypeInterface_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.Composition;
+
+            class TestType1
+            {
+            }
+
+            class TestType2
+            {
+            }
+
+            interface ITest<T,V> where T : class where V : class
+            {
+            }
+
+            [Export(typeof(ITest<TestType1,TestType2>))]
+            class Test : ITest<TestType1,TestType2>
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task ExportingImplementedGenericTypeInterface_ProducesNoDiagnostic()
     {
         string test = """
