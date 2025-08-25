@@ -524,12 +524,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // At this point, accessing the enum array metadata should load the assembly
                 object? customEnumArray = exportWithLazy.ImportingProperty.Metadata["CustomEnumArray"];
                 Assert.NotNull(customEnumArray);
-                
+
                 // Verify it's an array with the correct enum type and values
                 var enumArray = Assert.IsAssignableFrom<Array>(customEnumArray);
                 Assert.Equal(2, enumArray.Length);
                 Assert.Equal("CustomEnum", enumArray.GetValue(0)?.GetType().Name);
-                
+
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
@@ -544,12 +544,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // At this point, accessing the enum array metadata should load the assembly
                 object? customEnumArray = exportWithLazy.ImportingProperty.Metadata["CustomEnumArray"];
                 Assert.NotNull(customEnumArray);
-                
+
                 // Verify it's an array with the correct enum type and values
                 var enumArray = Assert.IsAssignableFrom<Array>(customEnumArray);
                 Assert.Equal(2, enumArray.Length);
                 Assert.Equal("CustomEnum", enumArray.GetValue(0)?.GetType().Name);
-                
+
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 

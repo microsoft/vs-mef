@@ -487,6 +487,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         result.SetValue(Enum.ToObject(enumType, this.RawValues[i]), i);
                     }
+
                     return result;
                 }
             }
