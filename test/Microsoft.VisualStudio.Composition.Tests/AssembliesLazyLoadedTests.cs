@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithExternalMetadataType), typeof(ExternalExportWithExternalMetadataTypeArray), typeof(ExternalExportWithExternalMetadataEnum32)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithExternalMetadataType), typeof(ExternalExportWithExternalMetadataTypeArray), typeof(ExternalExportWithExternalMetadataEnum32), typeof(ExternalExportWithExternalMetadataEnumArray), typeof(ExternalExportWithExternalMetadataEnumSingleInArray)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -296,6 +296,62 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when enum array metadata
+        /// is actually accessed.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesLazyLoadedWhenCustomEnumArrayMetadataIsRequired()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportWithCustomEnumArrayMetadata), typeof(PartThatLazyImportsExportWithCustomEnumArrayMetadata)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
+                driver.TestPartThatLazyImportsExportWithCustomEnumArrayMetadata(typeof(CustomEnum).Assembly.Location, this is AssembliesLazyLoadedDataFileCacheTests);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when enum array metadata
+        /// is actually accessed via dictionary access.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesLazyLoadedWhenEnumArrayMetadataViaDictionaryIsRequired()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithExternalMetadataEnumArray), typeof(PartThatLazyImportsExportWithEnumArrayViaDictionary)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
+                driver.TestPartThatLazyImportsExportWithEnumArrayViaDictionary(typeof(CustomEnum).Assembly.Location, this is AssembliesLazyLoadedDataFileCacheTests);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
         private static void SkipOnMono()
         {
             TestUtilities.SkipOnMono("Assemblies are loaded more eagerly in other AppDomains on Mono");
@@ -454,6 +510,46 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // At this point, loading the assembly is absolutely required.
                 object? customEnum = exportWithLazy.ImportingProperty.Metadata["CustomValue"];
                 Assert.Equal("CustomEnum", customEnum?.GetType().Name);
+                AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatLazyImportsExportWithCustomEnumArrayMetadata(string lazyLoadedAssemblyPath, bool isRuntime)
+            {
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithCustomEnumArrayMetadata>();
+
+                // Assembly should not be loaded just for getting the import
+                AssertEx.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+
+                // At this point, accessing the enum array metadata should load the assembly
+                object? customEnumArray = exportWithLazy.ImportingProperty.Metadata["CustomEnumArray"];
+                Assert.NotNull(customEnumArray);
+                
+                // Verify it's an array with the correct enum type and values
+                var enumArray = Assert.IsAssignableFrom<Array>(customEnumArray);
+                Assert.Equal(2, enumArray.Length);
+                Assert.Equal("CustomEnum", enumArray.GetValue(0)?.GetType().Name);
+                
+                AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatLazyImportsExportWithEnumArrayViaDictionary(string lazyLoadedAssemblyPath, bool isRuntime)
+            {
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithEnumArrayViaDictionary>();
+
+                // Assembly should not be loaded just for getting the import
+                AssertEx.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+
+                // At this point, accessing the enum array metadata should load the assembly
+                object? customEnumArray = exportWithLazy.ImportingProperty.Metadata["CustomEnumArray"];
+                Assert.NotNull(customEnumArray);
+                
+                // Verify it's an array with the correct enum type and values
+                var enumArray = Assert.IsAssignableFrom<Array>(customEnumArray);
+                Assert.Equal(2, enumArray.Length);
+                Assert.Equal("CustomEnum", enumArray.GetValue(0)?.GetType().Name);
+                
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
