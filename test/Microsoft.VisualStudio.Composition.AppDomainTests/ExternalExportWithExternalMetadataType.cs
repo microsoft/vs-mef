@@ -29,4 +29,17 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
     public class ExternalExportWithExternalMetadataEnum32
     {
     }
+
+    [Export]
+    [ExportMetadata("CustomEnumArray", CustomEnum.Value1)]
+    [ExportMetadata("CustomEnumArray", CustomEnum.Value2)]
+    public class ExternalExportWithExternalMetadataEnumArray
+    {
+    }
+
+    [Export]
+    [ExportMetadata("CustomEnumArray", CustomEnum.Value1)]
+    public class ExternalExportWithExternalMetadataEnumSingleInArray
+    {
+    }
 }

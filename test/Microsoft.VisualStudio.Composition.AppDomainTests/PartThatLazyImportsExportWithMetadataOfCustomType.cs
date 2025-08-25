@@ -17,4 +17,18 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
         [Import("Microsoft.VisualStudio.Composition.AppDomainTests2.ExportWithCustomMetadata")]
         public Lazy<object, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
     }
+
+    [Export]
+    public class PartThatLazyImportsExportWithCustomEnumArrayMetadata
+    {
+        [Import("Microsoft.VisualStudio.Composition.AppDomainTests2.ExportWithCustomEnumArrayMetadata")]
+        public Lazy<object, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
+    }
+
+    [Export]
+    public class PartThatLazyImportsExportWithEnumArrayViaDictionary
+    {
+        [Import("Microsoft.VisualStudio.Composition.AppDomainTests.ExternalExportWithExternalMetadataEnumArray")]
+        public Lazy<object, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
+    }
 }
