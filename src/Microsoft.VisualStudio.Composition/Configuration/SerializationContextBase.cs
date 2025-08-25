@@ -1038,9 +1038,9 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(substValue.EnumType);
                         this.writer.Write(substValue.RawValue);
                     }
-                    else if (typeof(LazyMetadataWrapper.EnumArraySubstitution) == valueType)
+                    else if (typeof(LazyMetadataWrapper.Enum32ArraySubstitution) == valueType)
                     {
-                        var substValue = (LazyMetadataWrapper.EnumArraySubstitution)value;
+                        var substValue = (LazyMetadataWrapper.Enum32ArraySubstitution)value;
                         this.Write(ObjectType.Enum32ArraySubstitution);
                         this.Write(substValue.EnumType);
                         this.Write(substValue.RawValues, n => this.writer.Write(n));
@@ -1125,7 +1125,7 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Enum32ArraySubstitution:
                         enumType = this.ReadTypeRef();
                         IReadOnlyList<int> rawValues = this.ReadList(this.reader, this.reader.ReadInt32);
-                        return new LazyMetadataWrapper.EnumArraySubstitution(enumType, rawValues, this.Resolver);
+                        return new LazyMetadataWrapper.Enum32ArraySubstitution(enumType, rawValues, this.Resolver);
                     case ObjectType.TypeSubstitution:
                         TypeRef? typeRef = this.ReadTypeRef();
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);

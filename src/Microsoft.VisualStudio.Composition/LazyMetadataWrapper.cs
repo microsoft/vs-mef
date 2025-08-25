@@ -283,7 +283,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 case Direction.ToSubstitutedValue:
                     if (Enum32Substitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
-                        EnumArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
+                        Enum32ArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
                         TypeSubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
                         TypeArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue))
                     {
@@ -456,11 +456,11 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal class EnumArraySubstitution : ISubstitutedValue, IEquatable<EnumArraySubstitution>
+        internal class Enum32ArraySubstitution : ISubstitutedValue, IEquatable<Enum32ArraySubstitution>
         {
             private readonly Resolver resolver;
 
-            internal EnumArraySubstitution(TypeRef enumType, IReadOnlyList<int> rawValues, Resolver resolver)
+            internal Enum32ArraySubstitution(TypeRef enumType, IReadOnlyList<int> rawValues, Resolver resolver)
             {
                 Requires.NotNull(enumType, nameof(enumType));
                 Requires.NotNull(rawValues, nameof(rawValues));
@@ -508,7 +508,7 @@ namespace Microsoft.VisualStudio.Composition
                             rawValues[i] = (int)array.GetValue(i)!;
                         }
 
-                        substitutedValue = new EnumArraySubstitution(TypeRef.Get(elementType, resolver), rawValues, resolver);
+                        substitutedValue = new Enum32ArraySubstitution(TypeRef.Get(elementType, resolver), rawValues, resolver);
                         return true;
                     }
                 }
@@ -529,21 +529,21 @@ namespace Microsoft.VisualStudio.Composition
                     return false;
                 }
 
-                if (obj is EnumArraySubstitution)
+                if (obj is Enum32ArraySubstitution)
                 {
-                    return this.Equals((EnumArraySubstitution)obj);
+                    return this.Equals((Enum32ArraySubstitution)obj);
                 }
 
                 ISubstitutedValue? other;
                 if (TrySubstituteValue(obj, this.resolver, out other))
                 {
-                    return this.Equals((EnumArraySubstitution)other);
+                    return this.Equals((Enum32ArraySubstitution)other);
                 }
 
                 return false;
             }
 
-            public bool Equals(EnumArraySubstitution? other)
+            public bool Equals(Enum32ArraySubstitution? other)
             {
                 if (other == null)
                 {
