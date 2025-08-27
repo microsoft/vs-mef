@@ -283,6 +283,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 case Direction.ToSubstitutedValue:
                     if (Enum32Substitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
+                        Enum32ArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
                         TypeSubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
                         TypeArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue))
                     {
@@ -452,6 +453,113 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 return this.TypeRef.Equals(other.TypeRef);
+            }
+        }
+
+        internal class Enum32ArraySubstitution : ISubstitutedValue, IEquatable<Enum32ArraySubstitution>
+        {
+            private readonly Resolver resolver;
+
+            internal Enum32ArraySubstitution(TypeRef enumType, IReadOnlyList<int> rawValues, Resolver resolver)
+            {
+                Requires.NotNull(enumType, nameof(enumType));
+                Requires.NotNull(rawValues, nameof(rawValues));
+                Requires.NotNull(resolver, nameof(resolver));
+
+                this.EnumType = enumType;
+                this.RawValues = rawValues;
+                this.resolver = resolver;
+            }
+
+            public TypeRef SubstitutedValueTypeRef => TypeRef.Get(this.EnumType.Resolve().MakeArrayType(), this.resolver);
+
+            internal TypeRef EnumType { get; private set; }
+
+            internal IReadOnlyList<int> RawValues { get; private set; }
+
+            public object ActualValue
+            {
+                get
+                {
+                    Type enumType = this.EnumType.Resolve();
+                    Array result = Array.CreateInstance(enumType, this.RawValues.Count);
+                    for (int i = 0; i < this.RawValues.Count; i++)
+                    {
+                        result.SetValue(Enum.ToObject(enumType, this.RawValues[i]), i);
+                    }
+
+                    return result;
+                }
+            }
+
+            internal static bool TrySubstituteValue(object value, Resolver resolver, [NotNullWhen(true)] out ISubstitutedValue? substitutedValue)
+            {
+                Requires.NotNull(resolver, nameof(resolver));
+
+                if (value != null && value.GetType().IsArray)
+                {
+                    Type elementType = value.GetType().GetElementType()!;
+                    if (elementType.GetTypeInfo().IsEnum && Enum.GetUnderlyingType(elementType) == typeof(int) && IsTypeWorthDeferring(elementType))
+                    {
+                        Array array = (Array)value;
+                        var rawValues = new int[array.Length];
+                        for (int i = 0; i < array.Length; i++)
+                        {
+                            rawValues[i] = (int)array.GetValue(i)!;
+                        }
+
+                        substitutedValue = new Enum32ArraySubstitution(TypeRef.Get(elementType, resolver), rawValues, resolver);
+                        return true;
+                    }
+                }
+
+                substitutedValue = null;
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = this.EnumType.GetHashCode();
+                    for (int i = 0; i < this.RawValues.Count; i++)
+                    {
+                        hash = (hash * 31) ^ this.RawValues[i];
+                    }
+
+                    return hash;
+                }
+            }
+
+            public override bool Equals(object? obj)
+            {
+                if (obj == null)
+                {
+                    return false;
+                }
+
+                if (obj is Enum32ArraySubstitution)
+                {
+                    return this.Equals((Enum32ArraySubstitution)obj);
+                }
+
+                ISubstitutedValue? other;
+                if (TrySubstituteValue(obj, this.resolver, out other))
+                {
+                    return this.Equals((Enum32ArraySubstitution)other);
+                }
+
+                return false;
+            }
+
+            public bool Equals(Enum32ArraySubstitution? other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return this.EnumType.Equals(other.EnumType) && this.RawValues.SequenceEqual(other.RawValues);
             }
         }
 

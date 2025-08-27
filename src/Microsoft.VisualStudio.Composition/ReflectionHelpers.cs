@@ -725,6 +725,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     ((LazyMetadataWrapper.Enum32Substitution)value).EnumType.GetInputAssemblies(assemblies);
                 }
+                else if (typeof(LazyMetadataWrapper.Enum32ArraySubstitution) == valueType)
+                {
+                    ((LazyMetadataWrapper.Enum32ArraySubstitution)value).EnumType.GetInputAssemblies(assemblies);
+                }
                 else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
                 {
                     ((LazyMetadataWrapper.TypeSubstitution)value).TypeRef.GetInputAssemblies(assemblies);
