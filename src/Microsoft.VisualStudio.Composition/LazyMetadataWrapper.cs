@@ -519,7 +519,16 @@ namespace Microsoft.VisualStudio.Composition
 
             public override int GetHashCode()
             {
-                return this.EnumType.GetHashCode() ^ this.RawValues.Count;
+                unchecked
+                {
+                    int hash = this.EnumType.GetHashCode();
+                    for (int i = 0; i < this.RawValues.Count; i++)
+                    {
+                        hash = (hash * 31) ^ this.RawValues[i];
+                    }
+
+                    return hash;
+                }
             }
 
             public override bool Equals(object? obj)
