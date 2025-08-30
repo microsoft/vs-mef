@@ -5,5 +5,9 @@
     <Using Remove="System.Net.Http" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="*.resx" EmitFormatMethods="true" />
+  </ItemGroup>
+
   <Import Project="Directory.Packages.Analyzers.props" Condition="'$(IsAnalyzerProject)'=='true'" />
 </Project>

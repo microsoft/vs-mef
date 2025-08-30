@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.Composition
                 case FieldInfo field:
                     return field.FieldType;
                 default:
-                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrType.MemberType));
+                    throw new ArgumentException(Strings.FormatUnexpectedMemberType(fieldOrPropertyOrType.MemberType));
             }
         }
 
@@ -312,7 +312,7 @@ namespace Microsoft.VisualStudio.Composition
                 case FieldRef field:
                     return field.FieldTypeRef;
                 default:
-                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrTypeRef.MemberInfo.MemberType));
+                    throw new ArgumentException(Strings.FormatUnexpectedMemberType(fieldOrPropertyOrTypeRef.MemberInfo.MemberType));
             }
         }
 

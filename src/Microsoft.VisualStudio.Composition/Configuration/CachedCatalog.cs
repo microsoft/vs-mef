@@ -312,7 +312,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
+                        throw new NotSupportedException(Strings.FormatImportConstraintTypeNotSupported(importConstraint.GetType().FullName));
                     }
 
                     this.writer!.Write((byte)type);
@@ -381,7 +381,7 @@ namespace Microsoft.VisualStudio.Composition
                             }
 
                         default:
-                            throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedConstraintType, type));
+                            throw new NotSupportedException(Strings.FormatUnexpectedConstraintType(type));
                     }
                 }
             }

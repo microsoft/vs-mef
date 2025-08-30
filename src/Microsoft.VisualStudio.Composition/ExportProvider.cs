@@ -988,7 +988,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (metadataViewProvider == null)
                 {
-                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.TypeOfMetadataViewUnsupported, metadataView.FullName));
+                    throw new NotSupportedException(Strings.FormatTypeOfMetadataViewUnsupported(metadataView.FullName));
                 }
 
                 lock (this.typeAndSelectedMetadataViewProviderCache)
@@ -1335,7 +1335,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Type partType = this.PartType;
                 string? partTypeName = partType != null ? partType.FullName : string.Empty;
-                throw new CompositionFailedException(string.Format(CultureInfo.CurrentCulture, Strings.PartIsNotInstantiable, partTypeName));
+                throw new CompositionFailedException(Strings.FormatPartIsNotInstantiable(partTypeName));
             }
 
             private void AddNonSharedDescendant(PartLifecycleTracker nonSharedDescendant)

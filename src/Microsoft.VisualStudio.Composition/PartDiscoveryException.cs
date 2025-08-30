@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.Composition
         internal class RecursiveTypeException : PartDiscoveryException
         {
             public RecursiveTypeException(Type type, Exception? innerException)
-                : base(string.Format(CultureInfo.CurrentCulture, Strings.TypeRefCycle, type.FullName), innerException)
+                : base(Strings.FormatTypeRefCycle(type.FullName), innerException)
             {
                 this.ScannedType = type;
                 this.AssemblyPath = type.Assembly.Location;
