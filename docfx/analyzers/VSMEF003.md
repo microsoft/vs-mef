@@ -27,36 +27,8 @@ This warning can be suppressed if you intentionally want to export a type that i
 
 ### Violates
 
-```csharp
-interface ICalculator
-{
-    int Add(int a, int b);
-}
-
-[Export(typeof(ICalculator))]  // ❌ Violates VSMEF003
-public class TextProcessor
-{
-    public string ProcessText(string input) => input.ToUpper();
-}
-```
+[!code-csharp[](../../samples/AnalyzerDocs/VSMEF003.cs#Defective)]
 
 ### Does not violate
 
-```csharp
-interface ICalculator
-{
-    int Add(int a, int b);
-}
-
-[Export(typeof(ICalculator))]  // ✅ OK
-public class Calculator : ICalculator
-{
-    public int Add(int a, int b) => a + b;
-}
-
-[Export]  // ✅ OK - exports Calculator type
-public class Calculator
-{
-    public int Add(int a, int b) => a + b;
-}
-```
+[!code-csharp[](../../samples/AnalyzerDocs/VSMEF003.cs#Fix)]
