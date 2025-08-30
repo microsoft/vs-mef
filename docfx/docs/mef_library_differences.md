@@ -29,11 +29,11 @@ NuGet MEF attributes as only they can describe sharing boundaries.
 
 ## Caveats
 
-* A given MEF part must use a single variety of MEF attributes. Mixing a .NET MEF `Export`
-  attribute with a NuGet MEF `ExportMetadata` attribute will result in a MEF part that exports
+* A given MEF part must use a single variety of MEF attributes. Mixing a .NET MEF <xref:System.ComponentModel.Composition.ExportAttribute>
+  with a NuGet MEF <xref:System.Composition.ExportMetadataAttribute> will result in a MEF part that exports
   without the export metadata, because each part discovery module produces part descriptors
   based on the MEF attributes it was designed to understand.
-* .NET MEF offered a `CompositionContainer.Compose` method which leveraged its dynamic
+* .NET MEF offered a <xref:System.ComponentModel.Composition.Hosting.CompositionContainer.Compose*?displayProperty=nameWithType> method which leveraged its dynamic
   recomposition feature to add a part to the graph after the container was instantiated.
   VS MEF offers no such facility. The catalog must be complete before the graph is created.
   VS-MEF has [compatible equivalents for two common uses of `CompositionContainer.Compose`][Compose].
