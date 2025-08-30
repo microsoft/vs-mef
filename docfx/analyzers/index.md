@@ -1,4 +1,4 @@
-# VS-MEF Diagnostic Analyzers
+# Analyzers
 
 The following analyzers are included in the
 `Microsoft.VisualStudio.Composition.Analyzers` package

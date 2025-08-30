@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
         /// <returns>The URL for the analyzer's documentation.</returns>
         internal static string GetHelpLink(string analyzerId)
         {
-            return $"https://github.com/Microsoft/vs-mef/blob/main/doc/analyzers/{analyzerId}.md";
+            return $"https://microsoft.github.io/vs-mef/analyzers/{analyzerId}.html";
         }
     }
 }
