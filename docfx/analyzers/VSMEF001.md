@@ -4,16 +4,10 @@ A property with an `[ImportAttribute]` must define a setter so the export can be
 
 The following property definition would produce a diagnostic from this rule:
 
-```cs
-[Import]
-object SomeProperty { get; }
-```
+[!code-csharp[](../../samples/AnalyzerDocs/VSMEF001.cs#Defective)]
 
 Such a property does not offer a setter and thus MEF would be unable to set the property with a value.
 
 Fix the diagnostic by adding a setter:
 
-```cs
-[Import]
-object SomeProperty { get; set; }
-```
+[!code-csharp[](../../samples/AnalyzerDocs/VSMEF001.cs#Fix)]
