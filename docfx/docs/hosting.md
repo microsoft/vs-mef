@@ -13,11 +13,11 @@ parts with imports satisfied with additional activated parts.
 
 ## ComposableCatalog
 
-The `ComposableCatalog` type is the first foundational class for hosting VS MEF. It is a collection of all the "MEF parts" (i.e. types) that MEF will activate and initialize for the application.
+The <xref:Microsoft.VisualStudio.Composition.ComposableCatalog> type is the first foundational class for hosting VS MEF. It is a collection of all the "MEF parts" (i.e. types) that MEF will activate and initialize for the application.
 
-A MEF part is typically a class that has been decorated with `[Export]` and `[Import]` attributes which will lead MEF to create those exported types and provide values for the imports. A `PartDiscovery`-derived class is used to scan these types and create MEF parts in the form of `ComposablePartDefinition` instances to add to a `ComposableCatalog`. This can be done for individual types, but is more commonly done on all the types in an assembly or even across many assemblies.
+A MEF part is typically a class that has been decorated with `[Export]` and `[Import]` attributes which will lead MEF to create those exported types and provide values for the imports. A <xref:Microsoft.VisualStudio.Composition.PartDiscovery>-derived class is used to scan these types and create MEF parts in the form of <xref:Microsoft.VisualStudio.Composition.ComposablePartDefinition> instances to add to a <xref:Microsoft.VisualStudio.Composition.ComposableCatalog>. This can be done for individual types, but is more commonly done on all the types in an assembly or even across many assemblies.
 
-Since both .NET MEF and NuGet MEF define their own `[Export]` and `[Import]` attributes, VS MEF defines a `PartDiscovery`-derived class to support each set of attributes. VS MEF even lets you combine multiple `PartDiscovery` instances into one so that your application can contain a mix of MEF parts that are defined with either set of attributes.
+Since both .NET MEF and NuGet MEF define their own `[Export]` and `[Import]` attributes, VS MEF defines a <xref:Microsoft.VisualStudio.Composition.PartDiscovery>-derived class to support each set of attributes. VS MEF even lets you combine multiple <xref:Microsoft.VisualStudio.Composition.PartDiscovery> instances into one so that your application can contain a mix of MEF parts that are defined with either set of attributes.
 
 ## Hosting MEF in an extensible application
 
@@ -28,30 +28,7 @@ you can install the [Microsoft.VisualStudio.Composition][VSMEFPkg] NuGet package
 
 Then host VS MEF with code like this:
 
-```csharp
-// Prepare part discovery to support both flavors of MEF attributes.
-var discovery = PartDiscovery.Combine(
-    new AttributedPartDiscovery(Resolver.DefaultInstance), // "NuGet MEF" attributes (Microsoft.Composition)
-    new AttributedPartDiscoveryV1(Resolver.DefaultInstance)); // ".NET MEF" attributes (System.ComponentModel.Composition)
-
-// Build up a catalog of MEF parts
-var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
-    .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()))
-    .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
-
-// Assemble the parts into a valid graph.
-var config = CompositionConfiguration.Create(catalog);
-
-// Prepare an ExportProvider factory based on this graph.
-var epf = config.CreateExportProviderFactory();
-
-// Create an export provider, which represents a unique container of values.
-// You can create as many of these as you want, but typically an app needs just one.
-var exportProvider = epf.CreateExportProvider();
-
-// Obtain our first exported value
-var program = exportProvider.GetExportedValue<Program>();
-```
+[!code-csharp[](../../samples/docs/Hosting.cs#Extensible)]
 
 When composing the graph from the catalog with `CompositionConfiguration.Create`,
 errors in the graph may be detected. MEF parts that introduce errors (e.g.
@@ -97,70 +74,11 @@ var program = exportProvider.GetExportedValue<Program>();
 
 ## Migrating from .NET MEF or NuGet MEF
 
-### Where is `DirectoryCatalog`?
+### Where is <xref:System.ComponentModel.Composition.Hosting.DirectoryCatalog>?
 
-VS MEF has no directory catalog. But you can scan a directory for its assemblies and add each assembly to a single `ComposableCatalog` with code such as this:
+VS MEF has no directory catalog. But you can scan a directory for its assemblies and add each assembly to a single <xref:Microsoft.VisualStudio.Composition.ComposableCatalog> with code such as this:
 
-```csharp
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using Microsoft.VisualStudio.Composition;
-
-internal class MefHosting
-{
-    /// <summary>
-    /// The MEF discovery module to use (which finds both MEFv1 and MEFv2 parts).
-    /// </summary>
-    private readonly PartDiscovery discoverer = PartDiscovery.Combine(
-        new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true),
-        new AttributedPartDiscoveryV1(Resolver.DefaultInstance));
-
-    /// <summary>
-    /// Gets the names of assemblies that belong to the application .exe folder.
-    /// </summary>
-    /// <returns>A list of assembly names.</returns>
-    private static IEnumerable<string> GetAssemblyNames()
-    {
-        string directoryToSearch = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-        foreach (string file in Directory.EnumerateFiles(directoryToSearch, "*.dll"))
-        {
-            string assemblyFullName = null;
-            try
-            {
-                var assemblyName = AssemblyName.GetAssemblyName(file);
-                if (assemblyName != null)
-                {
-                    assemblyFullName = assemblyName.FullName;
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            if (assemblyFullName != null)
-            {
-                yield return assemblyFullName;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Creates a catalog with all the assemblies from the application .exe's directory.
-    /// </summary>
-    /// <returns>A task whose result is the <see cref="ComposableCatalog"/>.</returns>
-    private async Task<ComposableCatalog> CreateProductCatalogAsync()
-    {
-        var assemblyNames = GetAssemblyNames();
-        var assemblies = assemblyNames.Select(Assembly.Load);
-        var discoveredParts = await this.discoverer.CreatePartsAsync(assemblies);
-        var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
-            .AddParts(discoveredParts);
-        return catalog;
-    }
-}
-```
+[!code-csharp[](../../samples/docs/Hosting.cs#DirectoryCatalog)]
 
 [AppHostPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition.AppHost
 [VSMEFPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition
