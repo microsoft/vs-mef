@@ -401,7 +401,7 @@ namespace Microsoft.VisualStudio.Composition
                                         ? ((TypeInfo)member).FullName!
                                         : $"{member.DeclaringType?.FullName}.{member.Name}";
 
-                                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.DiscoveredIdenticalPropertiesInMetadataAttributesForPart, memberName, property.Name));
+                                    throw new NotSupportedException(Strings.FormatDiscoveredIdenticalPropertiesInMetadataAttributesForPart(memberName, property.Name));
                                 }
 
                                 result.Add(property.Name, property.GetValue(attribute));

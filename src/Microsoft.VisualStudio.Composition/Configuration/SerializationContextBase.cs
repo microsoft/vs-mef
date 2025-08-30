@@ -1137,7 +1137,7 @@ namespace Microsoft.VisualStudio.Composition
                         byte[] bytes = this.reader.ReadBytes(typelessDataLength);
                         return MessagePackSerializer.Typeless.Deserialize(bytes, MessagePackSerializerOptions);
                     default:
-                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
+                        throw new NotSupportedException(Strings.FormatUnsupportedFormat(objectType));
                 }
             }
         }

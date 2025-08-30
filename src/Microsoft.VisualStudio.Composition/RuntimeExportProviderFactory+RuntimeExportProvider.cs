@@ -433,7 +433,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 catch (Exception ex)
                 {
-                    throw new TargetInvocationException(string.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, part.GetType().FullName), ex);
+                    throw new TargetInvocationException(Strings.FormatExceptionThrownByPartUnderInitialization(part.GetType().FullName), ex);
                 }
             }
 
@@ -458,7 +458,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 catch (Exception ex)
                 {
-                    throw new TargetInvocationException(string.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, part.GetType().FullName), ex);
+                    throw new TargetInvocationException(Strings.FormatExceptionThrownByPartUnderInitialization(part.GetType().FullName), ex);
                 }
 
                 throw new NotSupportedException();
@@ -620,7 +620,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     // Discard the TargetInvocationException and throw a MEF related one, with the same inner exception.
                     return new CompositionFailedException(
-                        string.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, this.PartType.FullName),
+                        Strings.FormatExceptionThrownByPartUnderInitialization(this.PartType.FullName),
                         ex.InnerException);
                 }
             }
