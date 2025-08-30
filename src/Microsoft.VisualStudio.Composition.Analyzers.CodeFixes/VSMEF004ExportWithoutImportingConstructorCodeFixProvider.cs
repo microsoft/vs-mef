@@ -22,8 +22,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixProvider
 {
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds =>
-        ImmutableArray.Create(VSMEF004ExportWithoutImportingConstructorAnalyzer.Id);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
+        VSMEF004ExportWithoutImportingConstructorAnalyzer.Id);
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

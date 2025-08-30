@@ -53,7 +53,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzer : DiagnosticAnaly
         {
             INamedTypeSymbol symbol = (INamedTypeSymbol)context.Symbol;
 
-            // Skip interfaces, delegates, enums and value types as they don't have constructors in the sense we care about
+            // Skip interfaces, delegates, enums and value types as they don't have constructors in the sense we care about, and structs always have default constructors.
             if (symbol.TypeKind != TypeKind.Class || symbol.IsAbstract)
             {
                 return;

@@ -18,7 +18,7 @@ internal static class Utils
         return $"https://github.com/Microsoft/vs-mef/blob/main/doc/analyzers/{analyzerId}.md";
     }
 
-    public static bool ReferencesMefAttributes(Compilation compilation)
+    internal static bool ReferencesMefAttributes(Compilation compilation)
     {
         return compilation.ReferencedAssemblyNames.Any(i =>
             string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) ||
@@ -36,7 +36,7 @@ internal static class Utils
     /// <remarks>
     /// This method checks for both MEF v1 and MEF v2 export attributes, including custom attributes that derive from the base export attribute types.
     /// </remarks>
-    public static bool IsExportAttribute(INamedTypeSymbol? attributeType)
+    internal static bool IsExportAttribute(INamedTypeSymbol? attributeType)
     {
         if (attributeType is null)
         {
@@ -56,7 +56,7 @@ internal static class Utils
     /// <remarks>
     /// This method checks for both MEF v1 and MEF v2 importing constructor attributes, including custom attributes that derive from the base importing constructor attribute types.
     /// </remarks>
-    public static bool IsImportingConstructorAttribute(INamedTypeSymbol? attributeType)
+    internal static bool IsImportingConstructorAttribute(INamedTypeSymbol? attributeType)
     {
         if (attributeType is null)
         {
@@ -93,11 +93,11 @@ internal static class Utils
     }
 
     /// <summary>
-    /// Determines whether the specified symbol has any MEF export attributes.
+    /// Determines whether the specified symbol has any MEF export attributes. Members of the symbol (if any) are <em>not</em> checked.
     /// </summary>
     /// <param name="symbol">The symbol to check for export attributes.</param>
     /// <returns><see langword="true"/> if the symbol has export attributes; otherwise, <see langword="false"/>.</returns>
-    public static bool HasExportAttribute(ISymbol symbol)
+    internal static bool HasExportAttribute(ISymbol symbol)
     {
         foreach (AttributeData attribute in symbol.GetAttributes())
         {
@@ -119,7 +119,7 @@ internal static class Utils
     /// This method checks for export attributes on the type itself or on its instance members (properties, methods, fields).
     /// Static members with export attributes are ignored since they don't require type instantiation.
     /// </remarks>
-    public static bool HasInstanceExports(INamedTypeSymbol symbol)
+    internal static bool HasInstanceExports(INamedTypeSymbol symbol)
     {
         // Check the type itself for Export attributes
         if (Utils.HasExportAttribute(symbol))
@@ -150,7 +150,7 @@ internal static class Utils
     /// </summary>
     /// <param name="constructor">The constructor to check.</param>
     /// <returns><see langword="true"/> if the constructor has the ImportingConstructor attribute; otherwise, <see langword="false"/>.</returns>
-    public static bool HasImportingConstructorAttribute(IMethodSymbol constructor)
+    internal static bool HasImportingConstructorAttribute(IMethodSymbol constructor)
     {
         foreach (AttributeData attribute in constructor.GetAttributes())
         {
@@ -169,7 +169,7 @@ internal static class Utils
     /// <param name="actual">The actual namespace to check.</param>
     /// <param name="expectedNames">The expected namespace components in reverse order (leaf to root).</param>
     /// <returns><see langword="true"/> if the namespace matches; otherwise, <see langword="false"/>.</returns>
-    public static bool IsNamespaceMatch(INamespaceSymbol? actual, ReadOnlySpan<string> expectedNames)
+    internal static bool IsNamespaceMatch(INamespaceSymbol? actual, ReadOnlySpan<string> expectedNames)
     {
         if (actual is null or { IsGlobalNamespace: true })
         {
@@ -189,12 +189,12 @@ internal static class Utils
         return IsNamespaceMatch(actual.ContainingNamespace, expectedNames.Slice(0, expectedNames.Length - 1));
     }
 
-    public static AttributeData? GetImportAttribute(ImmutableArray<AttributeData> attributes)
+    internal static AttributeData? GetImportAttribute(ImmutableArray<AttributeData> attributes)
     {
         return attributes.FirstOrDefault(attr => IsImportAttribute(attr.AttributeClass));
     }
 
-    public static bool IsImportAttribute(INamedTypeSymbol? attributeType)
+    internal static bool IsImportAttribute(INamedTypeSymbol? attributeType)
     {
         if (attributeType is null)
         {
@@ -207,7 +207,7 @@ internal static class Utils
                IsAttributeOfType(attributeType, "ImportManyAttribute", MefV2AttributeNamespace.AsSpan());
     }
 
-    public static bool GetAllowDefaultValue(AttributeData importAttribute)
+    internal static bool GetAllowDefaultValue(AttributeData importAttribute)
     {
         var allowDefaultArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "AllowDefault");
         if (allowDefaultArg.Key is not null && allowDefaultArg.Value.Value is bool allowDefault)
