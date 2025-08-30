@@ -3,3 +3,7 @@ items:
   href: docs/
 - name: API
   href: api/
+- name: Analyzers
+  href: analyzers/
+- name: GitHub
+  href: https://github.com/microsoft/vs-mef
