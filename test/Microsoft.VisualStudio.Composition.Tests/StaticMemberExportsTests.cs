@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;
+    using MefV2 = System.Composition;
 
     [Trait("Static", "")]
     public class StaticMemberExportsTests
@@ -193,6 +194,102 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [MefV1.ImportMany("Property")]
             public List<Lazy<string, IDictionary<string, object>>> ImportingMember { get; set; } = null!;
+        }
+
+        // Test class to verify static members don't cause instantiation
+        public class ClassWithStaticMemberExports
+        {
+            private static bool constructorCalled = false;
+
+            public static bool ConstructorCalled
+            {
+                get { return constructorCalled; }
+                set { constructorCalled = value; }
+            }
+
+            public ClassWithStaticMemberExports()
+            {
+                constructorCalled = true;
+            }
+
+            [MefV1.Export("StaticField")]
+            public static string StaticField = "StaticFieldValue";
+
+            [MefV1.Export("StaticProperty")]
+            [MefV2.Export("StaticProperty")]
+            public static string StaticProperty => "StaticPropertyValue";
+
+            [MefV1.Export("StaticMethod")]
+            public static string StaticMethod() => "StaticMethodValue";
+        }
+
+        // Test class with mixed static and instance exports
+        public class ClassWithMixedExports
+        {
+            private static bool constructorCalled = false;
+
+            public static bool ConstructorCalled
+            {
+                get { return constructorCalled; }
+                set { constructorCalled = value; }
+            }
+
+            public ClassWithMixedExports()
+            {
+                constructorCalled = true;
+            }
+
+            [MefV1.Export("StaticMixed")]
+            public static string StaticExport = "StaticValue";
+
+            [MefV1.Export("InstanceMixed")]
+            [MefV2.Export("InstanceMixed")]
+            public string InstanceExport => "InstanceValue";
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
+        public void StaticFieldExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("StaticField");
+            Assert.Equal("StaticFieldValue", value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static field export");
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ClassWithStaticMemberExports))]
+        public void StaticPropertyExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("StaticProperty");
+            Assert.Equal("StaticPropertyValue", value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static property export");
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
+        public void StaticMethodExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<Func<string>>("StaticMethod");
+            Assert.Equal("StaticMethodValue", value());
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled, "Constructor should not be called for static method export");
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithMixedExports))]
+        public void StaticExportInMixedClassDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithMixedExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("StaticMixed");
+            Assert.Equal("StaticValue", value);
+            Assert.False(ClassWithMixedExports.ConstructorCalled, "Constructor should not be called when accessing only static export");
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ClassWithMixedExports))]
+        public void InstanceExportInMixedClassDoesInstantiateClass(IContainer container)
+        {
+            ClassWithMixedExports.ConstructorCalled = false;
+            var value = container.GetExportedValue<string>("InstanceMixed");
+            Assert.Equal("InstanceValue", value);
+            Assert.True(ClassWithMixedExports.ConstructorCalled, "Constructor should be called when accessing instance export");
         }
     }
 }
