@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         lock (exceptions)
                         {
-                            exceptions.Add(new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.UnableToLoadAssembly, path), ex) { AssemblyPath = path });
+                            exceptions.Add(new PartDiscoveryException(Strings.FormatUnableToLoadAssembly(path), ex) { AssemblyPath = path });
                         }
 
                         return Enumerable.Empty<Assembly>();
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.Composition
             }
             else
             {
-                throw new ArgumentException(string.Format(Strings.ImportManyOnNonCollectionType, type.FullName), nameof(type));
+                throw new ArgumentException(Strings.FormatImportManyOnNonCollectionType(type.FullName), nameof(type));
             }
         }
 
@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.Composition
             // add elements to the collection.
             if (!isImportMany && member is PropertyInfo importingMember && importingMember.SetMethod == null)
             {
-                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportingPropertyHasNoSetter, importingMember.Name, importingMember.DeclaringType!.FullName));
+                throw new NotSupportedException(Strings.FormatImportingPropertyHasNoSetter(importingMember.Name, importingMember.DeclaringType!.FullName));
             }
         }
 
@@ -342,7 +342,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(member, nameof(member));
             if (member is PropertyInfo exportingProperty && exportingProperty.GetMethod == null)
             {
-                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ExportingPropertyHasNoGetter, exportingProperty.Name, exportingProperty.DeclaringType!.FullName));
+                throw new NotSupportedException(Strings.FormatExportingPropertyHasNoGetter(exportingProperty.Name, exportingProperty.DeclaringType!.FullName));
             }
         }
 
@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     catch (Exception ex)
                     {
-                        return new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.FailureWhileScanningType, type.FullName), ex) { AssemblyPath = type.GetTypeInfo().Assembly.Location, ScannedType = type };
+                        return new PartDiscoveryException(Strings.FormatFailureWhileScanningType(type.FullName), ex) { AssemblyPath = type.GetTypeInfo().Assembly.Location, ScannedType = type };
                     }
                 },
                 new ExecutionDataflowBlockOptions
@@ -560,7 +560,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     catch (ReflectionTypeLoadException ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ReflectionTypeLoadExceptionWhileEnumeratingTypes, a.Location), ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException(Strings.FormatReflectionTypeLoadExceptionWhileEnumeratingTypes(a.Location), ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);
@@ -570,7 +570,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     catch (Exception ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.UnableToEnumerateTypes, a.Location), ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException(Strings.FormatUnableToEnumerateTypes(a.Location), ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);

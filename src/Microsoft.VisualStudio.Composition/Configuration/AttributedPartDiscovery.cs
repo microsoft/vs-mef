@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.Composition
                 isSharingBoundaryInferred: false,
                 extraInputAssemblies: assemblyNamesForMetadataAttributes);
 
-            static Exception ThrowErrorScanningMember(MemberInfo member, Exception ex) => throw new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ErrorWhileScanningMember, member.Name), ex);
+            static Exception ThrowErrorScanningMember(MemberInfo member, Exception ex) => throw new PartDiscoveryException(Strings.FormatErrorWhileScanningMember(member.Name), ex);
         }
 
         public override bool IsExportFactoryType(Type type)
