@@ -121,7 +121,7 @@ The saved DGML file has the parts that have import issues as the nodes and has d
 If a part has exports other than itself, then vsmefx visualizes that part as a container and stores the other exports inside the given container.
 
 The DGML diagram that is saved when we run the above command looks like
-![DGML Graph for all the rejections](images/All_Graph.jpg)
+![DGML Graph for all the rejections](../images/All_Graph.jpg)
 
 To help the users, quickly diagnose import errors, the edges in the DGML diagram are labeled with the field name in the importing part, i.e. the part at the head of the directed edge. For example, we can quickly derive from the above diagram that the import issue with ExtendedOperations.ChainOne in ExtendedOperations.Modulo is associated with the field addInput in Modulo.
 
@@ -163,7 +163,7 @@ Saved rejection graph to <Path to Output Folder>\ExtendedOperations_Modulo.dgml
 
 Comparing this output to the previous output, we see that vsmefx automatically filtered out the rejections to only include those that affect the ExtendedOperations.Modulo part. Since the verbose option was chosen, vsmefx prints out detailed information about the cause of the issue which can be used to quickly pinpoint and resolve the issue. We can see this filtering take place in the output DGML file as well, which now looks like:
 
-![DGML Graph for specific rejection](images/Modulo_Trace.jpg)
+![DGML Graph for specific rejection](../images/Modulo_Trace.jpg)
 
 ## Allowing parts rejection
 
@@ -205,7 +205,7 @@ Additionally, vsmefx also allows the user to treat the lines in the rejection fi
 
 In the DGML file, vsmefx indicates which parts expect rejection by changing the color of the nodes associated with these parts to blue which easily allows users to distinguish between parts that were unexpectedly rejected vs. expectedly rejected. Thus, the DGML file produced by the above command looks like:
 
-![DGML Graph with expected rejections](images/ExpectedRejectionExample.jpg)
+![DGML Graph with expected rejections](../images/ExpectedRejectionExample.jpg)
 
 ## General Matching
 
