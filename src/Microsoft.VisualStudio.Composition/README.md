@@ -8,7 +8,7 @@
 
 ## Documentation
 
-* [Why VS-MEF?](https://github.com/microsoft/vs-mef/blob/main/doc/why.md)
-* [Differences between .NET MEF, NuGet MEF and VS MEF](https://github.com/microsoft/vs-mef/blob/main/doc/mef_library_differences.md)
-* [Hosting](https://github.com/microsoft/vs-mef/blob/main/doc/hosting.md)
-* [more docs](https://github.com/microsoft/vs-mef/blob/main/doc/index.md)
+* [Getting started](https://microsoft.github.io/vs-mef/docs/getting-started.html)
+* [Why VS-MEF?](https://microsoft.github.io/vs-mef/docs/why.html)
+* [Differences between .NET MEF, NuGet MEF and VS MEF](https://microsoft.github.io/vs-mef/docs/mef_library_differences.html)
+* [Hosting](https://microsoft.github.io/vs-mef/docs/hosting.html)
