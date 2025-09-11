@@ -8,11 +8,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
@@ -508,26 +505,27 @@ namespace Microsoft.VisualStudio.Composition
                 });
             var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
             var errors = ImmutableList.CreateBuilder<PartDiscoveryException>();
-            var aggregatingBlock = new ActionBlock<object?>(partOrException =>
-            {
-                var part = partOrException as ComposablePartDefinition;
-                var error = partOrException as PartDiscoveryException;
-                Debug.Assert(partOrException is Exception == partOrException is PartDiscoveryException, "Wrong exception type returned.");
-                if (part != null)
+            var aggregatingBlock = new ActionBlock<object?>(
+                partOrException =>
                 {
-                    parts.Add(part);
-                }
-                else if (error != null)
-                {
-                    errors.Add(error);
-                }
+                    var part = partOrException as ComposablePartDefinition;
+                    var error = partOrException as PartDiscoveryException;
+                    Debug.Assert(partOrException is Exception == partOrException is PartDiscoveryException, "Wrong exception type returned.");
+                    if (part != null)
+                    {
+                        parts.Add(part);
+                    }
+                    else if (error != null)
+                    {
+                        errors.Add(error);
+                    }
 
-                progress.ReportNullSafe(new DiscoveryProgress(++typesScanned, 0, status));
-            },
-            new ExecutionDataflowBlockOptions
-            {
-                CancellationToken = cancellationToken,
-            });
+                    progress.ReportNullSafe(new DiscoveryProgress(++typesScanned, 0, status));
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    CancellationToken = cancellationToken,
+                });
             transformBlock.LinkTo(aggregatingBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
             var tcs = new TaskCompletionSource<DiscoveredParts>();

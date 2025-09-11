@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -210,10 +209,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task CreatePartsAsync_Assemblies_CancellationTokenCanceled_ThrowsOperationCanceledException()
         {
             var discovery = TestUtilities.V2Discovery;
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
+            CancellationToken token = new(canceled: true);
 
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart).Assembly }, null, cts.Token));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart).Assembly }, null, token));
         }
 
         [Fact]
