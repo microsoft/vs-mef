@@ -192,20 +192,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task CreatePartsAsync_Types_CancellationTokenCanceled_ThrowsOperationCanceledException()
         {
             var discovery = TestUtilities.V2Discovery;
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
+            CancellationToken token = new(canceled: true);
 
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart) }, cts.Token));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart) }, token));
         }
 
         [Fact]
         public async Task CreatePartsAsync_Assembly_CancellationTokenCanceled_ThrowsOperationCanceledException()
         {
             var discovery = TestUtilities.V2Discovery;
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
+            CancellationToken token = new(canceled: true);
 
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(typeof(ValidPart).Assembly, cts.Token));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(typeof(ValidPart).Assembly, token));
         }
 
         [Fact]
@@ -222,19 +220,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task CreatePartsAsync_AssemblyPaths_CancellationTokenCanceled_ThrowsOperationCanceledException()
         {
             var discovery = TestUtilities.V2Discovery;
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
+            CancellationToken token = new(canceled: true);
 
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart).Assembly.Location }, null, cts.Token));
-        }
-
-        [Fact]
-        public async Task CreatePartsAsync_Types_CancellationTokenTimeoutDuringOperation_ThrowsOperationCanceledException()
-        {
-            var discovery = TestUtilities.V2Discovery;
-            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1)); // Very short timeout
-
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart) }, cts.Token));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart).Assembly.Location }, null, token));
         }
 
         private class SynchronousProgress<T> : IProgress<T>

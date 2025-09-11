@@ -545,8 +545,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         tcs.SetException(ex);
                     }
-                },
-                cancellationToken);
+                });
 
             return Tuple.Create<ITargetBlock<Type>, Task<DiscoveredParts>>(transformBlock, tcs.Task);
         }
@@ -613,8 +612,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         tcs.SetException(ex);
                     }
-                },
-                cancellationToken);
+                });
 
             return Tuple.Create<ITargetBlock<Assembly>, Task<DiscoveredParts>>(assemblyBlock, tcs.Task);
         }
