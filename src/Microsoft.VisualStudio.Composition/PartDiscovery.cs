@@ -8,11 +8,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
@@ -85,11 +82,12 @@ namespace Microsoft.VisualStudio.Composition
             var tuple = this.CreateDiscoveryBlockChain(true, null, cancellationToken);
             foreach (Type type in partTypes)
             {
-                await tuple.Item1.SendAsync(type).ConfigureAwait(false);
+                await tuple.Item1.SendAsync(type, cancellationToken).ConfigureAwait(false);
             }
 
             tuple.Item1.Complete();
             var parts = await tuple.Item2.ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             return parts;
         }
 
@@ -122,11 +120,12 @@ namespace Microsoft.VisualStudio.Composition
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
             foreach (var assembly in assemblies)
             {
-                await tuple.Item1.SendAsync(assembly).ConfigureAwait(false);
+                await tuple.Item1.SendAsync(assembly, cancellationToken).ConfigureAwait(false);
             }
 
             tuple.Item1.Complete();
             var result = await tuple.Item2.ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             return result;
         }
 
@@ -168,11 +167,12 @@ namespace Microsoft.VisualStudio.Composition
             assemblyLoader.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
             foreach (var assemblyPath in assemblyPaths)
             {
-                await assemblyLoader.SendAsync(assemblyPath).ConfigureAwait(false);
+                await assemblyLoader.SendAsync(assemblyPath, cancellationToken).ConfigureAwait(false);
             }
 
             assemblyLoader.Complete();
             var result = await tuple.Item2.ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             return result.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
@@ -505,39 +505,45 @@ namespace Microsoft.VisualStudio.Composition
                 });
             var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
             var errors = ImmutableList.CreateBuilder<PartDiscoveryException>();
-            var aggregatingBlock = new ActionBlock<object?>(partOrException =>
-            {
-                var part = partOrException as ComposablePartDefinition;
-                var error = partOrException as PartDiscoveryException;
-                Debug.Assert(partOrException is Exception == partOrException is PartDiscoveryException, "Wrong exception type returned.");
-                if (part != null)
+            var aggregatingBlock = new ActionBlock<object?>(
+                partOrException =>
                 {
-                    parts.Add(part);
-                }
-                else if (error != null)
-                {
-                    errors.Add(error);
-                }
+                    var part = partOrException as ComposablePartDefinition;
+                    var error = partOrException as PartDiscoveryException;
+                    Debug.Assert(partOrException is Exception == partOrException is PartDiscoveryException, "Wrong exception type returned.");
+                    if (part != null)
+                    {
+                        parts.Add(part);
+                    }
+                    else if (error != null)
+                    {
+                        errors.Add(error);
+                    }
 
-                progress.ReportNullSafe(new DiscoveryProgress(++typesScanned, 0, status));
-            });
+                    progress.ReportNullSafe(new DiscoveryProgress(++typesScanned, 0, status));
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    CancellationToken = cancellationToken,
+                });
             transformBlock.LinkTo(aggregatingBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
             var tcs = new TaskCompletionSource<DiscoveredParts>();
-            Task forget = Task.Run(async delegate
-            {
-                try
+            Task forget = Task.Run(
+                async delegate
                 {
+                    try
+                    {
 #pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks -- this isn't really a foreign task
-                    await aggregatingBlock.Completion.ConfigureAwait(false);
+                        await aggregatingBlock.Completion.ConfigureAwait(false);
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-                    tcs.SetResult(new DiscoveredParts(parts.ToImmutable(), errors.ToImmutable()));
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex);
-                }
-            });
+                        tcs.SetResult(new DiscoveredParts(parts.ToImmutable(), errors.ToImmutable()));
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
 
             return Tuple.Create<ITargetBlock<Type>, Task<DiscoveredParts>>(transformBlock, tcs.Task);
         }
@@ -590,20 +596,21 @@ namespace Microsoft.VisualStudio.Composition
             assemblyBlock.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
 
             var tcs = new TaskCompletionSource<DiscoveredParts>();
-            Task forget = Task.Run(async delegate
-            {
-                try
+            Task forget = Task.Run(
+                async delegate
                 {
+                    try
+                    {
 #pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks -- this isn't really a foreign task
-                    var parts = await tuple.Item2.ConfigureAwait(false);
+                        var parts = await tuple.Item2.ConfigureAwait(false);
 #pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-                    tcs.SetResult(parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions)));
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex);
-                }
-            });
+                        tcs.SetResult(parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions)));
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
 
             return Tuple.Create<ITargetBlock<Assembly>, Task<DiscoveredParts>>(assemblyBlock, tcs.Task);
         }
