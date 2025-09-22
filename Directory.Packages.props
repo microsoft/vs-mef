@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-    <MicroBuildVersion>2.0.199</MicroBuildVersion>
+    <MicroBuildVersion>2.0.201</MicroBuildVersion>
     <CodeAnalysisVersion>4.13.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.2</CodefixTestingVersion>
     <MessagePackVersion>2.5.198</MessagePackVersion>
