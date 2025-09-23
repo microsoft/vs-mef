@@ -17,14 +17,18 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
     using System.IO;
     using System.Reflection;
-    using MessagePack;
+    using System.Text.RegularExpressions;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Nerdbank.MessagePack;
+    using PolyType;
+    using PolyType.ReflectionProvider;
 
-    internal abstract class SerializationContextBase : IDisposable
+    internal abstract partial class SerializationContextBase : IDisposable
     {
+        protected static readonly MessagePackSerializer Serializer = new();
+
         protected BinaryReader? reader;
 
         protected BinaryWriter? writer;
@@ -54,8 +58,6 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly object BoxedTrue = true;
         private static readonly object BoxedFalse = false;
-
-        private static readonly MessagePackSerializerOptions MessagePackSerializerOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePack.Resolvers.TypelessObjectResolver.Instance);
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -1059,10 +1061,10 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-                        Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
+                        Debug.WriteLine("Falling back to typeless mode for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         this.writer.Flush();
-                        byte[] typeLessData = MessagePackSerializer.Typeless.Serialize(value, MessagePackSerializerOptions);
+                        byte[] typeLessData = Serializer.Serialize(new TypelessEnvelope(value));
                         this.writer.Write(typeLessData.Length);
                         this.writer.Write(typeLessData);
                     }
@@ -1135,7 +1137,7 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.BinaryFormattedObject:
                         int typelessDataLength = this.reader.ReadInt32();
                         byte[] bytes = this.reader.ReadBytes(typelessDataLength);
-                        return MessagePackSerializer.Typeless.Deserialize(bytes, MessagePackSerializerOptions);
+                        return Serializer.Deserialize<TypelessEnvelope>(bytes).Value;
                     default:
                         throw new NotSupportedException(Strings.FormatUnsupportedFormat(objectType));
                 }
@@ -1165,6 +1167,56 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 #endif
+        }
+
+        [GenerateShape]
+        [MessagePackConverter(typeof(TypelessEnvelopeConverter))]
+        internal readonly partial struct TypelessEnvelope(object value)
+        {
+            public object Value { get; } = value;
+        }
+
+        internal class TypelessEnvelopeConverter : MessagePackConverter<TypelessEnvelope>
+        {
+            // see:http://msdn.microsoft.com/en-us/library/w3f99sx1.aspx
+            private static readonly Regex AssemblyNameVersionSelectorRegex = new(@", Version=\d+.\d+.\d+.\d+, Culture=[\w-]+, PublicKeyToken=(?:null|[a-f0-9]{16})", RegexOptions.Compiled);
+
+            public override TypelessEnvelope Read(ref MessagePackReader reader, SerializationContext context)
+            {
+                if (reader.ReadArrayHeader() != 2)
+                {
+                    throw new MessagePackSerializationException("Invalid TypelessEnvelope format.");
+                }
+
+                string typeName = reader.ReadString() ?? throw new MessagePackSerializationException("Invalid TypelessEnvelope format.");
+                Type type = LoadType(typeName);
+                MessagePackConverter converter = context.GetConverter(type, ReflectionTypeShapeProvider.Default);
+                object value = converter.ReadObject(ref reader, context)!;
+                return new TypelessEnvelope(value);
+            }
+
+            public override void Write(ref MessagePackWriter writer, in TypelessEnvelope value, SerializationContext context)
+            {
+                writer.WriteArrayHeader(2);
+                writer.Write(value.Value.GetType().AssemblyQualifiedName);
+                MessagePackConverter converter = context.GetConverter(value.Value.GetType(), ReflectionTypeShapeProvider.Default);
+                converter.WriteObject(ref writer, value.Value, context);
+            }
+
+            private static Type LoadType(string typeName)
+            {
+                Type? result = Type.GetType(typeName, false);
+                if (result is null)
+                {
+                    string shortenedName = AssemblyNameVersionSelectorRegex.Replace(typeName, string.Empty);
+                    if (shortenedName != typeName)
+                    {
+                        result = Type.GetType(shortenedName, false);
+                    }
+                }
+
+                return result ?? throw new InvalidOperationException($"Unable to load type \"{typeName}\".");
+            }
         }
 
         protected struct SerializationTrace : IDisposable
