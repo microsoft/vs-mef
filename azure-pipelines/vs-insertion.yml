@@ -63,7 +63,7 @@ extends:
             TeamEmail: $(TeamEmail)
             InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
             InsertionBuildPolicies: Request Perf DDRITs
-            InsertionReviewers: $(Build.RequestedFor),Andrew Arnott,Ankit Varma
+            InsertionReviewers: $(Build.RequestedFor),Andrew Arnott
             AutoCompletePR: true
             AutoCompleteMergeStrategy: Squash
             ShallowClone: true
