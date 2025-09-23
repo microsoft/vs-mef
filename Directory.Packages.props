@@ -7,12 +7,9 @@
     <MicroBuildVersion>2.0.201</MicroBuildVersion>
     <CodeAnalysisVersion>4.13.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.2</CodefixTestingVersion>
-    <MessagePackVersion>2.5.198</MessagePackVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="DiffPlex" Version="1.9.0" />
-    <PackageVersion Include="MessagePack" Version="$(MessagePackVersion)" />
-    <PackageVersion Include="MessagePackAnalyzer" Version="$(MessagePackVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(CodefixTestingVersion)" />
@@ -24,7 +21,8 @@
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.13.2" />
-    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
+    <PackageVersion Include="Nerdbank.MessagePack" Version="0.10.33-rc" />
     <PackageVersion Include="Nerdbank.MSBuildExtension" Version="0.1.17-beta" />
     <PackageVersion Include="Nerdbank.NetStandardBridge" Version="1.1.9-alpha" />
     <PackageVersion Include="OpenSoftware.DgmlBuilder" Version="2.1.0" />
