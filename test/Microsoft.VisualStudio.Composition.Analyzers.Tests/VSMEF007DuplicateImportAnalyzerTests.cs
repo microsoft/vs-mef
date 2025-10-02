@@ -79,7 +79,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
     }
 
     [Fact]
-    public async Task ClassWithDuplicateImportsInConstructor_Warning()
+    public async Task ImportingConstructorWithDuplicateImportsWithImportAttributes_Warning()
     {
         string test = """
             using System.ComponentModel.Composition;
@@ -89,6 +89,44 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [ImportingConstructor]
                 public Foo([Import] string {|VSMEF007:value1|}, [Import] string {|VSMEF007:value2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithDuplicateImportsWithoutImportAttributes_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(string {|VSMEF007:value1|}, string {|VSMEF007:value2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithDuplicateImportsWithMixedImportAttributes_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import] string {|VSMEF007:value1|}, string {|VSMEF007:value2|})
                 {
                 }
             }
@@ -256,7 +294,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
     }
 
     [Fact]
-    public async Task ConstructorWithMixedImportAndNonImportParameters_Warning()
+    public async Task ConstructorWithAllImplicitImports_Warning()
     {
         string test = """
             using System.ComponentModel.Composition;
@@ -265,7 +303,7 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public Foo([Import] string {|VSMEF007:importedValue1|}, string nonImportedValue, [Import] string {|VSMEF007:importedValue2|})
+                public Foo([Import] string {|VSMEF007:importedValue1|}, string {|VSMEF007:implicitImport|}, [Import] string {|VSMEF007:importedValue2|})
                 {
                 }
             }
@@ -323,6 +361,141 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [ImportingConstructor]
                 public Foo([ImportMany] IEnumerable<string> values1, [ImportMany] IEnumerable<int> values2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithMixedParameterTypesAndContracts_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(string defaultImport, [Import("CustomContract")] string customImport)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameContractTypeButDifferentParameterTypes_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IService { }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import(typeof(IService))] object {|VSMEF007:service1|}, [Import(typeof(IService))] object {|VSMEF007:service2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameTypeAndDifferentAttributes_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import(AllowDefault = true)] string {|VSMEF007:import1|}, string {|VSMEF007:import2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ImportingConstructorWithImplicitImports_Warning()
+    {
+        string test = """
+            using System.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(string {|VSMEF007:value1|}, string {|VSMEF007:value2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithImplicitAndExplicitSameContract_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(string {|VSMEF007:implicitString|}, [Import(typeof(string))] object {|VSMEF007:explicitString|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("Contract1")] string value1, [Import("Contract2")] string value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithImplicitAndDifferentExplicitContract_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(string implicitString, [Import("CustomStringContract")] string explicitString)
                 {
                 }
             }
