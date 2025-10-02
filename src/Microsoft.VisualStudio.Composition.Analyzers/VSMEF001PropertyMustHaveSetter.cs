@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
                 return;
             }
 
-            foreach (var attributeData in property.GetAttributes())
+            foreach (AttributeData attributeData in property.GetAttributes())
             {
                 // Does this property have an Import attribute?
                 if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 
 /// <summary>
 /// Provides code fixes for VSMEF004: Exported type missing importing constructor.
@@ -34,42 +35,42 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
     /// <inheritdoc/>
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root is null)
         {
             return;
         }
 
-        var diagnostic = context.Diagnostics.FirstOrDefault(d => d.Id == VSMEF004ExportWithoutImportingConstructorAnalyzer.Id);
+        Diagnostic? diagnostic = context.Diagnostics.FirstOrDefault(d => d.Id == VSMEF004ExportWithoutImportingConstructorAnalyzer.Id);
         if (diagnostic is null)
         {
             return;
         }
 
-        var diagnosticSpan = diagnostic.Location.SourceSpan;
-        var constructorNode = root.FindNode(diagnosticSpan);
+        TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
+        SyntaxNode constructorNode = root.FindNode(diagnosticSpan);
 
         // Find the constructor declaration
-        var constructorDeclaration = constructorNode.FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
+        ConstructorDeclarationSyntax? constructorDeclaration = constructorNode.FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
         if (constructorDeclaration is null)
         {
             return;
         }
 
-        var classDeclaration = constructorDeclaration.FirstAncestorOrSelf<ClassDeclarationSyntax>();
+        ClassDeclarationSyntax? classDeclaration = constructorDeclaration.FirstAncestorOrSelf<ClassDeclarationSyntax>();
         if (classDeclaration is null)
         {
             return;
         }
 
-        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        SemanticModel? semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
         {
             return;
         }
 
         // Determine which MEF version to use based on existing attributes
-        var mefVersion = DetermineMefVersion(classDeclaration, semanticModel);
+        MefVersion mefVersion = DetermineMefVersion(classDeclaration, semanticModel);
 
         // Primary fix: Add [ImportingConstructor] attribute
         var addAttributeAction = CodeAction.Create(
@@ -94,27 +95,27 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         MefVersion mefVersion,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        SyntaxNode? root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
         {
             return document;
         }
 
         // Create the ImportingConstructor attribute with proper annotations for simplification
-        var attributeName = mefVersion == MefVersion.V1
+        string attributeName = mefVersion == MefVersion.V1
             ? "System.ComponentModel.Composition.ImportingConstructor"
             : "System.Composition.ImportingConstructor";
 
-        var attribute = SyntaxFactory.Attribute(
+        AttributeSyntax attribute = SyntaxFactory.Attribute(
             SyntaxFactory.ParseName(attributeName)
                 .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation, Simplifier.Annotation));
-        var attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute));
+        AttributeListSyntax attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute));
 
         // Add the attribute to the constructor
-        var newConstructor = constructorDeclaration.WithAttributeLists(
+        ConstructorDeclarationSyntax newConstructor = constructorDeclaration.WithAttributeLists(
             constructorDeclaration.AttributeLists.Add(attributeList));
 
-        var newRoot = root.ReplaceNode(constructorDeclaration, newConstructor);
+        SyntaxNode newRoot = root.ReplaceNode(constructorDeclaration, newConstructor);
 
         // Apply simplification and formatting
         document = document.WithSyntaxRoot(newRoot);
@@ -130,14 +131,14 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         ClassDeclarationSyntax classDeclaration,
         CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        SyntaxNode? root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
         {
             return document;
         }
 
         // Create a parameterless constructor
-        var newConstructor = SyntaxFactory.ConstructorDeclaration(classDeclaration.Identifier)
+        ConstructorDeclarationSyntax newConstructor = SyntaxFactory.ConstructorDeclaration(classDeclaration.Identifier)
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList())
             .WithBody(SyntaxFactory.Block());
@@ -149,7 +150,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         if (existingConstructors.Any())
         {
             // Insert after the last constructor
-            var lastConstructor = existingConstructors.Last();
+            ConstructorDeclarationSyntax lastConstructor = existingConstructors.Last();
             insertIndex = classDeclaration.Members.IndexOf(lastConstructor) + 1;
         }
         else
@@ -158,24 +159,24 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
             insertIndex = 0;
         }
 
-        var newMembers = classDeclaration.Members.Insert(insertIndex, newConstructor);
-        var newClass = classDeclaration.WithMembers(newMembers);
+        SyntaxList<MemberDeclarationSyntax> newMembers = classDeclaration.Members.Insert(insertIndex, newConstructor);
+        ClassDeclarationSyntax newClass = classDeclaration.WithMembers(newMembers);
 
-        var newRoot = root.ReplaceNode(classDeclaration, newClass);
+        SyntaxNode newRoot = root.ReplaceNode(classDeclaration, newClass);
         return document.WithSyntaxRoot(newRoot);
     }
 
     private static MefVersion DetermineMefVersion(ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)
     {
         // Check the class and its members for MEF attributes to determine which version to use
-        var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
+        INamedTypeSymbol? classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
         if (classSymbol is null)
         {
             return MefVersion.V2; // Default to V2
         }
 
         // Check class-level attributes
-        foreach (var attribute in classSymbol.GetAttributes())
+        foreach (AttributeData attribute in classSymbol.GetAttributes())
         {
             if (IsMefV1Attribute(attribute.AttributeClass))
             {
@@ -189,9 +190,9 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         }
 
         // Check member-level attributes
-        foreach (var member in classSymbol.GetMembers())
+        foreach (ISymbol member in classSymbol.GetMembers())
         {
-            foreach (var attribute in member.GetAttributes())
+            foreach (AttributeData attribute in member.GetAttributes())
             {
                 if (IsMefV1Attribute(attribute.AttributeClass))
                 {
@@ -215,7 +216,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
             return false;
         }
 
-        var namespaceName = attributeType.ContainingNamespace?.ToDisplayString();
+        string? namespaceName = attributeType.ContainingNamespace?.ToDisplayString();
         return namespaceName == "System.ComponentModel.Composition" ||
                 namespaceName?.StartsWith("System.ComponentModel.Composition.") == true;
     }
@@ -227,7 +228,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
             return false;
         }
 
-        var namespaceName = attributeType.ContainingNamespace?.ToDisplayString();
+        string? namespaceName = attributeType.ContainingNamespace?.ToDisplayString();
         return namespaceName == "System.Composition" ||
                 namespaceName?.StartsWith("System.Composition.") == true;
     }

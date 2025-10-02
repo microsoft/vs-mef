@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+
 namespace Microsoft.VisualStudio.Composition.Analyzers;
 
 /// <summary>
@@ -78,7 +79,7 @@ internal static class Utils
     private static bool IsAttributeOfType(INamedTypeSymbol attributeType, string attributeTypeName, ReadOnlySpan<string> expectedNamespace)
     {
         // Check the attribute type itself and its base types
-        var current = attributeType;
+        INamedTypeSymbol? current = attributeType;
         while (current is not null)
         {
             if (current.Name == attributeTypeName && IsNamespaceMatch(current.ContainingNamespace, expectedNamespace))
@@ -209,7 +210,7 @@ internal static class Utils
 
     internal static bool GetAllowDefaultValue(AttributeData importAttribute)
     {
-        var allowDefaultArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "AllowDefault");
+        KeyValuePair<string, TypedConstant> allowDefaultArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "AllowDefault");
         if (allowDefaultArg.Key is not null && allowDefaultArg.Value.Value is bool allowDefault)
         {
             return allowDefault;

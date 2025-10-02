@@ -69,14 +69,14 @@ public class VSMEF005MultipleImportingConstructorsAnalyzer : DiagnosticAnalyzer
             // Find all constructors with ImportingConstructor attributes
             var importingConstructors = new List<IMethodSymbol>();
 
-            foreach (var constructor in symbol.Constructors)
+            foreach (IMethodSymbol constructor in symbol.Constructors)
             {
                 if (constructor.IsStatic)
                 {
                     continue;
                 }
 
-                foreach (var attribute in constructor.GetAttributes())
+                foreach (AttributeData attribute in constructor.GetAttributes())
                 {
                     if (Utils.IsImportingConstructorAttribute(attribute.AttributeClass))
                     {
@@ -90,7 +90,7 @@ public class VSMEF005MultipleImportingConstructorsAnalyzer : DiagnosticAnalyzer
             if (importingConstructors.Count > 1)
             {
                 // Report on each importing constructor
-                foreach (var constructor in importingConstructors)
+                foreach (IMethodSymbol constructor in importingConstructors)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         Descriptor,

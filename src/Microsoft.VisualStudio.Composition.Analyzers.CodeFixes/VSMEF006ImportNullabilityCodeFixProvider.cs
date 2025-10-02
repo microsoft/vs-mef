@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Analyzers.CodeFixes;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 /// <summary>
 /// Provides code fixes for VSMEF006 import nullability analyzer.
@@ -31,16 +33,16 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
     /// <inheritdoc/>
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        SyntaxNode? root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         if (root is null)
         {
             return;
         }
 
-        foreach (var diagnostic in context.Diagnostics.Where(d => this.FixableDiagnosticIds.Contains(d.Id)))
+        foreach (Diagnostic? diagnostic in context.Diagnostics.Where(d => this.FixableDiagnosticIds.Contains(d.Id)))
         {
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
-            var node = root.FindNode(diagnosticSpan);
+            TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
+            SyntaxNode node = root.FindNode(diagnosticSpan);
 
             // Handle different node types (field, property, parameter)
             if (node is VariableDeclaratorSyntax variableDeclarator)
@@ -60,13 +62,13 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 
     private static async Task RegisterFixesForField(CodeFixContext context, SyntaxNode root, Diagnostic diagnostic, VariableDeclaratorSyntax variableDeclarator)
     {
-        var fieldDeclaration = variableDeclarator.FirstAncestorOrSelf<FieldDeclarationSyntax>();
+        FieldDeclarationSyntax? fieldDeclaration = variableDeclarator.FirstAncestorOrSelf<FieldDeclarationSyntax>();
         if (fieldDeclaration is null)
         {
             return;
         }
 
-        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        SemanticModel? semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
         {
             return;
@@ -78,7 +80,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var importAttribute = GetImportAttribute(fieldSymbol.GetAttributes());
+        AttributeData? importAttribute = GetImportAttribute(fieldSymbol.GetAttributes());
         if (importAttribute is null)
         {
             return;
@@ -89,7 +91,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 
     private static async Task RegisterFixesForProperty(CodeFixContext context, SyntaxNode root, Diagnostic diagnostic, PropertyDeclarationSyntax property)
     {
-        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        SemanticModel? semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
         {
             return;
@@ -101,7 +103,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var importAttribute = GetImportAttribute(propertySymbol.GetAttributes());
+        AttributeData? importAttribute = GetImportAttribute(propertySymbol.GetAttributes());
         if (importAttribute is null)
         {
             return;
@@ -112,7 +114,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 
     private static async Task RegisterFixesForParameter(CodeFixContext context, SyntaxNode root, Diagnostic diagnostic, ParameterSyntax parameter)
     {
-        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        SemanticModel? semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
         if (semanticModel is null)
         {
             return;
@@ -124,7 +126,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             return;
         }
 
-        var importAttribute = GetImportAttribute(parameterSymbol.GetAttributes());
+        AttributeData? importAttribute = GetImportAttribute(parameterSymbol.GetAttributes());
         if (importAttribute is null)
         {
             return;
@@ -200,13 +202,13 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             return false;
         }
 
-        var name = attributeType.Name;
+        string name = attributeType.Name;
         return name == "ImportAttribute" || name == "ImportManyAttribute";
     }
 
     private static bool GetAllowDefaultValue(AttributeData importAttribute)
     {
-        var allowDefaultArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "AllowDefault");
+        KeyValuePair<string, TypedConstant> allowDefaultArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "AllowDefault");
         if (allowDefaultArg.Key is not null && allowDefaultArg.Value.Value is bool allowDefault)
         {
             return allowDefault;
@@ -217,50 +219,50 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 
     private static Task<Document> AddAllowDefaultAsync(Document document, SyntaxNode root, SyntaxNode targetNode, SyntaxList<AttributeListSyntax> attributeLists, CancellationToken cancellationToken)
     {
-        var importAttributeList = FindImportAttributeList(attributeLists);
+        AttributeListSyntax? importAttributeList = FindImportAttributeList(attributeLists);
         if (importAttributeList is null)
         {
             return Task.FromResult(document);
         }
 
-        var importAttribute = FindImportAttribute(importAttributeList);
+        AttributeSyntax? importAttribute = FindImportAttribute(importAttributeList);
         if (importAttribute is null)
         {
             return Task.FromResult(document);
         }
 
-        var newAttribute = AddAllowDefaultToAttribute(importAttribute);
-        var newAttributeList = importAttributeList.ReplaceNode(importAttribute, newAttribute);
-        var newRoot = root.ReplaceNode(importAttributeList, newAttributeList);
+        AttributeSyntax newAttribute = AddAllowDefaultToAttribute(importAttribute);
+        AttributeListSyntax newAttributeList = importAttributeList.ReplaceNode(importAttribute, newAttribute);
+        SyntaxNode newRoot = root.ReplaceNode(importAttributeList, newAttributeList);
 
         return Task.FromResult(document.WithSyntaxRoot(newRoot));
     }
 
     private static Task<Document> RemoveAllowDefaultAsync(Document document, SyntaxNode root, SyntaxNode targetNode, SyntaxList<AttributeListSyntax> attributeLists, CancellationToken cancellationToken)
     {
-        var importAttributeList = FindImportAttributeList(attributeLists);
+        AttributeListSyntax? importAttributeList = FindImportAttributeList(attributeLists);
         if (importAttributeList is null)
         {
             return Task.FromResult(document);
         }
 
-        var importAttribute = FindImportAttribute(importAttributeList);
+        AttributeSyntax? importAttribute = FindImportAttribute(importAttributeList);
         if (importAttribute is null)
         {
             return Task.FromResult(document);
         }
 
-        var newAttribute = RemoveAllowDefaultFromAttribute(importAttribute);
-        var newAttributeList = importAttributeList.ReplaceNode(importAttribute, newAttribute);
-        var newRoot = root.ReplaceNode(importAttributeList, newAttributeList);
+        AttributeSyntax newAttribute = RemoveAllowDefaultFromAttribute(importAttribute);
+        AttributeListSyntax newAttributeList = importAttributeList.ReplaceNode(importAttribute, newAttribute);
+        SyntaxNode newRoot = root.ReplaceNode(importAttributeList, newAttributeList);
 
         return Task.FromResult(document.WithSyntaxRoot(newRoot));
     }
 
     private static Task<Document> MakeTypeNullableAsync(Document document, SyntaxNode root, SyntaxNode targetNode, TypeSyntax typeSyntax, CancellationToken cancellationToken)
     {
-        var nullableType = SyntaxFactory.NullableType(typeSyntax).WithTriviaFrom(typeSyntax);
-        var newRoot = root.ReplaceNode(typeSyntax, nullableType);
+        NullableTypeSyntax nullableType = SyntaxFactory.NullableType(typeSyntax).WithTriviaFrom(typeSyntax);
+        SyntaxNode newRoot = root.ReplaceNode(typeSyntax, nullableType);
         return Task.FromResult(document.WithSyntaxRoot(newRoot));
     }
 
@@ -268,8 +270,8 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
     {
         if (typeSyntax is NullableTypeSyntax nullableType)
         {
-            var nonNullableType = nullableType.ElementType.WithTriviaFrom(typeSyntax);
-            var newRoot = root.ReplaceNode(typeSyntax, nonNullableType);
+            TypeSyntax nonNullableType = nullableType.ElementType.WithTriviaFrom(typeSyntax);
+            SyntaxNode newRoot = root.ReplaceNode(typeSyntax, nonNullableType);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
@@ -288,13 +290,13 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 
     private static bool IsImportAttributeSyntax(AttributeSyntax attribute)
     {
-        var name = attribute.Name.ToString();
+        string name = attribute.Name.ToString();
         return name.Contains("Import") && (name.Contains("ImportAttribute") || name.Contains("Import"));
     }
 
     private static AttributeSyntax AddAllowDefaultToAttribute(AttributeSyntax attribute)
     {
-        var allowDefaultArg = SyntaxFactory.AttributeArgument(
+        AttributeArgumentSyntax allowDefaultArg = SyntaxFactory.AttributeArgument(
             SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName("AllowDefault")),
             null,
             SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression));
@@ -306,8 +308,8 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
                     SyntaxFactory.SingletonSeparatedList(allowDefaultArg)));
         }
 
-        var arguments = attribute.ArgumentList.Arguments;
-        var allowDefaultIndex = -1;
+        SeparatedSyntaxList<AttributeArgumentSyntax> arguments = attribute.ArgumentList.Arguments;
+        int allowDefaultIndex = -1;
 
         // Check if AllowDefault already exists
         for (int i = 0; i < arguments.Count; i++)
@@ -322,13 +324,13 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
         if (allowDefaultIndex >= 0)
         {
             // Replace existing AllowDefault
-            var newArguments = arguments.Replace(arguments[allowDefaultIndex], allowDefaultArg);
+            SeparatedSyntaxList<AttributeArgumentSyntax> newArguments = arguments.Replace(arguments[allowDefaultIndex], allowDefaultArg);
             return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments));
         }
         else
         {
             // Add new AllowDefault
-            var newArguments = arguments.Add(allowDefaultArg);
+            SeparatedSyntaxList<AttributeArgumentSyntax> newArguments = arguments.Add(allowDefaultArg);
             return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments));
         }
     }
@@ -340,8 +342,8 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             return attribute;
         }
 
-        var arguments = attribute.ArgumentList.Arguments;
-        var allowDefaultIndex = -1;
+        SeparatedSyntaxList<AttributeArgumentSyntax> arguments = attribute.ArgumentList.Arguments;
+        int allowDefaultIndex = -1;
 
         // Find AllowDefault argument
         for (int i = 0; i < arguments.Count; i++)
@@ -355,7 +357,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 
         if (allowDefaultIndex >= 0)
         {
-            var newArguments = arguments.RemoveAt(allowDefaultIndex);
+            SeparatedSyntaxList<AttributeArgumentSyntax> newArguments = arguments.RemoveAt(allowDefaultIndex);
             if (newArguments.Count == 0)
             {
                 return attribute.WithArgumentList(null);

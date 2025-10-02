@@ -607,7 +607,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
         await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
     }
 
@@ -635,7 +635,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
         await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
     }
 

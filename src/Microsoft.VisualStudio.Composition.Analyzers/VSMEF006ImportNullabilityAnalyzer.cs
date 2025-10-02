@@ -89,7 +89,7 @@ public class VSMEF006ImportNullabilityAnalyzer : DiagnosticAnalyzer
             // Check method parameters for [ImportingConstructor] methods or regular constructors
             if (method.MethodKind == MethodKind.Constructor || Utils.HasImportingConstructorAttribute(method))
             {
-                foreach (var parameter in method.Parameters)
+                foreach (IParameterSymbol parameter in method.Parameters)
                 {
                     AnalyzeMember(context, parameter, parameter.Type, parameter.GetAttributes());
                 }
@@ -98,7 +98,7 @@ public class VSMEF006ImportNullabilityAnalyzer : DiagnosticAnalyzer
 
         static void AnalyzeMember(SymbolAnalysisContext context, ISymbol member, ITypeSymbol type, ImmutableArray<AttributeData> attributes)
         {
-            var importAttribute = Utils.GetImportAttribute(attributes);
+            AttributeData? importAttribute = Utils.GetImportAttribute(attributes);
             if (importAttribute is null)
             {
                 return;

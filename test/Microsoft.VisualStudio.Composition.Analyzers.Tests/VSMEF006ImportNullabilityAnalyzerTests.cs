@@ -70,7 +70,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -91,7 +91,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -112,7 +112,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -135,7 +135,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("value");
 
@@ -157,7 +157,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Values");
 
@@ -178,7 +178,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -199,7 +199,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -220,7 +220,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -252,7 +252,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -284,7 +284,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -316,7 +316,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -348,7 +348,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -380,7 +380,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 
@@ -412,7 +412,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
             .WithLocation(0)
             .WithArguments("Value");
 

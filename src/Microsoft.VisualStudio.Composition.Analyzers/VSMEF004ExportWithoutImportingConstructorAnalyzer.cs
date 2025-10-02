@@ -76,7 +76,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzer : DiagnosticAnaly
             }
 
             // Check if there's a parameterless constructor
-            var parameterlessConstructor = constructors.FirstOrDefault(c => c.Parameters.Length == 0);
+            IMethodSymbol? parameterlessConstructor = constructors.FirstOrDefault(c => c.Parameters.Length == 0);
             if (parameterlessConstructor is not null)
             {
                 return; // Parameterless constructor is fine, MEF can use it
@@ -90,7 +90,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzer : DiagnosticAnaly
             }
 
             // Found a violation: has instance exports, no default constructor, and no importing constructor
-            var firstConstructor = constructors.First();
+            IMethodSymbol firstConstructor = constructors.First();
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 firstConstructor.Locations.FirstOrDefault() ?? symbol.Locations.FirstOrDefault(),

@@ -69,14 +69,14 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         var importContracts = new List<ImportContract>();
 
         // Collect all imports from properties
-        foreach (var member in namedType.GetMembers())
+        foreach (ISymbol member in namedType.GetMembers())
         {
             if (member is IPropertySymbol property)
             {
-                var importAttribute = Utils.GetImportAttribute(property.GetAttributes());
+                AttributeData? importAttribute = Utils.GetImportAttribute(property.GetAttributes());
                 if (importAttribute is not null)
                 {
-                    var contract = GetImportContract(importAttribute, property.Type);
+                    string? contract = GetImportContract(importAttribute, property.Type);
                     if (contract is not null)
                     {
                         importContracts.Add(new ImportContract(contract, property.Name, property.Locations[0]));
@@ -86,7 +86,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         }
 
         // Collect all imports from constructor parameters
-        foreach (var member in namedType.GetMembers())
+        foreach (ISymbol member in namedType.GetMembers())
         {
             if (member is IMethodSymbol method && method.MethodKind == MethodKind.Constructor)
             {
@@ -96,12 +96,12 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
                 if (isImportingConstructor)
                 {
-                    foreach (var parameter in method.Parameters)
+                    foreach (IParameterSymbol parameter in method.Parameters)
                     {
-                        var importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
+                        AttributeData? importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
                         if (importAttribute is not null)
                         {
-                            var contract = GetImportContract(importAttribute, parameter.Type);
+                            string? contract = GetImportContract(importAttribute, parameter.Type);
                             if (contract is not null)
                             {
                                 importContracts.Add(new ImportContract(contract, parameter.Name, parameter.Locations[0]));
@@ -113,11 +113,11 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         }
 
         // Find duplicates
-        var contractGroups = importContracts.GroupBy(ic => ic.Contract).Where(g => g.Count() > 1);
+        IEnumerable<IGrouping<string, ImportContract>> contractGroups = importContracts.GroupBy(ic => ic.Contract).Where(g => g.Count() > 1);
 
-        foreach (var group in contractGroups)
+        foreach (IGrouping<string, ImportContract>? group in contractGroups)
         {
-            foreach (var import in group)
+            foreach (ImportContract? import in group)
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     Descriptor,
@@ -133,7 +133,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         // Check for explicit contract name or type in constructor arguments
         if (importAttribute.ConstructorArguments.Length > 0)
         {
-            var firstArg = importAttribute.ConstructorArguments[0];
+            TypedConstant firstArg = importAttribute.ConstructorArguments[0];
             if (firstArg.Value is string contractName && !string.IsNullOrEmpty(contractName))
             {
                 return contractName;
@@ -146,14 +146,14 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         }
 
         // Check for contract name in named arguments
-        var contractNameArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName");
+        KeyValuePair<string, TypedConstant> contractNameArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName");
         if (contractNameArg.Key is not null && contractNameArg.Value.Value is string namedContractName && !string.IsNullOrEmpty(namedContractName))
         {
             return namedContractName;
         }
 
         // Check for contract type in named arguments
-        var contractTypeArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType");
+        KeyValuePair<string, TypedConstant> contractTypeArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType");
         if (contractTypeArg.Key is not null && contractTypeArg.Value.Value is INamedTypeSymbol namedContractType)
         {
             return namedContractType.ToDisplayString();
