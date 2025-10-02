@@ -104,29 +104,35 @@ public class VSMEF006ImportNullabilityAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            bool isNullable = IsNullableType(type);
+            bool isNullableReferenceType = IsNullableReferenceType(type);
             bool hasAllowDefault = Utils.GetAllowDefaultValue(importAttribute);
 
-            if (isNullable && !hasAllowDefault)
+            if (isNullableReferenceType && !hasAllowDefault)
             {
-                // Nullable type but no AllowDefault = true
+                // Nullable reference type but no AllowDefault = true
                 context.ReportDiagnostic(Diagnostic.Create(
                     NullableWithoutAllowDefaultDescriptor,
                     member.Locations[0],
                     member.Name));
             }
-            else if (!isNullable && hasAllowDefault)
+            else if (!isNullableReferenceType && hasAllowDefault && type.IsReferenceType)
             {
-                // AllowDefault = true but not nullable
+                // AllowDefault = true but not nullable reference type
+                // Note: We only warn for reference types, not value types, since value types have default values
                 context.ReportDiagnostic(Diagnostic.Create(
                     AllowDefaultWithoutNullableDescriptor,
                     member.Locations[0],
                     member.Name));
             }
 
-            static bool IsNullableType(ITypeSymbol type)
+            static bool IsNullableReferenceType(ITypeSymbol type)
             {
-                return type.CanBeReferencedByName && type.NullableAnnotation == NullableAnnotation.Annotated;
+                // Only consider reference types with nullable annotation, not nullable value types
+                // Nullable value types (like int?) are distinct types from their non-nullable counterparts
+                // and should not trigger nullability warnings since they're explicitly requesting Nullable<T>
+                return type.CanBeReferencedByName &&
+                       type.NullableAnnotation == NullableAnnotation.Annotated &&
+                       type.IsReferenceType;
             }
         }
     }

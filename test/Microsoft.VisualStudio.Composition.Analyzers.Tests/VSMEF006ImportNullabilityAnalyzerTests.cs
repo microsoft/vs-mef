@@ -228,6 +228,180 @@ public class VSMEF006ImportNullabilityAnalyzerTests
     }
 
     [Fact]
+    public async Task ValueTypeImportWithoutAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import]
+                public int Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ValueTypeImportWithAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public int Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task NullableValueTypeImportWithoutAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import]
+                public int? Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task NullableValueTypeImportWithAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public int? Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ValueTypeImportWithoutAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.Composition;
+
+            class Foo
+            {
+                [Import]
+                public int Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ValueTypeImportWithAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public int Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2NullableValueTypeImportWithoutAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.Composition;
+
+            class Foo
+            {
+                [Import]
+                public int? Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2NullableValueTypeImportWithAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public int? Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ValueTypeConstructorParameterImportWithoutAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import] int value)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task NullableValueTypeConstructorParameterImportWithoutAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable enable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import] int? value)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task NullableImportWithoutAllowDefault_CodeFix_AddAllowDefault()
     {
         string test = """
