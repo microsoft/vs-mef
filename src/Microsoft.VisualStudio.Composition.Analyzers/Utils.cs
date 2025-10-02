@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-
 namespace Microsoft.VisualStudio.Composition.Analyzers;
 
 /// <summary>
@@ -16,7 +15,7 @@ internal static class Utils
     /// <returns>The URL for the analyzer's documentation.</returns>
     internal static string GetHelpLink(string analyzerId)
     {
-        return $"https://github.com/Microsoft/vs-mef/blob/main/doc/analyzers/{analyzerId}.md";
+        return $"https://microsoft.github.io/vs-mef/analyzers/{analyzerId}.html";
     }
 
     internal static bool ReferencesMefAttributes(Compilation compilation)

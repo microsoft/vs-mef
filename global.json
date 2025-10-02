@@ -1,10 +1,10 @@
 {
   "sdk": {
-    "version": "9.0.301",
+    "version": "9.0.305",
     "rollForward": "patch",
     "allowPrerelease": false
   },
   "msbuild-sdks": {
-    "Microsoft.Build.NoTargets": "3.7.56"
+    "Microsoft.Build.NoTargets": "3.7.134"
   }
 }

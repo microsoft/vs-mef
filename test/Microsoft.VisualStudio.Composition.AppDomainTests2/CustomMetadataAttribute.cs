@@ -20,8 +20,21 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests2
         }
     }
 
+    [MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class CustomEnumArrayMetadataAttribute : Attribute
+    {
+        public CustomEnumArrayMetadataAttribute(CustomEnum value)
+        {
+            this.CustomEnumArray = value;
+        }
+
+        public CustomEnum CustomEnumArray { get; }
+    }
+
     public enum CustomEnum
     {
         Value1,
+        Value2,
     }
 }

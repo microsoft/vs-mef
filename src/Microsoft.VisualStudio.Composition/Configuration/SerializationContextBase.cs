@@ -19,12 +19,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using MessagePack;
-    using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal abstract class SerializationContextBase : IDisposable
@@ -125,6 +121,7 @@ namespace Microsoft.VisualStudio.Composition
             Char,
             Guid,
             Enum32Substitution,
+            Enum32ArraySubstitution,
             TypeSubstitution,
             TypeArraySubstitution,
             Single,
@@ -1041,6 +1038,13 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(substValue.EnumType);
                         this.writer.Write(substValue.RawValue);
                     }
+                    else if (typeof(LazyMetadataWrapper.Enum32ArraySubstitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.Enum32ArraySubstitution)value;
+                        this.Write(ObjectType.Enum32ArraySubstitution);
+                        this.Write(substValue.EnumType);
+                        this.Write(substValue.RawValues, n => this.writer.Write(n));
+                    }
                     else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
                     {
                         var substValue = (LazyMetadataWrapper.TypeSubstitution)value;
@@ -1118,6 +1122,10 @@ namespace Microsoft.VisualStudio.Composition
                         TypeRef? enumType = this.ReadTypeRef();
                         int rawValue = this.reader.ReadInt32();
                         return new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
+                    case ObjectType.Enum32ArraySubstitution:
+                        enumType = this.ReadTypeRef();
+                        IReadOnlyList<int> rawValues = this.ReadList(this.reader, this.reader.ReadInt32);
+                        return new LazyMetadataWrapper.Enum32ArraySubstitution(enumType, rawValues, this.Resolver);
                     case ObjectType.TypeSubstitution:
                         TypeRef? typeRef = this.ReadTypeRef();
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);
@@ -1129,7 +1137,7 @@ namespace Microsoft.VisualStudio.Composition
                         byte[] bytes = this.reader.ReadBytes(typelessDataLength);
                         return MessagePackSerializer.Typeless.Deserialize(bytes, MessagePackSerializerOptions);
                     default:
-                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
+                        throw new NotSupportedException(Strings.FormatUnsupportedFormat(objectType));
                 }
             }
         }

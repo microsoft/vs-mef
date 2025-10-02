@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
@@ -186,6 +186,42 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [System.ComponentModel.Composition.Export]
         private class ValidPart;
+
+        [Fact]
+        public async Task CreatePartsAsync_Types_CancellationTokenCanceled_ThrowsOperationCanceledException()
+        {
+            var discovery = TestUtilities.V2Discovery;
+            CancellationToken token = new(canceled: true);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart) }, token));
+        }
+
+        [Fact]
+        public async Task CreatePartsAsync_Assembly_CancellationTokenCanceled_ThrowsOperationCanceledException()
+        {
+            var discovery = TestUtilities.V2Discovery;
+            CancellationToken token = new(canceled: true);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(typeof(ValidPart).Assembly, token));
+        }
+
+        [Fact]
+        public async Task CreatePartsAsync_Assemblies_CancellationTokenCanceled_ThrowsOperationCanceledException()
+        {
+            var discovery = TestUtilities.V2Discovery;
+            CancellationToken token = new(canceled: true);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart).Assembly }, null, token));
+        }
+
+        [Fact]
+        public async Task CreatePartsAsync_AssemblyPaths_CancellationTokenCanceled_ThrowsOperationCanceledException()
+        {
+            var discovery = TestUtilities.V2Discovery;
+            CancellationToken token = new(canceled: true);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => discovery.CreatePartsAsync(new[] { typeof(ValidPart).Assembly.Location }, null, token));
+        }
 
         private class SynchronousProgress<T> : IProgress<T>
         {

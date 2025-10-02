@@ -20,10 +20,10 @@ Lightning fast MEF engine, supporting System.ComponentModel.Composition and Syst
 
 ### Documentation
 
-* [Why VS-MEF?](doc/why.md)
-* [Differences between .NET MEF, NuGet MEF and VS MEF](doc/mef_library_differences.md)
-* [Hosting](doc/hosting.md)
-* [more docs](doc/index.md)
+* [Getting started](https://microsoft.github.io/vs-mef/docs/getting-started.html)
+* [Why VS-MEF?](https://microsoft.github.io/vs-mef/docs/why.html)
+* [Differences between .NET MEF, NuGet MEF and VS MEF](https://microsoft.github.io/vs-mef/docs/mef_library_differences.html)
+* [Hosting](https://microsoft.github.io/vs-mef/docs/hosting.html)
 
 [Learn more about this package](src/Microsoft.VisualStudio.Composition/README.md).
 

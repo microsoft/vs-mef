@@ -1,0 +1,61 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Samples.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+    <File Path="stylecop.json" />
+    <File Path="version.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/.editorconfig" />
+    <File Path="src/Directory.Build.props" />
+    <File Path="src/Directory.Build.targets" />
+    <Project Path="src/Microsoft.VisualStudio.Composition.Analyzers.CodeFixes/Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj" />
+    <Project Path="src/Microsoft.VisualStudio.Composition.Analyzers.CSharp/Microsoft.VisualStudio.Composition.Analyzers.CSharp.csproj" />
+    <Project Path="src/Microsoft.VisualStudio.Composition.Analyzers.VB/Microsoft.VisualStudio.Composition.Analyzers.VB.csproj" />
+    <Project Path="src/Microsoft.VisualStudio.Composition.Analyzers/Microsoft.VisualStudio.Composition.Analyzers.csproj" />
+    <Project Path="src/Microsoft.VisualStudio.Composition.AppHost/Microsoft.VisualStudio.Composition.AppHost.csproj" />
+    <Project Path="src/Microsoft.VisualStudio.Composition.VSMefx/Microsoft.VisualStudio.Composition.VSMefx.csproj" />
+    <Project Path="src/Microsoft.VisualStudio.Composition/Microsoft.VisualStudio.Composition.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <File Path="test/.editorconfig" />
+    <File Path="test/Directory.Build.props" />
+    <File Path="test/Directory.Build.targets" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.Analyzers.Tests/Microsoft.VisualStudio.Composition.Analyzers.Tests.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.AppDomainTests/Microsoft.VisualStudio.Composition.AppDomainTests.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.AppDomainTests2/Microsoft.VisualStudio.Composition.AppDomainTests2.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.BrokenAssemblyTests/Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver/Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.MissingAssemblyTests/Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver/Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.TestEmbeddableTypes/Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj" />
+    <Project Path="test/VS.Mefx.Tests/VS.Mefx.Tests.csproj">
+      <BuildDependency Project="test/VS.Mefx.Tests/TestFiles/BasicScripts/ExtendedOperations/ExtendedOperations.csproj" />
+      <BuildDependency Project="test/VS.Mefx.Tests/TestFiles/BasicScripts/MefCalculator/MefCalculator.csproj" />
+      <BuildDependency Project="test/VS.Mefx.Tests/TestFiles/MatchingScripts/CarOne/CarOne.csproj" />
+      <BuildDependency Project="test/VS.Mefx.Tests/TestFiles/MatchingScripts/CarTwo/CarTwo.csproj" />
+      <BuildDependency Project="test/VS.Mefx.Tests/TestFiles/MatchingScripts/Garage/Garage.csproj" />
+      <BuildDependency Project="test/VS.Mefx.Tests/TestFiles/MatchingScripts/User/User.csproj" />
+    </Project>
+  </Folder>
+  <Folder Name="/test/VSMefx Test Projects/">
+    <File Path="test/VS.Mefx.Tests/TestFiles/Directory.Build.props" />
+    <Project Path="test/VS.Mefx.Tests/TestFiles/BasicScripts/ExtendedOperations/ExtendedOperations.csproj" />
+    <Project Path="test/VS.Mefx.Tests/TestFiles/BasicScripts/MefCalculator/MefCalculator.csproj" />
+    <Project Path="test/VS.Mefx.Tests/TestFiles/MatchingScripts/CarOne/CarOne.csproj" />
+    <Project Path="test/VS.Mefx.Tests/TestFiles/MatchingScripts/CarTwo/CarTwo.csproj" />
+    <Project Path="test/VS.Mefx.Tests/TestFiles/MatchingScripts/Garage/Garage.csproj" />
+    <Project Path="test/VS.Mefx.Tests/TestFiles/MatchingScripts/User/User.csproj" />
+  </Folder>
+</Solution>

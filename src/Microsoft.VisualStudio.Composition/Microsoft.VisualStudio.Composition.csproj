@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472;net8.0</TargetFrameworks>
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
+    <PackageValidationBaselineVersion>17.13.41</PackageValidationBaselineVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- This reference is just so the analyzers package is brought in by our NuGet package. -->
@@ -12,7 +13,6 @@
   <ItemGroup>
     <PackageReference Include="MessagePack" PrivateAssets="compile" />
     <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="System.ComponentModel.Composition" />
@@ -20,19 +20,6 @@
     <PackageReference Include="System.Reflection.Emit" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Strings.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\OptProf.targets" Condition="'$(TargetFramework)'=='net472'" />
 </Project>
