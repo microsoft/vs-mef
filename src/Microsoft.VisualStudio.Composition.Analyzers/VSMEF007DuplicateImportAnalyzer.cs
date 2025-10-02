@@ -126,6 +126,8 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
     private static string? GetImportContract(AttributeData? importAttribute, ITypeSymbol importType)
     {
+        // Note that the actual contract name used by MEF is more complex than this. See ContractNameServices
+        // for the full logic. This approximation suffices for catching duplicates, for the purposes of this analyzer.
         if (importAttribute is not null)
         {
             // Check for explicit contract name or type in constructor arguments
