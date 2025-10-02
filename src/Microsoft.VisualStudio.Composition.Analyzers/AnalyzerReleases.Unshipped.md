@@ -1,11 +1,12 @@
 ﻿; Unshipped analyzer release
-; https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+; <https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md>
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 VSMEF003 | Usage | Warning | Exported type not implemented by exporting class
-VSMEF004 | Usage | Error | VSMEF004ExportWithoutImportingConstructor
-VSMEF005 | Usage | Error | VSMEF005MultipleImportingConstructors
-VSMEF006 | Usage | Warning | VSMEF006ImportNullability
-VSMEF007 | Usage | Warning | VSMEF007DuplicateImportAnalyzer
+VSMEF004 | Usage | Error | Exported type missing importing constructor
+VSMEF005 | Usage | Error | Multiple importing constructors
+VSMEF006 | Usage | Warning | Import nullability and AllowDefault mismatch
+VSMEF007 | Usage | Warning | Duplicate import contract
