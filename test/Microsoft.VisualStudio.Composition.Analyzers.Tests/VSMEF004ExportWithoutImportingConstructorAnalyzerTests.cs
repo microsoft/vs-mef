@@ -602,7 +602,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Service
             {
-                [System.ComponentModel.Composition.ImportingConstructor]
+                [ImportingConstructor]
                 public Service(string config) { }
             }
             """;
@@ -630,7 +630,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Service
             {
-                [System.Composition.ImportingConstructor]
+                [ImportingConstructor]
                 public Service(string config) { }
             }
             """;

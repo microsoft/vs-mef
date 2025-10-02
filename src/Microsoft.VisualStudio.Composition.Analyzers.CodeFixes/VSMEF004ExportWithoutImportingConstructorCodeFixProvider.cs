@@ -13,6 +13,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 
 /// <summary>
 /// Provides code fixes for VSMEF004: Exported type missing importing constructor.
@@ -97,12 +100,14 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
             return document;
         }
 
-        // Create the ImportingConstructor attribute
+        // Create the ImportingConstructor attribute with proper annotations for simplification
         var attributeName = mefVersion == MefVersion.V1
             ? "System.ComponentModel.Composition.ImportingConstructor"
             : "System.Composition.ImportingConstructor";
 
-        var attribute = SyntaxFactory.Attribute(SyntaxFactory.ParseName(attributeName));
+        var attribute = SyntaxFactory.Attribute(
+            SyntaxFactory.ParseName(attributeName)
+                .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation, Simplifier.Annotation));
         var attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute));
 
         // Add the attribute to the constructor
@@ -110,7 +115,14 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
             constructorDeclaration.AttributeLists.Add(attributeList));
 
         var newRoot = root.ReplaceNode(constructorDeclaration, newConstructor);
-        return document.WithSyntaxRoot(newRoot);
+
+        // Apply simplification and formatting
+        document = document.WithSyntaxRoot(newRoot);
+        document = await ImportAdder.AddImportsAsync(document, Simplifier.AddImportsAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+        document = await Simplifier.ReduceAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+        document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        return document;
     }
 
     private static async Task<Document> AddParameterlessConstructorAsync(
