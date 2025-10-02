@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 /// <summary>
 /// Provides code fixes for VSMEF004: Exported type missing importing constructor.
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(VSMEF004ExportWithoutImportingConstructorCodeFixProvider))]
+[ExportCodeFixProvider(LanguageNames.CSharp)]
 [Shared]
 public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixProvider
 {

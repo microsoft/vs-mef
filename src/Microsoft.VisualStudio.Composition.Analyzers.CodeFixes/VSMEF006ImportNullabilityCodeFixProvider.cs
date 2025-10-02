@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 /// <summary>
 /// Provides code fixes for VSMEF006 import nullability analyzer.
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(VSMEF006ImportNullabilityCodeFixProvider))]
+[ExportCodeFixProvider(LanguageNames.CSharp)]
 [Shared]
 public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
 {
