@@ -639,5 +639,65 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
         await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
     }
 
-    // TODO: Add test for second code action (parameterless constructor) when framework supports testing multiple code actions
+    [Fact]
+    public async Task ClassWithExportAndNonDefaultConstructor_CodeFixAddsParameterlessConstructor()
+    {
+        string testCode = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service()
+                {
+                }
+
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task ClassWithMefV2ExportAndNonDefaultConstructor_CodeFixAddsParameterlessConstructor()
+    {
+        string testCode = """
+            using System.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service()
+                {
+                }
+
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 1);
+    }
 }

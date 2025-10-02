@@ -138,20 +138,22 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         }
 
         // Create a parameterless constructor
-        ConstructorDeclarationSyntax newConstructor = SyntaxFactory.ConstructorDeclaration(classDeclaration.Identifier)
+        ConstructorDeclarationSyntax newConstructor = SyntaxFactory.ConstructorDeclaration(
+                SyntaxFactory.Identifier(classDeclaration.Identifier.ValueText))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList())
-            .WithBody(SyntaxFactory.Block());
+            .WithBody(SyntaxFactory.Block())
+            .WithAdditionalAnnotations(Formatter.Annotation);
 
-        // Find the position to insert the constructor (after existing constructors)
+        // Find the position to insert the constructor (before existing constructors)
         var existingConstructors = classDeclaration.Members.OfType<ConstructorDeclarationSyntax>().ToList();
         int insertIndex = 0;
 
         if (existingConstructors.Any())
         {
-            // Insert after the last constructor
-            ConstructorDeclarationSyntax lastConstructor = existingConstructors.Last();
-            insertIndex = classDeclaration.Members.IndexOf(lastConstructor) + 1;
+            // Insert before the first constructor
+            ConstructorDeclarationSyntax firstConstructor = existingConstructors.First();
+            insertIndex = classDeclaration.Members.IndexOf(firstConstructor);
         }
         else
         {
@@ -163,7 +165,12 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         ClassDeclarationSyntax newClass = classDeclaration.WithMembers(newMembers);
 
         SyntaxNode newRoot = root.ReplaceNode(classDeclaration, newClass);
-        return document.WithSyntaxRoot(newRoot);
+
+        // Apply formatting
+        Document newDocument = document.WithSyntaxRoot(newRoot);
+        newDocument = await Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        return newDocument;
     }
 
     private static MefVersion DetermineMefVersion(ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)
