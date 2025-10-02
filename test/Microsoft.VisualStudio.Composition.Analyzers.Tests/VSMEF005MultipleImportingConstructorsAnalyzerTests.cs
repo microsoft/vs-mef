@@ -288,4 +288,76 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task StructWithSingleImportingConstructor_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            struct Foo
+            {
+                [ImportingConstructor]
+                public Foo(string value) { }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task StructWithMultipleImportingConstructors_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            struct Foo
+            {
+                [ImportingConstructor]
+                public {|VSMEF005:Foo|}(string value) { }
+
+                [ImportingConstructor]
+                public {|VSMEF005:Foo|}(int value) { }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task StructWithMultipleImportingConstructors_MefV2_Warning()
+    {
+        string test = """
+            using System.Composition;
+
+            struct Foo
+            {
+                [ImportingConstructor]
+                public {|VSMEF005:Foo|}(string value) { }
+
+                [ImportingConstructor]
+                public {|VSMEF005:Foo|}(int value) { }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task StructWithImportingConstructorAndRegularConstructor_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            struct Foo
+            {
+                public Foo(bool flag) { }
+
+                [ImportingConstructor]
+                public Foo(string value) { }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }

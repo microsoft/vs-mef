@@ -60,8 +60,8 @@ public class VSMEF005MultipleImportingConstructorsAnalyzer : DiagnosticAnalyzer
         {
             var symbol = (INamedTypeSymbol)context.Symbol;
 
-            // Only analyze classes
-            if (symbol.TypeKind is not TypeKind.Class)
+            // Only analyze classes and structs (both can have constructors with ImportingConstructor)
+            if (symbol.TypeKind is not (TypeKind.Class or TypeKind.Struct))
             {
                 return;
             }
