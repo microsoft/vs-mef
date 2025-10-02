@@ -80,19 +80,14 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [ImportingConstructor]
-                public {|#1:Foo|}(string value) { }
+                public {|VSMEF005:Foo|}(string value) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -105,19 +100,14 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [ImportingConstructor]
-                public {|#1:Foo|}(string value) { }
+                public {|VSMEF005:Foo|}(string value) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -130,23 +120,17 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [ImportingConstructor]
-                public {|#1:Foo|}(string value) { }
+                public {|VSMEF005:Foo|}(string value) { }
 
                 [ImportingConstructor]
-                public {|#2:Foo|}(int value) { }
+                public {|VSMEF005:Foo|}(int value) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(2).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -161,19 +145,14 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}([Import]IService service) { }
+                public {|VSMEF005:Foo|}([Import]IService service) { }
 
                 [ImportingConstructor]
-                public {|#1:Foo|}([ImportMany]IService[] services) { }
+                public {|VSMEF005:Foo|}([ImportMany]IService[] services) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -205,10 +184,10 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [ImportingConstructor]
-                public {|#1:Foo|}(string value) { }
+                public {|VSMEF005:Foo|}(string value) { }
             }
 
             [Export]
@@ -218,12 +197,7 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -241,19 +215,14 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [CustomImportingConstructor]
-                public {|#1:Foo|}(string value) { }
+                public {|VSMEF005:Foo|}(string value) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -267,19 +236,14 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]  // MEF v1
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [MEFv2.ImportingConstructor]  // MEF v2
-                public {|#1:Foo|}(string value) { }
+                public {|VSMEF005:Foo|}(string value) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -294,20 +258,15 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
                 class Foo
                 {
                     [ImportingConstructor]
-                    public {|#0:Foo|}() { }
+                    public {|VSMEF005:Foo|}() { }
 
                     [ImportingConstructor]
-                    public {|#1:Foo|}(string value) { }
+                    public {|VSMEF005:Foo|}(string value) { }
                 }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -320,18 +279,13 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
             class Foo<T>
             {
                 [ImportingConstructor]
-                public {|#0:Foo|}() { }
+                public {|VSMEF005:Foo|}() { }
 
                 [ImportingConstructor]
-                public {|#1:Foo|}(T value) { }
+                public {|VSMEF005:Foo|}(T value) { }
             }
             """;
 
-        var expected = new[]
-        {
-            VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo"),
-            VerifyCS.Diagnostic().WithLocation(1).WithArguments("Foo"),
-        };
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 }

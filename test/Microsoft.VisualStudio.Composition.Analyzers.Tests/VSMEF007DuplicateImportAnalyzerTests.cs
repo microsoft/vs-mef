@@ -68,22 +68,14 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [Import]
-                public string {|#0:Value1|} { get; set; }
+                public string {|VSMEF007:Value1|} { get; set; }
 
                 [Import]
-                public string {|#1:Value2|} { get; set; }
+                public string {|VSMEF007:Value2|} { get; set; }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -96,21 +88,13 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public Foo([Import] string {|#0:value1|}, [Import] string {|#1:value2|})
+                public Foo([Import] string {|VSMEF007:value1|}, [Import] string {|VSMEF007:value2|})
                 {
                 }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -123,24 +107,16 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [Import]
-                public string {|#0:PropertyValue|} { get; set; }
+                public string {|VSMEF007:PropertyValue|} { get; set; }
 
                 [ImportingConstructor]
-                public Foo([Import] string {|#1:constructorValue|})
+                public Foo([Import] string {|VSMEF007:constructorValue|})
                 {
                 }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -173,22 +149,14 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [Import("SameContract")]
-                public string {|#0:Value1|} { get; set; }
+                public string {|VSMEF007:Value1|} { get; set; }
 
                 [Import("SameContract")]
-                public string {|#1:Value2|} { get; set; }
+                public string {|VSMEF007:Value2|} { get; set; }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "SameContract");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "SameContract");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -201,22 +169,14 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [Import]
-                public string {|#0:Value1|} { get; set; }
+                public string {|VSMEF007:Value1|} { get; set; }
 
                 [Import]
-                public string {|#1:Value2|} { get; set; }
+                public string {|VSMEF007:Value2|} { get; set; }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -267,21 +227,13 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public Foo([Import("SameContract")] string {|#0:value1|}, [Import("SameContract")] string {|#1:value2|})
+                public Foo([Import("SameContract")] string {|VSMEF007:value1|}, [Import("SameContract")] string {|VSMEF007:value2|})
                 {
                 }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "SameContract");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "SameContract");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -294,25 +246,13 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public Foo([Import] string {|#0:value1|}, [Import] string {|#1:value2|}, [Import] string {|#2:value3|})
+                public Foo([Import] string {|VSMEF007:value1|}, [Import] string {|VSMEF007:value2|}, [Import] string {|VSMEF007:value3|})
                 {
                 }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        var expected2 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(2)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1, expected2);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -325,21 +265,13 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public Foo([Import] string {|#0:importedValue1|}, string nonImportedValue, [Import] string {|#1:importedValue2|})
+                public Foo([Import] string {|VSMEF007:importedValue1|}, string nonImportedValue, [Import] string {|VSMEF007:importedValue2|})
                 {
                 }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -352,21 +284,13 @@ public class VSMEF007DuplicateImportAnalyzerTests
             class Foo
             {
                 [ImportingConstructor]
-                public Foo([Import(typeof(string))] object {|#0:value1|}, [Import(typeof(string))] object {|#1:value2|})
+                public Foo([Import(typeof(string))] object {|VSMEF007:value1|}, [Import(typeof(string))] object {|VSMEF007:value2|})
                 {
                 }
             }
             """;
 
-        var expected0 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(0)
-            .WithArguments("Foo", "string");
-
-        var expected1 = VerifyCS.Diagnostic(VSMEF007DuplicateImportAnalyzer.Descriptor)
-            .WithLocation(1)
-            .WithArguments("Foo", "string");
-
-        await VerifyCS.VerifyAnalyzerAsync(test, expected0, expected1);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]

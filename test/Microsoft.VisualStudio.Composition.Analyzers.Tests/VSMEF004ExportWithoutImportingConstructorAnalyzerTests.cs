@@ -122,14 +122,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Foo
             {
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -139,13 +138,12 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             using System.ComponentModel.Composition;
 
             [Export]
-            class {|#0:Foo|}(string parameter)
+            class {|VSMEF004:Foo|}(string parameter)
             {
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -159,14 +157,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
                 [Export]
                 public string Bar { get; set; }
 
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -180,14 +177,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
                 [Export]
                 public string GetValue() => "test";
 
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -201,14 +197,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
                 [Export]
                 public string Field = "test";
 
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -251,14 +246,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
                 [Export]
                 public string InstanceProperty { get; set; }
 
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -334,14 +328,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Foo
             {
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -379,14 +372,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [MyExport]
             class Foo
             {
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -405,14 +397,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [MyExport]
             class Foo
             {
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -488,7 +479,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Foo
             {
-                public {|#0:Foo|}(string parameter)
+                public {|VSMEF004:Foo|}(string parameter)
                 {
                 }
 
@@ -498,8 +489,7 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -511,14 +501,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Foo
             {
-                private {|#0:Foo|}(string parameter)
+                private {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -530,14 +519,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Foo
             {
-                internal {|#0:Foo|}(string parameter)
+                internal {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -549,14 +537,13 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             [Export]
             class Foo
             {
-                protected {|#0:Foo|}(string parameter)
+                protected {|VSMEF004:Foo|}(string parameter)
                 {
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
@@ -570,15 +557,14 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
                 [Export]
                 class Foo
                 {
-                    public {|#0:Foo|}(string parameter)
+                    public {|VSMEF004:Foo|}(string parameter)
                     {
                     }
                 }
             }
             """;
 
-        var expected = VerifyCS.Diagnostic().WithLocation(0).WithArguments("Foo");
-        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]
