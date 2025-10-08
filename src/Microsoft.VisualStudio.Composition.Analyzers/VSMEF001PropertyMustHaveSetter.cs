@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
         /// <summary>
         /// The descriptor used for diagnostics created by this rule.
         /// </summary>
-        internal static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor Descriptor = new(
             id: Id,
             title: Strings.VSMEF001_Title,
             messageFormat: Strings.VSMEF001_MessageFormat,
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
             context.RegisterCompilationStartAction(context =>
             {
                 // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
-                if (context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
+                if (Utils.ReferencesMefAttributes(context.Compilation))
                 {
                     INamedTypeSymbol? mefV1ImportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportAttribute");
                     INamedTypeSymbol? mefV2ImportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ImportAttribute");
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
                 return;
             }
 
-            foreach (var attributeData in property.GetAttributes())
+            foreach (AttributeData attributeData in property.GetAttributes())
             {
                 // Does this property have an Import attribute?
                 if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
