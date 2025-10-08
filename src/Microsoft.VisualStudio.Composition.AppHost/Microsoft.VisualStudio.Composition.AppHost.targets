@@ -7,8 +7,8 @@
     <ItemGroup>
       <ToolPackInputsToSign Include="@(_PackageFiles)" Condition="false
          or '%(FileName)%(Extension)' == 'Nerdbank.MSBuildExtension.dll'
-         or '%(FileName)%(Extension)' == 'MessagePack.Annotations.dll'
-         or '%(FileName)%(Extension)' == 'MessagePack.dll'
+         or '%(FileName)%(Extension)' == 'Nerdbank.MessagePack.dll'
+         or '%(FileName)%(Extension)' == 'Polytype.dll'
          ">
         <Authenticode>3PartySHA2</Authenticode>
         <StrongName>None</StrongName>

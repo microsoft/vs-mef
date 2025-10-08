@@ -11,8 +11,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" PrivateAssets="compile" />
-    <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.MessagePack" PrivateAssets="compile" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="System.ComponentModel.Composition" />
