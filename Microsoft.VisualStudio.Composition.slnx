@@ -3,6 +3,7 @@
     <Project Path="samples/Samples.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
+    <File Path=".config/dotnet-tools.json" />
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
