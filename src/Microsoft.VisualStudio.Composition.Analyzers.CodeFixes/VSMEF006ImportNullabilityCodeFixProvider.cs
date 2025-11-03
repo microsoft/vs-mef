@@ -272,6 +272,39 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
         {
             TypeSyntax nonNullableType = nullableType.ElementType.WithTriviaFrom(typeSyntax);
             SyntaxNode newRoot = root.ReplaceNode(typeSyntax, nonNullableType);
+
+            // For properties, add the '= null!' initializer to avoid CS8618 (uninitialized non-nullable property)
+            if (targetNode is PropertyDeclarationSyntax property)
+            {
+                PropertyDeclarationSyntax newProperty = (PropertyDeclarationSyntax)newRoot.FindNode(property.Span);
+
+                // Add '= null!' initializer if not already present
+                if (newProperty.Initializer is null)
+                {
+                    // Remove trailing trivia from accessor list to keep initializer on same line
+                    PropertyDeclarationSyntax propertyWithoutTrailingTrivia = newProperty;
+                    if (newProperty.AccessorList is not null)
+                    {
+                        AccessorListSyntax accessorList = newProperty.AccessorList;
+                        SyntaxToken closeBrace = accessorList.CloseBraceToken.WithTrailingTrivia();
+                        accessorList = accessorList.WithCloseBraceToken(closeBrace);
+                        propertyWithoutTrailingTrivia = newProperty.WithAccessorList(accessorList);
+                    }
+
+                    EqualsValueClauseSyntax initializer = SyntaxFactory.EqualsValueClause(
+                        SyntaxFactory.PostfixUnaryExpression(
+                            SyntaxKind.SuppressNullableWarningExpression,
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)))
+                        .WithLeadingTrivia(SyntaxFactory.Space);
+
+                    PropertyDeclarationSyntax updatedProperty = propertyWithoutTrailingTrivia
+                        .WithInitializer(initializer)
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+                    newRoot = newRoot.ReplaceNode(newProperty, updatedProperty);
+                }
+            }
+
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 

@@ -454,7 +454,7 @@ public class VSMEF006ImportNullabilityAnalyzerTests
             class Foo
             {
                 [Import]
-                public string Value { get; set; }
+                public string Value { get; set; } = null!;
             }
             """;
 
