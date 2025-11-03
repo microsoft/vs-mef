@@ -217,4 +217,62 @@ internal static class Utils
 
         return false; // Default value is false
     }
+
+    /// <summary>
+    /// Determines which MEF version an attribute type belongs to by walking up its inheritance hierarchy.
+    /// </summary>
+    /// <param name="attributeType">The attribute type to check.</param>
+    /// <returns>
+    /// <see cref="MefVersion.V1"/> if the attribute belongs to MEF v1 (System.ComponentModel.Composition);
+    /// <see cref="MefVersion.V2"/> if the attribute belongs to MEF v2 (System.Composition);
+    /// <see langword="null"/> if the attribute does not belong to either MEF namespace.
+    /// </returns>
+    /// <remarks>
+    /// This method walks up the inheritance hierarchy to handle custom attributes that derive from MEF attributes.
+    /// For example, a custom export attribute derived from System.ComponentModel.Composition.ExportAttribute
+    /// will be correctly identified as MEF v1 even if it lives in a different namespace.
+    /// </remarks>
+    internal static MefVersion? GetMefVersionFromAttribute(INamedTypeSymbol? attributeType)
+    {
+        if (attributeType is null)
+        {
+            return null;
+        }
+
+        // Walk up the inheritance hierarchy to find the base MEF attribute
+        // This handles custom export attributes that derive from ExportAttribute
+        INamedTypeSymbol? current = attributeType;
+        while (current is not null)
+        {
+            if (IsNamespaceMatch(current.ContainingNamespace, MefV1AttributeNamespace.AsSpan()))
+            {
+                return MefVersion.V1;
+            }
+
+            if (IsNamespaceMatch(current.ContainingNamespace, MefV2AttributeNamespace.AsSpan()))
+            {
+                return MefVersion.V2;
+            }
+
+            current = current.BaseType;
+        }
+
+        return null;
+    }
+}
+
+/// <summary>
+/// Represents the version of MEF (Managed Extensibility Framework) being used.
+/// </summary>
+internal enum MefVersion
+{
+    /// <summary>
+    /// MEF v1 (System.ComponentModel.Composition).
+    /// </summary>
+    V1,
+
+    /// <summary>
+    /// MEF v2 (System.Composition).
+    /// </summary>
+    V2,
 }

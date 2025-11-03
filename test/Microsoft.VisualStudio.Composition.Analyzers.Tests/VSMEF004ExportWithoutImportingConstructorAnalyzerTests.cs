@@ -700,4 +700,88 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
         DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
         await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 1);
     }
+
+    [Fact]
+    public async Task ClassWithCustomMefV1ExportAndNonDefaultConstructor_CodeFixAddsCorrectImportingConstructorAttribute()
+    {
+        string testCode = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            class Service
+            {
+                [ImportingConstructor]
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(13, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
+    }
+
+    [Fact]
+    public async Task ClassWithCustomMefV2ExportAndNonDefaultConstructor_CodeFixAddsCorrectImportingConstructorAttribute()
+    {
+        string testCode = """
+            using System;
+            using System.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            class Service
+            {
+                [ImportingConstructor]
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(13, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
+    }
 }

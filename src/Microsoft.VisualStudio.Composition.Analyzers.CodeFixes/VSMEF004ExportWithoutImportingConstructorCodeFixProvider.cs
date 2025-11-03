@@ -185,14 +185,10 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         // Check class-level attributes
         foreach (AttributeData attribute in classSymbol.GetAttributes())
         {
-            if (IsMefV1Attribute(attribute.AttributeClass))
+            MefVersion? version = Utils.GetMefVersionFromAttribute(attribute.AttributeClass);
+            if (version.HasValue)
             {
-                return MefVersion.V1;
-            }
-
-            if (IsMefV2Attribute(attribute.AttributeClass))
-            {
-                return MefVersion.V2;
+                return version.Value;
             }
         }
 
@@ -201,48 +197,14 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         {
             foreach (AttributeData attribute in member.GetAttributes())
             {
-                if (IsMefV1Attribute(attribute.AttributeClass))
+                MefVersion? version = Utils.GetMefVersionFromAttribute(attribute.AttributeClass);
+                if (version.HasValue)
                 {
-                    return MefVersion.V1;
-                }
-
-                if (IsMefV2Attribute(attribute.AttributeClass))
-                {
-                    return MefVersion.V2;
+                    return version.Value;
                 }
             }
         }
 
         return MefVersion.V2; // Default to V2 if no MEF attributes found
-    }
-
-    private static bool IsMefV1Attribute(INamedTypeSymbol? attributeType)
-    {
-        if (attributeType is null)
-        {
-            return false;
-        }
-
-        string? namespaceName = attributeType.ContainingNamespace?.ToDisplayString();
-        return namespaceName == "System.ComponentModel.Composition" ||
-                namespaceName?.StartsWith("System.ComponentModel.Composition.") == true;
-    }
-
-    private static bool IsMefV2Attribute(INamedTypeSymbol? attributeType)
-    {
-        if (attributeType is null)
-        {
-            return false;
-        }
-
-        string? namespaceName = attributeType.ContainingNamespace?.ToDisplayString();
-        return namespaceName == "System.Composition" ||
-                namespaceName?.StartsWith("System.Composition.") == true;
-    }
-
-    private enum MefVersion
-    {
-        V1,
-        V2,
     }
 }
