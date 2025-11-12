@@ -90,11 +90,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var part = container.GetExportedValue<PartThatImportsAnExportWithMultipleComplementingMetadata>();
 
             var afterArray = Assert.IsType<string?[]>(part.ImportingProperty.Metadata["After"]);
-            Assert.Contains(null, afterArray);
+            Assert.Contains((string?)null, afterArray);
             Assert.Contains("AfterValue", afterArray);
 
             var beforeArray = Assert.IsType<string?[]>(part.ImportingProperty.Metadata["Before"]);
-            Assert.Contains(null, beforeArray);
+            Assert.Contains((string?)null, beforeArray);
             Assert.Contains("BeforeValue", beforeArray);
         }
 
