@@ -20,6 +20,9 @@
   <ItemGroup>
     <None Update="tools\*.ps1" Pack="true" PackagePath="tools\" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+  </ItemGroup>
   <ItemDefinitionGroup>
     <PackageReference>
       <PrivateAssets>all</PrivateAssets>

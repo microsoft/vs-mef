@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,40 +26,43 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root"
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -134,5 +137,32 @@
   </data>
   <data name="VSMEF003_Title" xml:space="preserve">
     <value>Exported type not implemented by exporting class</value>
+  </data>
+  <data name="VSMEF004_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" defines exports but has non-default constructors that are not annotated with [ImportingConstructor]. Add a parameterless constructor, or annotate a constructor with [ImportingConstructor].</value>
+  </data>
+  <data name="VSMEF004_Title" xml:space="preserve">
+    <value>Exported type missing importing constructor</value>
+  </data>
+  <data name="VSMEF005_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" has multiple constructors annotated with [ImportingConstructor]. Only one constructor should be marked as importing.</value>
+  </data>
+  <data name="VSMEF005_Title" xml:space="preserve">
+    <value>Multiple importing constructors</value>
+  </data>
+  <data name="VSMEF006_AllowDefaultWithoutNullable_MessageFormat" xml:space="preserve">
+    <value>The import "{0}" has AllowDefault = true but is not nullable. Consider making the type nullable or removing AllowDefault.</value>
+  </data>
+  <data name="VSMEF006_NullableWithoutAllowDefault_MessageFormat" xml:space="preserve">
+    <value>The import "{0}" is nullable but does not have AllowDefault = true. Consider adding AllowDefault = true or making the type non-nullable (and either add a 'required' modifier or an '= null!' initializer).</value>
+  </data>
+  <data name="VSMEF006_Title" xml:space="preserve">
+    <value>Import nullability and AllowDefault mismatch</value>
+  </data>
+  <data name="VSMEF007_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" imports the same contract "{1}" multiple times. Each contract should only be imported once per type.</value>
+  </data>
+  <data name="VSMEF007_Title" xml:space="preserve">
+    <value>Duplicate import contract</value>
   </data>
 </root>
