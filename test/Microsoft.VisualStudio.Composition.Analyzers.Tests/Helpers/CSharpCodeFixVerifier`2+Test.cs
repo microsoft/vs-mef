@@ -13,13 +13,12 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         public Test()
         {
             this.ReferenceAssemblies = ReferencesHelper.DefaultReferences;
-            this.TestBehaviors |= Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedCodeCheck;
+            this.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
 
             this.SolutionTransforms.Add((solution, projectId) =>
             {
                 var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.CSharp7_3));
-
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.CSharp12));
                 return solution;
             });
 

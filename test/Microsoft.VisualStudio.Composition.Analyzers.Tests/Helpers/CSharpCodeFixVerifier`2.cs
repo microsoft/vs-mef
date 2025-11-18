@@ -23,18 +23,19 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         return test.RunAsync();
     }
 
-    public static Task VerifyCodeFixAsync(string source, string fixedSource)
-        => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
+    public static Task VerifyCodeFixAsync(string source, string fixedSource, int? codeActionIndex = null)
+        => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource, codeActionIndex);
 
-    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-        => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource, int? codeActionIndex = null)
+        => VerifyCodeFixAsync(source, new[] { expected }, fixedSource, codeActionIndex);
 
-    public static Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource, int? codeActionIndex)
     {
         var test = new Test
         {
             TestCode = source,
             FixedCode = fixedSource,
+            CodeActionIndex = codeActionIndex,
         };
 
         test.ExpectedDiagnostics.AddRange(expected);

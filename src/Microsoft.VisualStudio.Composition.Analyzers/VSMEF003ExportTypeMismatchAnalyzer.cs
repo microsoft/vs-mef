@@ -72,7 +72,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        foreach (var attributeData in namedType.GetAttributes())
+        foreach (AttributeData attributeData in namedType.GetAttributes())
         {
             // Check if this is an Export attribute
             if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
@@ -106,7 +106,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        foreach (var attributeData in property.GetAttributes())
+        foreach (AttributeData attributeData in property.GetAttributes())
         {
             // Check if this is an Export attribute
             if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
@@ -140,7 +140,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         // Check if implementing type inherits from exported type (for classes)
         if (exportedType.TypeKind == TypeKind.Class)
         {
-            var currentType = implementingType.BaseType;
+            INamedTypeSymbol? currentType = implementingType.BaseType;
             while (currentType != null)
             {
                 if (SymbolEqualityComparer.Default.Equals(currentType, exportedType))
