@@ -205,6 +205,35 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
             }
         }
 
+        // Check base classes for InheritedExport attributes
+        INamedTypeSymbol? baseType = classSymbol.BaseType;
+        while (baseType is not null)
+        {
+            foreach (AttributeData attribute in baseType.GetAttributes())
+            {
+                MefVersion? version = Utils.GetMefVersionFromAttribute(attribute.AttributeClass);
+                if (version.HasValue)
+                {
+                    return version.Value;
+                }
+            }
+
+            baseType = baseType.BaseType;
+        }
+
+        // Check interfaces for InheritedExport attributes
+        foreach (INamedTypeSymbol interfaceType in classSymbol.AllInterfaces)
+        {
+            foreach (AttributeData attribute in interfaceType.GetAttributes())
+            {
+                MefVersion? version = Utils.GetMefVersionFromAttribute(attribute.AttributeClass);
+                if (version.HasValue)
+                {
+                    return version.Value;
+                }
+            }
+        }
+
         return MefVersion.V2; // Default to V2 if no MEF attributes found
     }
 }

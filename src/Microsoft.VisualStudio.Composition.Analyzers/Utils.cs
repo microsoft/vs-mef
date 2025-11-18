@@ -49,6 +49,30 @@ internal static class Utils
     }
 
     /// <summary>
+    /// Determines whether the specified attribute type is a MEF InheritedExport attribute.
+    /// </summary>
+    /// <param name="attributeType">The attribute type to check.</param>
+    /// <returns><see langword="true"/> if the attribute type is an inherited export attribute; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// This method checks for MEF v1's InheritedExportAttribute, or a subtype of that attribute.
+    /// </remarks>
+    internal static bool IsInheritedExportAttribute(INamedTypeSymbol? attributeType)
+    {
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        // Check if it's InheritedExportAttribute from MEF v1
+        if (IsAttributeOfType(attributeType, "InheritedExportAttribute", MefV1AttributeNamespace.AsSpan()))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether the specified attribute type is a MEF importing constructor attribute.
     /// </summary>
     /// <param name="attributeType">The attribute type to check.</param>
@@ -117,12 +141,13 @@ internal static class Utils
     /// <returns><see langword="true"/> if the type has instance exports; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// This method checks for export attributes on the type itself or on its instance members (properties, methods, fields).
+    /// It also checks for InheritedExport attributes on base classes and interfaces.
     /// Static members with export attributes are ignored since they don't require type instantiation.
     /// </remarks>
     internal static bool HasInstanceExports(INamedTypeSymbol symbol)
     {
         // Check the type itself for Export attributes
-        if (Utils.HasExportAttribute(symbol))
+        if (HasExportAttribute(symbol))
         {
             return true;
         }
@@ -136,9 +161,36 @@ internal static class Utils
                 continue;
             }
 
-            if (Utils.HasExportAttribute(member))
+            if (HasExportAttribute(member))
             {
                 return true;
+            }
+        }
+
+        // Check base classes for InheritedExport attributes
+        INamedTypeSymbol? baseType = symbol.BaseType;
+        while (baseType is not null)
+        {
+            foreach (AttributeData attribute in baseType.GetAttributes())
+            {
+                if (IsInheritedExportAttribute(attribute.AttributeClass))
+                {
+                    return true;
+                }
+            }
+
+            baseType = baseType.BaseType;
+        }
+
+        // Check interfaces for InheritedExport attributes
+        foreach (INamedTypeSymbol interfaceType in symbol.AllInterfaces)
+        {
+            foreach (AttributeData attribute in interfaceType.GetAttributes())
+            {
+                if (IsInheritedExportAttribute(attribute.AttributeClass))
+                {
+                    return true;
+                }
             }
         }
 

@@ -784,4 +784,131 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
         DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(13, 12).WithArguments("Service");
         await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
     }
+
+    [Fact]
+    public async Task ClassInheritingFromMefV1InheritedExportBase_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [InheritedExport]
+            public class BaseClass { }
+
+            public class DerivedClass : BaseClass
+            {
+                public {|VSMEF004:DerivedClass|}(string parameter)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ClassInheritingFromMefV1InheritedExportBase_CodeFixAddsCorrectImportingConstructorAttribute()
+    {
+        string testCode = """
+            using System.ComponentModel.Composition;
+
+            [InheritedExport]
+            public class BaseClass { }
+
+            public class DerivedClass : BaseClass
+            {
+                public DerivedClass(string parameter)
+                {
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System.ComponentModel.Composition;
+
+            [InheritedExport]
+            public class BaseClass { }
+
+            public class DerivedClass : BaseClass
+            {
+                [ImportingConstructor]
+                public DerivedClass(string parameter)
+                {
+                }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(8, 12).WithArguments("DerivedClass");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode);
+    }
+
+    [Fact]
+    public async Task ClassInheritingFromNonInheritedExportBase_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]  // Regular Export, not InheritedExport
+            public class BaseService { }
+
+            public class DerivedService : BaseService  // Does NOT inherit the export
+            {
+                public DerivedService(string parameter)  // Non-default constructor is OK - not a MEF part
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ClassInheritingFromCustomInheritedExportDerived_Warning()
+    {
+        string testCode = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            // Custom attribute derived from InheritedExportAttribute
+            [AttributeUsage(AttributeTargets.Class)]
+            public class CustomInheritedExportAttribute : InheritedExportAttribute
+            {
+                public CustomInheritedExportAttribute() : base() { }
+            }
+
+            [CustomInheritedExport]
+            public class BaseService { }
+
+            public class DerivedService : BaseService
+            {
+                public {|VSMEF004:DerivedService|}(string parameter)
+                {
+                }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            // Custom attribute derived from InheritedExportAttribute
+            [AttributeUsage(AttributeTargets.Class)]
+            public class CustomInheritedExportAttribute : InheritedExportAttribute
+            {
+                public CustomInheritedExportAttribute() : base() { }
+            }
+
+            [CustomInheritedExport]
+            public class BaseService { }
+
+            public class DerivedService : BaseService
+            {
+                [ImportingConstructor]
+                public DerivedService(string parameter)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(testCode, fixedCode);
+    }
 }
