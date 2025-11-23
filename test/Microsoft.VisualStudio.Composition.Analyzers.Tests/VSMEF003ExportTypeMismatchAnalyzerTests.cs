@@ -421,4 +421,34 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task ExportingWrongUnboundGenericWithNonGenericInterfaces_ForcesEvaluationOfAllInterfaces()
+    {
+        // Reproduces a bug seen related to unbound generic types.
+        string test = """
+            using System;
+            using System.Composition;
+
+            interface IValue<T>
+            {
+            }
+
+            interface IOther<T>
+            {
+            }
+
+            interface IFirstInterface
+            {
+            }
+
+            [Export(typeof(IOther<>))]
+            class [|Test|]<T> : IValue<T>, IFirstInterface, IDisposable
+            {
+                public void Dispose() => throw new NotImplementedException();
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }
