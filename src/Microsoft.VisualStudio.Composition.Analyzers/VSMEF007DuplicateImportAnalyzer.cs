@@ -75,7 +75,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
             {
                 AttributeData? importAttribute = Utils.GetImportAttribute(property.GetAttributes());
 
-                string? contract = GetImportContract(importAttribute, property.Type);
+                string? contract = GetImportContract(importAttribute, property.Type, allowImplicitImport: false);
 
                 if (contract is not null)
                 {
@@ -97,7 +97,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
                     {
                         AttributeData? importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
 
-                        string? contract = GetImportContract(importAttribute, parameter.Type);
+                        string? contract = GetImportContract(importAttribute, parameter.Type, allowImplicitImport: true);
 
                         if (contract is not null)
                         {
@@ -124,7 +124,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static string? GetImportContract(AttributeData? importAttribute, ITypeSymbol importType)
+    private static string? GetImportContract(AttributeData? importAttribute, ITypeSymbol importType, bool allowImplicitImport)
     {
         // Note that the actual contract name used by MEF is more complex than this. See ContractNameServices
         // for the full logic. This approximation suffices for catching duplicates, for the purposes of this analyzer.
@@ -157,10 +157,20 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
             {
                 return namedContractType.ToDisplayString();
             }
+
+            // Default contract is the type name
+            return importType.ToDisplayString();
         }
 
-        // Default contract is the type name
-        return importType.ToDisplayString();
+        // If no import attribute and implicit imports are allowed (e.g., in ImportingConstructor),
+        // treat the parameter as an implicit import with the type as the contract
+        if (allowImplicitImport)
+        {
+            return importType.ToDisplayString();
+        }
+
+        // No import attribute and implicit imports not allowed means this is not an import
+        return null;
     }
 
     private record ImportContract(string Contract, string MemberName, Location Location);

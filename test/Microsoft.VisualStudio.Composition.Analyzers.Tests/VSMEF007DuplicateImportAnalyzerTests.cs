@@ -7,6 +7,28 @@ using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyz
 public class VSMEF007DuplicateImportAnalyzerTests
 {
     [Fact]
+    public async Task PlainClassWithoutMefAttributes_NoWarning()
+    {
+        string test = """
+            class Foo
+            {
+                public string Value1 { get; set; }
+                public string Value2 { get; set; }
+                private int field1;
+                private int field2;
+
+                public Foo(string value1, string value2)
+                {
+                    Value1 = value1;
+                    Value2 = value2;
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task ClassWithNoImports_NoWarning()
     {
         string test = """
