@@ -592,4 +592,99 @@ public class VSMEF006ImportNullabilityAnalyzerTests
 
         await VerifyCS.VerifyCodeFixAsync(test, expected, fixedTest);
     }
+
+    [Fact]
+    public async Task NullableDisabledImportWithAllowDefault_NoWarning()
+    {
+        string test = """
+            #nullable disable
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public string Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task NullableUnspecifiedImportWithAllowDefault_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public string Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyImportWithAllowDefault_LazyIsNullable()
+    {
+        string test = """
+            #nullable enable
+            using System;
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public Lazy<string>? Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyImportWithAllowDefault_LazyNotNullable_Warning()
+    {
+        string test = """
+            #nullable enable
+            using System;
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import(AllowDefault = true)]
+                public Lazy<string> {|#0:Value|} { get; set; }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.AllowDefaultWithoutNullableDescriptor)
+            .WithLocation(0)
+            .WithArguments("Value");
+
+        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+    }
+
+    [Fact]
+    public async Task LazyImportNullable_WithoutAllowDefault_Warning()
+    {
+        string test = """
+            #nullable enable
+            using System;
+            using System.ComponentModel.Composition;
+
+            class Foo
+            {
+                [Import]
+                public Lazy<string>? {|#0:Value|} { get; set; }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic(VSMEF006ImportNullabilityAnalyzer.NullableWithoutAllowDefaultDescriptor)
+            .WithLocation(0)
+            .WithArguments("Value");
+
+        await VerifyCS.VerifyAnalyzerAsync(test, expected);
+    }
 }
