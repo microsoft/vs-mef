@@ -156,6 +156,9 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         }
 
         // Determine the base type for defaulting contract name and type.
+        // Note that the actual contract name used by MEF is more complex than this. See ContractNameServices
+        // for the full logic. This approximation suffices for catching duplicates, for the purposes of this analyzer.
+
         // If contract type is explicitly specified, use it; otherwise use the import parameter type.
         ITypeSymbol type = explicitContractType ?? importType;
         string typeName = type.ToDisplayString();
