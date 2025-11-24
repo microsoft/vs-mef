@@ -656,4 +656,286 @@ public class VSMEF007DuplicateImportAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameOpenGenericButDifferentTypeArguments_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportPropertiesWithSameOpenGenericButDifferentTypeArguments_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public IBar<string> StringBar { get; set; }
+
+                [Import]
+                public IBar<int> IntBar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithMultipleGenericTypeArgumentsDistinct_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T, U>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string, int> stringIntBar, IBar<int, string> intStringBar, IBar<bool, double> boolDoubleBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameClosedGeneric_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> {|VSMEF007:stringBar1|}, IBar<string> {|VSMEF007:stringBar2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ImportingConstructorWithSameOpenGenericButDifferentTypeArguments_NoWarning()
+    {
+        string test = """
+            using System.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportPropertiesWithNestedGenerics_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+            using System.Collections.Generic;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public IBar<List<string>> StringListBar { get; set; }
+
+                [Import]
+                public IBar<List<int>> IntListBar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithOpenGenericExportAndDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportPropertiesWithOpenGenericExportAndDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public IBar<string> StringBar { get; set; }
+
+                [Import]
+                public IBar<int> IntBar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithOpenGenericExportAndMultipleDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T, U>
+            {
+            }
+
+            [Export(typeof(IBar<,>))]
+            class Bar<T, U> : IBar<T, U>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string, int> stringIntBar, IBar<int, string> intStringBar, IBar<bool, double> boolDoubleBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithOpenGenericExportAndSameClosedImports_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> {|VSMEF007:stringBar1|}, IBar<string> {|VSMEF007:stringBar2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ImportingConstructorWithOpenGenericExportAndDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }
