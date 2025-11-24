@@ -174,7 +174,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
     // See: https://learn.microsoft.com/en-us/dotnet/framework/mef/attributed-programming-model-overview-mef#import-and-export-basics
     private readonly record struct Contract(string Type, string? Name)
     {
-        public override string ToString() => this.Name is null ? this.Type : $"{this.Type} (\"{this.Name}\")";
+        public override string ToString() => this.Name is null || string.Equals(this.Name, this.Type) ? this.Type : $"{this.Type} (\"{this.Name}\")";
     }
 
     private record Import(Contract Contract, string MemberName, Location Location);
