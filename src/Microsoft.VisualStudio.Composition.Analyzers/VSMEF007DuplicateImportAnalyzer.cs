@@ -66,7 +66,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var importContracts = new List<ImportContract>();
+        var imports = new List<Import>();
 
         // Collect all imports from properties
         foreach (ISymbol member in namedType.GetMembers())
@@ -75,11 +75,11 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
             {
                 AttributeData? importAttribute = Utils.GetImportAttribute(property.GetAttributes());
 
-                string? contract = GetImportContract(importAttribute, property.Type, allowImplicitImport: false);
-
-                if (contract is not null)
+                if (importAttribute is not null)
                 {
-                    importContracts.Add(new ImportContract(contract, property.Name, property.Locations[0]));
+                    Contract contract = GetImportContract(importAttribute, property.Type);
+
+                    imports.Add(new Import(contract, property.Name, property.Locations[0]));
                 }
             }
         }
@@ -97,81 +97,82 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
                     {
                         AttributeData? importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
 
-                        string? contract = GetImportContract(importAttribute, parameter.Type, allowImplicitImport: true);
+                        Contract contract = GetImportContract(importAttribute, parameter.Type);
 
-                        if (contract is not null)
-                        {
-                            importContracts.Add(new ImportContract(contract, parameter.Name, parameter.Locations[0]));
-                        }
+                        imports.Add(new Import(contract, parameter.Name, parameter.Locations[0]));
                     }
                 }
             }
         }
 
         // Find duplicates
-        IEnumerable<IGrouping<string, ImportContract>> contractGroups = importContracts.GroupBy(ic => ic.Contract).Where(g => g.Count() > 1);
+        IEnumerable<IGrouping<Contract, Import>> duplicateImportsByContract = imports.GroupBy(ic => ic.Contract).Where(g => g.Count() > 1);
 
-        foreach (IGrouping<string, ImportContract>? group in contractGroups)
+        foreach ((Contract contract, IEnumerable<Import> duplicateImports) in duplicateImportsByContract)
         {
-            foreach (ImportContract? import in group)
+            foreach (Import import in duplicateImports)
             {
                 context.ReportDiagnostic(Diagnostic.Create(
                     Descriptor,
                     import.Location,
                     namedType.Name,
-                    import.Contract));
+                    contract));
             }
         }
     }
 
-    private static string? GetImportContract(AttributeData? importAttribute, ITypeSymbol importType, bool allowImplicitImport)
+    private static Contract GetImportContract(AttributeData? importAttribute, ITypeSymbol importType)
     {
-        // Note that the actual contract name used by MEF is more complex than this. See ContractNameServices
-        // for the full logic. This approximation suffices for catching duplicates, for the purposes of this analyzer.
+        string? explicitContractName = null;
+        ITypeSymbol? explicitContractType = null;
+
         if (importAttribute is not null)
         {
-            // Check for explicit contract name or type in constructor arguments
-            if (importAttribute.ConstructorArguments is [TypedConstant firstArg, ..])
+            // Check for explicit contract name or type in constructor arguments.
+            // Uses patterns from both System.Composition.ImportAttribute and System.ComponentModel.Composition.ImportAttribute.
+            // An empty or null contract name means "no explicit name".
+            (explicitContractName, explicitContractType) = importAttribute.ConstructorArguments switch
             {
-                if (firstArg.Value is string { Length: not 0 } contractName)
-                {
-                    return contractName;
-                }
-
-                if (firstArg.Value is INamedTypeSymbol contractType)
-                {
-                    return contractType.ToDisplayString();
-                }
-            }
+                [TypedConstant { Value: string { Length: not 0 } contractName }] => (contractName, null),
+                [TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
+                [TypedConstant { Value: string { Length: not 0 } contractName }, TypedConstant { Value: INamedTypeSymbol contractType }] => (contractName, contractType),
+                [TypedConstant { Value: null or string { Length: 0 } }, TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
+                _ => (null, null),
+            };
 
             // Check for contract name in named arguments
-            KeyValuePair<string, TypedConstant> contractNameArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName");
-            if (contractNameArg.Key is not null && contractNameArg.Value.Value is string namedContractName && !string.IsNullOrEmpty(namedContractName))
+            TypedConstant? nameArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName").Value;
+            if (nameArg?.Value is string { Length: not 0 } namedContractName)
             {
-                return namedContractName;
+                explicitContractName = namedContractName;
             }
 
             // Check for contract type in named arguments
-            KeyValuePair<string, TypedConstant> contractTypeArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType");
-            if (contractTypeArg.Key is not null && contractTypeArg.Value.Value is INamedTypeSymbol namedContractType)
+            TypedConstant? typeArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType").Value;
+            if (typeArg?.Value is INamedTypeSymbol namedContractType)
             {
-                return namedContractType.ToDisplayString();
+                explicitContractType = namedContractType;
             }
-
-            // Default contract is the type name
-            return importType.ToDisplayString();
         }
 
-        // If no import attribute and implicit imports are allowed (e.g., in ImportingConstructor),
-        // treat the parameter as an implicit import with the type as the contract
-        if (allowImplicitImport)
-        {
-            return importType.ToDisplayString();
-        }
+        // Determine the base type for defaulting contract name and type.
+        // If contract type is explicitly specified, use it; otherwise use the import parameter type.
+        ITypeSymbol type = explicitContractType ?? importType;
+        string typeName = type.ToDisplayString();
 
-        // No import attribute and implicit imports not allowed means this is not an import
-        return null;
+        // Contract name: use explicit name if provided, otherwise default to type name.
+        string name = explicitContractName ?? typeName;
+
+        return new Contract(typeName, name);
     }
 
-    private record ImportContract(string Contract, string MemberName, Location Location);
+    // A MEF contract consists of both a contract name and a contract type.
+    // Both must match for two imports to be considered duplicates.
+    // See: https://learn.microsoft.com/en-us/dotnet/framework/mef/attributed-programming-model-overview-mef#import-and-export-basics
+    private readonly record struct Contract(string Type, string? Name)
+    {
+        public override string ToString() => this.Name is null ? this.Type : $"{this.Type} (\"{this.Name}\")";
+    }
+
+    private record Import(Contract Contract, string MemberName, Location Location);
 }

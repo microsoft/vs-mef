@@ -311,6 +311,12 @@ internal static class Utils
 
         return null;
     }
+
+    internal static void Deconstruct<TKey, TValue>(this IGrouping<TKey, TValue> grouping, out TKey key, out IEnumerable<TValue> values)
+    {
+        key = grouping.Key;
+        values = grouping;
+    }
 }
 
 /// <summary>

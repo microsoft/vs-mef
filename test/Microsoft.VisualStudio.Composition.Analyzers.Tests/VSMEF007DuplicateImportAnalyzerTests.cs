@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.VisualStudio.Composition.Analyzers;
 using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF007DuplicateImportAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 public class VSMEF007DuplicateImportAnalyzerTests
@@ -518,6 +517,138 @@ public class VSMEF007DuplicateImportAnalyzerTests
             {
                 [ImportingConstructor]
                 public Foo(string implicitString, [Import("CustomStringContract")] string explicitString)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithDifferentContractNameAndType_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace Foo
+            {
+                class A { }
+            }
+
+            [Export]
+            class Bar
+            {
+                [ImportingConstructor]
+                public Bar([Import("Foo.A")] string s, Foo.A a)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameContractNameDifferentTypes_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("MyContract")] string value1, [Import("MyContract")] int value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameTypeDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("Contract1")] string value1, [Import("Contract2")] string value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithExplicitContractNameAndTypeMatching_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNamespace
+            {
+                class MyType { }
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("MyNamespace.MyType", typeof(MyNamespace.MyType))] MyNamespace.MyType {|VSMEF007:value1|}, MyNamespace.MyType {|VSMEF007:value2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task PropertyImportsWithDifferentContractNameButSameType_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNamespace
+            {
+                class MyType { }
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import("CustomContract")]
+                public MyNamespace.MyType Value1 { get; set; }
+
+                [Import]
+                public MyNamespace.MyType Value2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithTypeofContractTypeButDifferentName_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IService { }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("CustomName", typeof(IService))] object service1, [Import(typeof(IService))] object service2)
                 {
                 }
             }
