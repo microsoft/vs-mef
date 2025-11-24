@@ -938,4 +938,91 @@ public class VSMEF007DuplicateImportAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task ImportsWithRequiredCreationPolicyNonShared_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string Value1 { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string Value2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ConstructorImportsWithRequiredCreationPolicyNonShared_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(
+                    [Import(RequiredCreationPolicy = CreationPolicy.NonShared)] string value1,
+                    [Import(RequiredCreationPolicy = CreationPolicy.NonShared)] string value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MixedCreationPolicyImports_WarningOnlyForNonNonShared()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string NonShared1 { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string NonShared2 { get; set; }
+
+                [Import]
+                public string {|VSMEF007:Shared1|} { get; set; }
+
+                [Import]
+                public string {|VSMEF007:Shared2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task SingleRegularImportAndSingleNonSharedImport_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public string RegularImport { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string NonSharedImport { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }

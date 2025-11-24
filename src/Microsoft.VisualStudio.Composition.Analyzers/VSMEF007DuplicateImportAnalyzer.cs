@@ -13,9 +13,19 @@ using Microsoft.CodeAnalysis.Diagnostics;
 /// Creates a diagnostic when a type imports the same contract more than once.
 /// </summary>
 /// <remarks>
+/// <para>
 /// This analyzer detects when a type has multiple imports (properties, constructor parameters, or a mix)
 /// that import the same contract. For imports with specific contract names, it only flags duplicates
 /// when the contract names match exactly.
+/// </para>
+/// <para>
+/// Note: This analyzer can produce false positives. If a MEF part is exported as non-shared, then it
+/// may make sense to have multiple seemingly-identical imports and use them independently. This analyzer
+/// considers the import-site RequiredCreationPolicy attribute, but cannot detect cases where the exported
+/// type itself is marked as NonShared, since that information is not statically available at the import site.
+/// In such cases, runtime composition may succeed even though this analyzer reports a warning, and the developer
+/// should suppress the instance of the diagnostic. This should be very rare however.
+/// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
@@ -69,6 +79,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         var imports = new List<Import>();
 
         // Collect all imports from properties
+        // Note: We skip NonShared imports because each gets a unique instance, so they're not problematic duplicates
         foreach (ISymbol member in namedType.GetMembers())
         {
             if (member is IPropertySymbol property)
@@ -77,6 +88,12 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
                 if (importAttribute is not null)
                 {
+                    if (Utils.IsNonSharedImport(importAttribute))
+                    {
+                        // Skip NonShared imports, each gets a unique instance.
+                        continue;
+                    }
+
                     Contract contract = GetImportContract(importAttribute, property.Type);
 
                     imports.Add(new Import(contract, property.Name, property.Locations[0]));
@@ -96,6 +113,12 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
                     foreach (IParameterSymbol parameter in method.Parameters)
                     {
                         AttributeData? importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
+
+                        if (importAttribute is not null && Utils.IsNonSharedImport(importAttribute))
+                        {
+                            // Skip NonShared imports, each gets a unique instance.
+                            continue;
+                        }
 
                         Contract contract = GetImportContract(importAttribute, parameter.Type);
 

@@ -271,6 +271,22 @@ internal static class Utils
     }
 
     /// <summary>
+    /// Determines whether an Import attribute requires a NonShared instance.
+    /// </summary>
+    /// <param name="importAttribute">The Import attribute to check.</param>
+    /// <returns>True if RequiredCreationPolicy = NonShared; otherwise false.</returns>
+    internal static bool IsNonSharedImport(AttributeData importAttribute)
+    {
+        TypedConstant creationPolicyArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "RequiredCreationPolicy").Value;
+
+        // CreationPolicy values:
+        //     Any = 0
+        //     Shared = 1
+        //     NonShared = 2
+        return creationPolicyArg.Value is 2;
+    }
+
+    /// <summary>
     /// Determines which MEF version an attribute type belongs to by walking up its inheritance hierarchy.
     /// </summary>
     /// <param name="attributeType">The attribute type to check.</param>
