@@ -104,6 +104,16 @@ public class VSMEF006ImportNullabilityAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
+            // Skip analysis if nullable context is not enabled
+            // When nullable is disabled or not specified, non-nullable reference types have NullableAnnotation.None
+            // When nullable is enabled, non-nullable reference types have NullableAnnotation.NotAnnotated
+            // So we check: if a reference type import has None, nullable context is not enabled
+            if (type.IsReferenceType && type.NullableAnnotation == NullableAnnotation.None)
+            {
+                // Oblivious mode - nullable reference types are not enabled
+                return;
+            }
+
             bool isNullableReferenceType = IsNullableReferenceType(type);
             bool hasAllowDefault = Utils.GetAllowDefaultValue(importAttribute);
 
