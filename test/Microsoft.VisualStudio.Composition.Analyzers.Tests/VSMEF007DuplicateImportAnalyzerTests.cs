@@ -1,11 +1,32 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.VisualStudio.Composition.Analyzers;
 using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF007DuplicateImportAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 public class VSMEF007DuplicateImportAnalyzerTests
 {
+    [Fact]
+    public async Task PlainClassWithoutMefAttributes_NoWarning()
+    {
+        string test = """
+            class Foo
+            {
+                public string Value1 { get; set; }
+                public string Value2 { get; set; }
+                private int field1;
+                private int field2;
+
+                public Foo(string value1, string value2)
+                {
+                    Value1 = value1;
+                    Value2 = value2;
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
     [Fact]
     public async Task ClassWithNoImports_NoWarning()
     {
@@ -498,6 +519,507 @@ public class VSMEF007DuplicateImportAnalyzerTests
                 public Foo(string implicitString, [Import("CustomStringContract")] string explicitString)
                 {
                 }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithDifferentContractNameAndType_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace Foo
+            {
+                class A { }
+            }
+
+            [Export]
+            class Bar
+            {
+                [ImportingConstructor]
+                public Bar([Import("Foo.A")] string s, Foo.A a)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameContractNameDifferentTypes_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("MyContract")] string value1, [Import("MyContract")] int value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameTypeDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("Contract1")] string value1, [Import("Contract2")] string value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithExplicitContractNameAndTypeMatching_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNamespace
+            {
+                class MyType { }
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("MyNamespace.MyType", typeof(MyNamespace.MyType))] MyNamespace.MyType {|VSMEF007:value1|}, MyNamespace.MyType {|VSMEF007:value2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task PropertyImportsWithDifferentContractNameButSameType_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNamespace
+            {
+                class MyType { }
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import("CustomContract")]
+                public MyNamespace.MyType Value1 { get; set; }
+
+                [Import]
+                public MyNamespace.MyType Value2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithTypeofContractTypeButDifferentName_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IService { }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo([Import("CustomName", typeof(IService))] object service1, [Import(typeof(IService))] object service2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameOpenGenericButDifferentTypeArguments_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportPropertiesWithSameOpenGenericButDifferentTypeArguments_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public IBar<string> StringBar { get; set; }
+
+                [Import]
+                public IBar<int> IntBar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithMultipleGenericTypeArgumentsDistinct_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T, U>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string, int> stringIntBar, IBar<int, string> intStringBar, IBar<bool, double> boolDoubleBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithSameClosedGeneric_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> {|VSMEF007:stringBar1|}, IBar<string> {|VSMEF007:stringBar2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ImportingConstructorWithSameOpenGenericButDifferentTypeArguments_NoWarning()
+    {
+        string test = """
+            using System.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportPropertiesWithNestedGenerics_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+            using System.Collections.Generic;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public IBar<List<string>> StringListBar { get; set; }
+
+                [Import]
+                public IBar<List<int>> IntListBar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithOpenGenericExportAndDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportPropertiesWithOpenGenericExportAndDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public IBar<string> StringBar { get; set; }
+
+                [Import]
+                public IBar<int> IntBar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithOpenGenericExportAndMultipleDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T, U>
+            {
+            }
+
+            [Export(typeof(IBar<,>))]
+            class Bar<T, U> : IBar<T, U>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string, int> stringIntBar, IBar<int, string> intStringBar, IBar<bool, double> boolDoubleBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportingConstructorWithOpenGenericExportAndSameClosedImports_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> {|VSMEF007:stringBar1|}, IBar<string> {|VSMEF007:stringBar2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2ImportingConstructorWithOpenGenericExportAndDistinctClosedImports_NoWarning()
+    {
+        string test = """
+            using System.Composition;
+
+            interface IBar<T>
+            {
+            }
+
+            [Export(typeof(IBar<>))]
+            class Bar<T> : IBar<T>
+            {
+            }
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(IBar<string> stringBar, IBar<int> intBar)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportsWithRequiredCreationPolicyNonShared_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string Value1 { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string Value2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ConstructorImportsWithRequiredCreationPolicyNonShared_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(
+                    [Import(RequiredCreationPolicy = CreationPolicy.NonShared)] string value1,
+                    [Import(RequiredCreationPolicy = CreationPolicy.NonShared)] string value2)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MixedCreationPolicyImports_WarningOnlyForNonNonShared()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string NonShared1 { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string NonShared2 { get; set; }
+
+                [Import]
+                public string {|VSMEF007:Shared1|} { get; set; }
+
+                [Import]
+                public string {|VSMEF007:Shared2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task SingleRegularImportAndSingleNonSharedImport_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public string RegularImport { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public string NonSharedImport { get; set; }
             }
             """;
 
