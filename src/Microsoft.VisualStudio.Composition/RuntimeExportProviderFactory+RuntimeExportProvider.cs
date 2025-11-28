@@ -290,12 +290,30 @@ namespace Microsoft.VisualStudio.Composition
                     return exportProvider;
                 }
 
+                // For static member exports, we don't need to create a part lifecycle tracker
+                if (export.MemberRef != null && export.Member!.IsStatic())
+                {
+                    partLifecycle = null;
+                    return lazy ? ConstructLazyStaticExportedValue(export) :
+                                  ConstructStaticExportedValue(export);
+                }
+
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
 
                 return lazy ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback) :
                               ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+
+                static Func<object?> ConstructLazyStaticExportedValue(RuntimeComposition.RuntimeExport export)
+                {
+                    return () => ConstructStaticExportedValue(export);
+                }
+
+                static object? ConstructStaticExportedValue(RuntimeComposition.RuntimeExport export)
+                {
+                    return GetValueFromMember(null, export.Member!, null, export.ExportedValueTypeRef.Resolve());
+                }
 
                 static Func<object?> ConstructLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
                 {
