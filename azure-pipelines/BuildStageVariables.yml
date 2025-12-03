@@ -2,4 +2,3 @@ variables:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BuildConfiguration: Release
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
-  codecov_token: bfce293b-9f33-43bb-be7f-c1a4ed2b518d
