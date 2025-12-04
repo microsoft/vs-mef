@@ -22,7 +22,7 @@
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
-    <PackageVersion Include="Nerdbank.MessagePack" Version="0.10.33-rc" />
+    <PackageVersion Include="Nerdbank.MessagePack" Version="0.12.28-rc" />
     <PackageVersion Include="Nerdbank.MSBuildExtension" Version="0.1.17-beta" />
     <PackageVersion Include="Nerdbank.NetStandardBridge" Version="1.1.9-alpha" />
     <PackageVersion Include="OpenSoftware.DgmlBuilder" Version="2.1.0" />
