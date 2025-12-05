@@ -66,6 +66,87 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF004_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" defines exports but has non-default constructors that are not annotated with [ImportingConstructor]5D;. Add a parameterless constructor, or annotate a constructor with [ImportingConstructor]5D;.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA["{0}" 형식은 내보내기를 정의하지만, [ImportingConstructor]5D;(으)로 주석이 달리지 않은 기본 생성자가 아닌 생성자가 있습니다. 매개 변수가 없는 생성자를 추가하거나, 생성자에 [ImportingConstructor]5D;(으)로 주석을 다세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF004_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Exported type missing importing constructor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[내보낸 형식에 가져오기 생성자가 없음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF005_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" has multiple constructors annotated with [ImportingConstructor]5D;. Only one constructor should be marked as importing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA["{0}" 형식에는 [ImportingConstructor]5D;(으)로 주석이 달린 여러 생성자가 있습니다. 하나의 생성자만 가져오기로 표시되어야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF005_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Multiple importing constructors]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[여러 가져오기 생성자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_AllowDefaultWithoutNullable_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The import "{0}" has AllowDefault = true but is not nullable. Consider making the type nullable or removing AllowDefault.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[가져오기 "{0}"은(는) AllowDefault = true로 설정되어 있지만, null 허용이 아닙니다. 형식을 null 허용으로 만들거나 AllowDefault를 제거하는 것이 좋습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_NullableWithoutAllowDefault_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The import "{0}" is nullable but does not have AllowDefault = true. Consider adding AllowDefault = true or making the type non-nullable (and either add a 'required' modifier or an '= null!' initializer).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[가져오기 "{0}"은 null 허용이지만, AllowDefault = true로 설정되어 있지 않습니다. AllowDefault = true를 추가하거나, 형식을 null을 허용하지 않도록 하고 'required' 한정자나 '= null!' 이니셜라이저를 추가하는 것이 좋습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import nullability and AllowDefault mismatch]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[가져오기 null 허용 여부와 AllowDefault 불일치]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF007_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" imports the same contract "{1}" multiple times. Each contract should only be imported once per type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA["{0}" 형식이 동일한 계약 "{1}"을(를) 여러 번 가져옵니다. 각 계약은 형식당 한 번만 가져와야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF007_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Duplicate import contract]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[중복된 계약 가져오기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
