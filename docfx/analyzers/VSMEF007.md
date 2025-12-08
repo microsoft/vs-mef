@@ -79,6 +79,50 @@ class Service
 }
 ```
 
+### Duplicate import with Lazy wrapper
+
+MEF unwraps `Lazy<T>`, `Lazy<T, TMetadata>`, and `ExportFactory<T>` types to determine the contract type. Importing both `T` and `Lazy<T>` creates a duplicate import for contract `T`:
+
+```cs
+[Export]
+class Service
+{
+    [Import]
+    public ILogger Logger { get; set; }
+
+    [Import]
+    public Lazy<ILogger> LazyLogger { get; set; }  // Duplicate import - both import ILogger contract
+}
+```
+
+### Duplicate import with ExportFactory wrapper
+
+```cs
+[Export]
+class Service
+{
+    [Import]
+    public ILogger Logger { get; set; }
+
+    [Import]
+    public ExportFactory<ILogger> LoggerFactory { get; set; }  // Duplicate import
+}
+```
+
+### Duplicate import with metadata
+
+```cs
+[Export]
+class Service
+{
+    [Import]
+    public ILogger Logger { get; set; }
+
+    [Import]
+    public Lazy<ILogger, ILoggerMetadata> LazyLoggerWithMetadata { get; set; }  // Duplicate import
+}
+```
+
 ## Valid scenarios (no diagnostic)
 
 ### Different contract types
@@ -120,6 +164,20 @@ class Service
 
     [ImportMany]
     public IEnumerable<IHandler> Handlers { get; set; }  // Different element type
+}
+```
+
+### Different wrapper types with different contracts
+
+```cs
+[Export]
+class Service
+{
+    [Import]
+    public ILogger Logger { get; set; }
+
+    [Import]
+    public Lazy<IDatabase> LazyDatabase { get; set; }  // Different contract (IDatabase vs ILogger)
 }
 ```
 
