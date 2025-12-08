@@ -74,7 +74,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
 
         // Primary fix: Add [ImportingConstructor] attribute
         var addAttributeAction = CodeAction.Create(
-            title: "Add [ImportingConstructor] attribute",
+            title: Strings.VSMEF004_CodeFix_AddImportingConstructorAttribute,
             createChangedDocument: c => AddImportingConstructorAttributeAsync(context.Document, constructorDeclaration, mefVersion, c),
             equivalenceKey: "AddImportingConstructorAttribute");
 
@@ -82,7 +82,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
 
         // Secondary fix: Add parameterless constructor
         var addConstructorAction = CodeAction.Create(
-            title: "Add parameterless constructor",
+            title: Strings.VSMEF004_CodeFix_AddParameterlessConstructor,
             createChangedDocument: c => AddParameterlessConstructorAsync(context.Document, classDeclaration, c),
             equivalenceKey: "AddParameterlessConstructor");
 
@@ -90,7 +90,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
 
         // Tertiary fix: Add [PartNotDiscoverable] attribute (for manually constructed parts)
         var addPartNotDiscoverableAction = CodeAction.Create(
-            title: "Add [PartNotDiscoverable] attribute",
+            title: Strings.VSMEF004_CodeFix_AddPartNotDiscoverableAttribute,
             createChangedDocument: c => AddPartNotDiscoverableAttributeAsync(context.Document, classDeclaration, mefVersion, c),
             equivalenceKey: "AddPartNotDiscoverableAttribute");
 

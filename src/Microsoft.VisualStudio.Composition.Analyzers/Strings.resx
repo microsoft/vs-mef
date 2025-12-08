@@ -165,4 +165,25 @@
   <data name="VSMEF007_Title" xml:space="preserve">
     <value>Duplicate import contract</value>
   </data>
+  <data name="VSMEF004_CodeFix_AddImportingConstructorAttribute" xml:space="preserve">
+    <value>Add [ImportingConstructor] attribute</value>
+  </data>
+  <data name="VSMEF004_CodeFix_AddParameterlessConstructor" xml:space="preserve">
+    <value>Add parameterless constructor</value>
+  </data>
+  <data name="VSMEF004_CodeFix_AddPartNotDiscoverableAttribute" xml:space="preserve">
+    <value>Add [PartNotDiscoverable] attribute</value>
+  </data>
+  <data name="VSMEF006_CodeFix_AddAllowDefault" xml:space="preserve">
+    <value>Add AllowDefault = true</value>
+  </data>
+  <data name="VSMEF006_CodeFix_MakeTypeNonNullable" xml:space="preserve">
+    <value>Make type non-nullable</value>
+  </data>
+  <data name="VSMEF006_CodeFix_MakeTypeNullable" xml:space="preserve">
+    <value>Make type nullable</value>
+  </data>
+  <data name="VSMEF006_CodeFix_RemoveAllowDefault" xml:space="preserve">
+    <value>Remove AllowDefault = true</value>
+  </data>
 </root>
