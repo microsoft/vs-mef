@@ -198,4 +198,68 @@
     <value>Remove AllowDefault = true</value>
     <comment>{Locked="AllowDefault"} {Locked="true"} The property name and value should not be localized.</comment>
   </data>
+  <data name="VSMEF008_MessageFormat" xml:space="preserve">
+    <value>The contract type "{0}" is not assignable to the member type "{1}". The import will fail at runtime.</value>
+  </data>
+  <data name="VSMEF008_Title" xml:space="preserve">
+    <value>Import contract type not assignable to member type</value>
+  </data>
+  <data name="VSMEF009_Title" xml:space="preserve">
+    <value>ImportMany on non-collection type</value>
+    <comment>{Locked="ImportMany"}</comment>
+  </data>
+  <data name="VSMEF009_NonCollection_MessageFormat" xml:space="preserve">
+    <value>The type "{0}" is not a valid collection type for ImportMany. {1}</value>
+    <comment>{Locked="ImportMany"}</comment>
+  </data>
+  <data name="VSMEF009_NotInitialized_MessageFormat" xml:space="preserve">
+    <value>The property "{0}" has no setter and may not be initialized. {1}</value>
+  </data>
+  <data name="VSMEF009_ArrayWithoutSetter_MessageFormat" xml:space="preserve">
+    <value>The property "{0}" is an array without a setter. Arrays cannot be pre-initialized for ImportMany because they don't support Add().</value>
+    <comment>{Locked="ImportMany","Add()"}</comment>
+  </data>
+  <data name="VSMEF009_LazyWrappingCollection_Detail" xml:space="preserve">
+    <value>Lazy&lt;T&gt; wrapping a collection is not valid for ImportMany. Use a collection of Lazy&lt;T&gt; instead (e.g., IEnumerable&lt;Lazy&lt;T&gt;&gt;).</value>
+    <comment>{Locked="Lazy&lt;T&gt;","ImportMany","IEnumerable&lt;Lazy&lt;T&gt;&gt;"}</comment>
+  </data>
+  <data name="VSMEF009_NotCollectionType_Detail" xml:space="preserve">
+    <value>The type must be a collection type such as T[], IEnumerable&lt;T&gt;, List&lt;T&gt;, or a type implementing ICollection&lt;T&gt;.</value>
+    <comment>{Locked="T[]","IEnumerable&lt;T&gt;","List&lt;T&gt;","ICollection&lt;T&gt;"}</comment>
+  </data>
+  <data name="VSMEF009_MustImplementICollection_Detail" xml:space="preserve">
+    <value>The type must implement ICollection&lt;T&gt; to support pre-initialization.</value>
+    <comment>{Locked="ICollection&lt;T&gt;"}</comment>
+  </data>
+  <data name="VSMEF009_AddInitializer_Detail" xml:space="preserve">
+    <value>Add a property initializer (e.g., = new List&lt;T&gt;();) or initialize the property in all constructors.</value>
+    <comment>{Locked="= new List&lt;T&gt;();"}</comment>
+  </data>
+  <data name="VSMEF010_MessageFormat" xml:space="preserve">
+    <value>The collection type "{0}" is not supported for ImportMany on constructor parameter "{1}". Use T[] or IEnumerable&lt;T&gt; instead.</value>
+    <comment>{Locked="ImportMany","T[]","IEnumerable&lt;T&gt;"}</comment>
+  </data>
+  <data name="VSMEF010_Title" xml:space="preserve">
+    <value>ImportMany with unsupported collection type in constructor</value>
+    <comment>{Locked="ImportMany"}</comment>
+  </data>
+  <data name="VSMEF011_MessageFormat" xml:space="preserve">
+    <value>The member "{0}" has both [Import] and [ImportMany] attributes. These attributes are mutually exclusive.</value>
+    <comment>{Locked="Import","ImportMany"}</comment>
+  </data>
+  <data name="VSMEF011_Title" xml:space="preserve">
+    <value>Both Import and ImportMany applied to same member</value>
+    <comment>{Locked="Import","ImportMany"}</comment>
+  </data>
+  <data name="VSMEF012_Title" xml:space="preserve">
+    <value>Disallowed MEF attribute version</value>
+  </data>
+  <data name="VSMEF012_V1Disallowed_MessageFormat" xml:space="preserve">
+    <value>MEFv1 attribute "{0}" is not allowed. Use the MEFv2 equivalent from System.Composition.</value>
+    <comment>{Locked="MEFv1","MEFv2","System.Composition"}</comment>
+  </data>
+  <data name="VSMEF012_V2Disallowed_MessageFormat" xml:space="preserve">
+    <value>MEFv2 attribute "{0}" is not allowed. Use the MEFv1 equivalent from System.ComponentModel.Composition.</value>
+    <comment>{Locked="MEFv1","MEFv2","System.ComponentModel.Composition"}</comment>
+  </data>
 </root>
