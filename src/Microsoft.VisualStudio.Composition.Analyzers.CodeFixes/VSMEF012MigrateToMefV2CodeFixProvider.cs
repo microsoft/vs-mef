@@ -72,7 +72,7 @@ public class VSMEF012MigrateToMefV2CodeFixProvider : CodeFixProvider
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: $"Migrate to System.Composition.{attributeName}",
+                        title: string.Format(System.Globalization.CultureInfo.InvariantCulture, Strings.VSMEF012_CodeFix_MigrateToMefV2, attributeName),
                         createChangedDocument: ct => MigrateToMefV2Async(context.Document, attribute, ct),
                         equivalenceKey: $"MigrateToMefV2_{attributeName}"),
                     diagnostic);

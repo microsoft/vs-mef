@@ -75,7 +75,7 @@ public class VSMEF011RemoveDuplicateImportCodeFixProvider : CodeFixProvider
                 // For collections, keep [ImportMany] (remove [Import])
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: "Remove [Import] attribute (keep [ImportMany] for collection)",
+                        title: Strings.VSMEF011_CodeFix_RemoveImportKeepImportMany,
                         createChangedDocument: ct => RemoveAttributeAsync(context.Document, importAttr, ct),
                         equivalenceKey: "RemoveImport"),
                     diagnostic);
@@ -85,7 +85,7 @@ public class VSMEF011RemoveDuplicateImportCodeFixProvider : CodeFixProvider
                 // For non-collections, keep [Import] (remove [ImportMany])
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: "Remove [ImportMany] attribute (keep [Import] for single value)",
+                        title: Strings.VSMEF011_CodeFix_RemoveImportManyKeepImport,
                         createChangedDocument: ct => RemoveAttributeAsync(context.Document, importManyAttr, ct),
                         equivalenceKey: "RemoveImportMany"),
                     diagnostic);

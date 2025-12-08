@@ -243,6 +243,14 @@
     <value>ImportMany with unsupported collection type in constructor</value>
     <comment>{Locked="ImportMany"}</comment>
   </data>
+  <data name="VSMEF011_CodeFix_RemoveImportKeepImportMany" xml:space="preserve">
+    <value>Remove [Import] attribute (keep [ImportMany] for collection)</value>
+    <comment>{Locked="Import","ImportMany"}</comment>
+  </data>
+  <data name="VSMEF011_CodeFix_RemoveImportManyKeepImport" xml:space="preserve">
+    <value>Remove [ImportMany] attribute (keep [Import] for single value)</value>
+    <comment>{Locked="Import","ImportMany"}</comment>
+  </data>
   <data name="VSMEF011_MessageFormat" xml:space="preserve">
     <value>The member "{0}" has both [Import] and [ImportMany] attributes. These attributes are mutually exclusive.</value>
     <comment>{Locked="Import","ImportMany"}</comment>
@@ -250,6 +258,10 @@
   <data name="VSMEF011_Title" xml:space="preserve">
     <value>Both Import and ImportMany applied to same member</value>
     <comment>{Locked="Import","ImportMany"}</comment>
+  </data>
+  <data name="VSMEF012_CodeFix_MigrateToMefV2" xml:space="preserve">
+    <value>Migrate to System.Composition.{0}</value>
+    <comment>{Locked="System.Composition"} {0} is the attribute name</comment>
   </data>
   <data name="VSMEF012_Title" xml:space="preserve">
     <value>Disallowed MEF attribute version</value>
