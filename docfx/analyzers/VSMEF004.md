@@ -70,6 +70,34 @@ class Foo
 }
 ```
 
+### Option 4: Add [PartNotDiscoverable] for manually constructed parts
+
+If your part is intended to be manually constructed and inserted into the composition (e.g., for recomposition or mocking scenarios), you can mark it with `[PartNotDiscoverable]`:
+
+```cs
+[Export]
+[PartNotDiscoverable]
+class Foo
+{
+    public Foo(string parameter)
+    {
+        // This part will be manually constructed and composed
+    }
+}
+```
+
+This tells MEF not to discover and instantiate this part automatically. You must then manually create instances and add them to the composition container.
+
+## When to suppress warnings
+
+You can suppress this diagnostic if:
+
+1. **Manual construction scenarios**: Your part is intentionally constructed outside of MEF and inserted into the composition using methods like `CompositionContainer.ComposeParts()` or `CompositionContainer.SatisfyImportsOnce()`. Consider using `[PartNotDiscoverable]` instead of suppressing, as it makes the intent explicit.
+
+2. **Mocking/testing scenarios**: The type is used for testing purposes where you manually construct mock instances. Again, `[PartNotDiscoverable]` may be a better choice.
+
+3. **Very advanced recomposition scenarios**: You're using MEF v1's recomposition feature where parts can be dynamically added to or removed from the composition at runtime.
+
 ## Examples that trigger this rule
 
 ### Class-level export with non-default constructor

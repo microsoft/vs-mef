@@ -66,6 +66,12 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzer : DiagnosticAnaly
                 return;
             }
 
+            // Skip types marked with [PartNotDiscoverable] as they are intended for manual construction
+            if (Utils.HasPartNotDiscoverableAttribute(symbol))
+            {
+                return;
+            }
+
             // Get all constructors
             var constructors = symbol.Constructors.Where(c => !c.IsStatic && !c.IsImplicitlyDeclared).ToList();
 

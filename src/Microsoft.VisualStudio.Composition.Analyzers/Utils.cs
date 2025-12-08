@@ -93,6 +93,26 @@ internal static class Utils
     }
 
     /// <summary>
+    /// Determines whether the specified attribute type is a MEF PartNotDiscoverable attribute.
+    /// </summary>
+    /// <param name="attributeType">The attribute type to check.</param>
+    /// <returns><see langword="true"/> if the attribute type is a PartNotDiscoverable attribute; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// This method checks for both MEF v1 and MEF v2 PartNotDiscoverable attributes.
+    /// </remarks>
+    internal static bool IsPartNotDiscoverableAttribute(INamedTypeSymbol? attributeType)
+    {
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        // Check if it's a PartNotDiscoverable attribute (not typically subclassed, but check inheritance for consistency)
+        return IsAttributeOfType(attributeType, "PartNotDiscoverableAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "PartNotDiscoverableAttribute", MefV2AttributeNamespace.AsSpan());
+    }
+
+    /// <summary>
     /// Determines whether the specified attribute type matches the expected type and namespace, including inheritance hierarchy.
     /// </summary>
     /// <param name="attributeType">The attribute type to check.</param>
@@ -207,6 +227,24 @@ internal static class Utils
         foreach (AttributeData attribute in constructor.GetAttributes())
         {
             if (IsImportingConstructorAttribute(attribute.AttributeClass))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the specified type has the PartNotDiscoverable attribute.
+    /// </summary>
+    /// <param name="symbol">The type symbol to check.</param>
+    /// <returns><see langword="true"/> if the type has the PartNotDiscoverable attribute; otherwise, <see langword="false"/>.</returns>
+    internal static bool HasPartNotDiscoverableAttribute(INamedTypeSymbol symbol)
+    {
+        foreach (AttributeData attribute in symbol.GetAttributes())
+        {
+            if (IsPartNotDiscoverableAttribute(attribute.AttributeClass))
             {
                 return true;
             }

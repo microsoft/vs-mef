@@ -151,7 +151,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             // Fix 1: Add AllowDefault = true
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Add AllowDefault = true",
+                    title: Strings.VSMEF006_CodeFix_AddAllowDefault,
                     createChangedDocument: cancellationToken => AddAllowDefaultAsync(context.Document, root, targetNode, attributeLists, cancellationToken),
                     equivalenceKey: "AddAllowDefault"),
                 diagnostic);
@@ -159,7 +159,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             // Fix 2: Make type non-nullable
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Make type non-nullable",
+                    title: Strings.VSMEF006_CodeFix_MakeTypeNonNullable,
                     createChangedDocument: cancellationToken => MakeTypeNonNullableAsync(context.Document, root, targetNode, typeSyntax, cancellationToken),
                     equivalenceKey: "MakeNonNullable"),
                 diagnostic);
@@ -170,7 +170,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             // Fix 1: Make type nullable
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Make type nullable",
+                    title: Strings.VSMEF006_CodeFix_MakeTypeNullable,
                     createChangedDocument: cancellationToken => MakeTypeNullableAsync(context.Document, root, targetNode, typeSyntax, cancellationToken),
                     equivalenceKey: "MakeNullable"),
                 diagnostic);
@@ -178,7 +178,7 @@ public class VSMEF006ImportNullabilityCodeFixProvider : CodeFixProvider
             // Fix 2: Remove AllowDefault = true
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Remove AllowDefault = true",
+                    title: Strings.VSMEF006_CodeFix_RemoveAllowDefault,
                     createChangedDocument: cancellationToken => RemoveAllowDefaultAsync(context.Document, root, targetNode, attributeLists, cancellationToken),
                     equivalenceKey: "RemoveAllowDefault"),
                 diagnostic);

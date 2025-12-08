@@ -74,7 +74,7 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
 
         // Primary fix: Add [ImportingConstructor] attribute
         var addAttributeAction = CodeAction.Create(
-            title: "Add [ImportingConstructor] attribute",
+            title: Strings.VSMEF004_CodeFix_AddImportingConstructorAttribute,
             createChangedDocument: c => AddImportingConstructorAttributeAsync(context.Document, constructorDeclaration, mefVersion, c),
             equivalenceKey: "AddImportingConstructorAttribute");
 
@@ -82,11 +82,19 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
 
         // Secondary fix: Add parameterless constructor
         var addConstructorAction = CodeAction.Create(
-            title: "Add parameterless constructor",
+            title: Strings.VSMEF004_CodeFix_AddParameterlessConstructor,
             createChangedDocument: c => AddParameterlessConstructorAsync(context.Document, classDeclaration, c),
             equivalenceKey: "AddParameterlessConstructor");
 
         context.RegisterCodeFix(addConstructorAction, diagnostic);
+
+        // Tertiary fix: Add [PartNotDiscoverable] attribute (for manually constructed parts)
+        var addPartNotDiscoverableAction = CodeAction.Create(
+            title: Strings.VSMEF004_CodeFix_AddPartNotDiscoverableAttribute,
+            createChangedDocument: c => AddPartNotDiscoverableAttributeAsync(context.Document, classDeclaration, mefVersion, c),
+            equivalenceKey: "AddPartNotDiscoverableAttribute");
+
+        context.RegisterCodeFix(addPartNotDiscoverableAction, diagnostic);
     }
 
     private static async Task<Document> AddImportingConstructorAttributeAsync(
@@ -171,6 +179,43 @@ public class VSMEF004ExportWithoutImportingConstructorCodeFixProvider : CodeFixP
         newDocument = await Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return newDocument;
+    }
+
+    private static async Task<Document> AddPartNotDiscoverableAttributeAsync(
+        Document document,
+        ClassDeclarationSyntax classDeclaration,
+        MefVersion mefVersion,
+        CancellationToken cancellationToken)
+    {
+        SyntaxNode? root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+        {
+            return document;
+        }
+
+        // Create the PartNotDiscoverable attribute with proper annotations for simplification
+        string attributeName = mefVersion == MefVersion.V1
+            ? "System.ComponentModel.Composition.PartNotDiscoverable"
+            : "System.Composition.PartNotDiscoverable";
+
+        AttributeSyntax attribute = SyntaxFactory.Attribute(
+            SyntaxFactory.ParseName(attributeName)
+                .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation, Simplifier.Annotation));
+        AttributeListSyntax attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute));
+
+        // Add the attribute to the class
+        ClassDeclarationSyntax newClass = classDeclaration.WithAttributeLists(
+            classDeclaration.AttributeLists.Add(attributeList));
+
+        SyntaxNode newRoot = root.ReplaceNode(classDeclaration, newClass);
+
+        // Apply simplification and formatting
+        document = document.WithSyntaxRoot(newRoot);
+        document = await ImportAdder.AddImportsAsync(document, Simplifier.AddImportsAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+        document = await Simplifier.ReduceAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+        document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        return document;
     }
 
     private static MefVersion DetermineMefVersion(ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)

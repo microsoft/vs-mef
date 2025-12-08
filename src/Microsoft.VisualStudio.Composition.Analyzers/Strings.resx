@@ -122,15 +122,18 @@
   </resheader>
   <data name="VSMEF001_MessageFormat" xml:space="preserve">
     <value>A property with an [ImportAttribute] must define a setter so the export can be set on the property.</value>
+    <comment>{Locked="[ImportAttribute]"} The attribute name in brackets should not be localized.</comment>
   </data>
   <data name="VSMEF001_Title" xml:space="preserve">
     <value>Importing property must have setter</value>
   </data>
   <data name="VSMEF002_MessageFormat" xml:space="preserve">
     <value>The type "{0}" contains a mix of attributes from MEFv1 and MEFv2. Consolidate to just one variety of attributes.</value>
+    <comment>{Locked="MEFv1"} {Locked="MEFv2"} The framework version names should not be localized.</comment>
   </data>
   <data name="VSMEF002_Title" xml:space="preserve">
     <value>Avoid mixing MEF attribute varieties</value>
+    <comment>{Locked="MEF"} The framework name should not be localized.</comment>
   </data>
   <data name="VSMEF003_MessageFormat" xml:space="preserve">
     <value>The type "{0}" does not implement the exported type "{1}". This may be an authoring mistake.</value>
@@ -140,29 +143,59 @@
   </data>
   <data name="VSMEF004_MessageFormat" xml:space="preserve">
     <value>The type "{0}" defines exports but has non-default constructors that are not annotated with [ImportingConstructor]. Add a parameterless constructor, or annotate a constructor with [ImportingConstructor].</value>
+    <comment>{Locked="[ImportingConstructor]"} The attribute name in brackets should not be localized.</comment>
   </data>
   <data name="VSMEF004_Title" xml:space="preserve">
     <value>Exported type missing importing constructor</value>
   </data>
   <data name="VSMEF005_MessageFormat" xml:space="preserve">
     <value>The type "{0}" has multiple constructors annotated with [ImportingConstructor]. Only one constructor should be marked as importing.</value>
+    <comment>{Locked="[ImportingConstructor]"} The attribute name in brackets should not be localized.</comment>
   </data>
   <data name="VSMEF005_Title" xml:space="preserve">
     <value>Multiple importing constructors</value>
   </data>
   <data name="VSMEF006_AllowDefaultWithoutNullable_MessageFormat" xml:space="preserve">
     <value>The import "{0}" has AllowDefault = true but is not nullable. Consider making the type nullable or removing AllowDefault.</value>
+    <comment>{Locked="AllowDefault"} {Locked="true"} The property name and value should not be localized.</comment>
   </data>
   <data name="VSMEF006_NullableWithoutAllowDefault_MessageFormat" xml:space="preserve">
     <value>The import "{0}" is nullable but does not have AllowDefault = true. Consider adding AllowDefault = true or making the type non-nullable (and either add a 'required' modifier or an '= null!' initializer).</value>
+    <comment>{Locked="AllowDefault"} {Locked="true"} {Locked="required"} {Locked="= null!"} The property name, value, and C# keywords/syntax should not be localized.</comment>
   </data>
   <data name="VSMEF006_Title" xml:space="preserve">
     <value>Import nullability and AllowDefault mismatch</value>
+    <comment>{Locked="AllowDefault"} The property name should not be localized.</comment>
   </data>
   <data name="VSMEF007_MessageFormat" xml:space="preserve">
     <value>The type "{0}" imports the same contract "{1}" multiple times. Each contract should only be imported once per type.</value>
   </data>
   <data name="VSMEF007_Title" xml:space="preserve">
     <value>Duplicate import contract</value>
+  </data>
+  <data name="VSMEF004_CodeFix_AddImportingConstructorAttribute" xml:space="preserve">
+    <value>Add [ImportingConstructor] attribute</value>
+    <comment>{Locked="[ImportingConstructor]"} The attribute name in brackets should not be localized.</comment>
+  </data>
+  <data name="VSMEF004_CodeFix_AddParameterlessConstructor" xml:space="preserve">
+    <value>Add parameterless constructor</value>
+  </data>
+  <data name="VSMEF004_CodeFix_AddPartNotDiscoverableAttribute" xml:space="preserve">
+    <value>Add [PartNotDiscoverable] attribute</value>
+    <comment>{Locked="[PartNotDiscoverable]"} The attribute name in brackets should not be localized.</comment>
+  </data>
+  <data name="VSMEF006_CodeFix_AddAllowDefault" xml:space="preserve">
+    <value>Add AllowDefault = true</value>
+    <comment>{Locked="AllowDefault"} {Locked="true"} The property name and value should not be localized.</comment>
+  </data>
+  <data name="VSMEF006_CodeFix_MakeTypeNonNullable" xml:space="preserve">
+    <value>Make type non-nullable</value>
+  </data>
+  <data name="VSMEF006_CodeFix_MakeTypeNullable" xml:space="preserve">
+    <value>Make type nullable</value>
+  </data>
+  <data name="VSMEF006_CodeFix_RemoveAllowDefault" xml:space="preserve">
+    <value>Remove AllowDefault = true</value>
+    <comment>{Locked="AllowDefault"} {Locked="true"} The property name and value should not be localized.</comment>
   </data>
 </root>

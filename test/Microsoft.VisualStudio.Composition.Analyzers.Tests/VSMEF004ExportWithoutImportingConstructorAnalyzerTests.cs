@@ -274,6 +274,44 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
     }
 
     [Fact]
+    public async Task ClassWithPartNotDiscoverableAndNonDefaultConstructor_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            [PartNotDiscoverable]
+            class Foo
+            {
+                public Foo(string parameter)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ClassWithMefV2PartNotDiscoverableAndNonDefaultConstructor_NoWarning()
+    {
+        string test = """
+            using System.Composition;
+
+            [Export]
+            [PartNotDiscoverable]
+            class Foo
+            {
+                public Foo(string parameter)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task Interface_NoWarning()
     {
         string test = """
@@ -910,5 +948,145 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
             """;
 
         await VerifyCS.VerifyCodeFixAsync(testCode, fixedCode);
+    }
+
+    [Fact]
+    public async Task ClassWithExportAndNonDefaultConstructor_CodeFixAddsPartNotDiscoverableAttribute()
+    {
+        string testCode = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            [PartNotDiscoverable]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 2);
+    }
+
+    [Fact]
+    public async Task ClassWithMefV2ExportAndNonDefaultConstructor_CodeFixAddsPartNotDiscoverableAttribute()
+    {
+        string testCode = """
+            using System.Composition;
+
+            [Export]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System.Composition;
+
+            [Export]
+            [PartNotDiscoverable]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(6, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 2);
+    }
+
+    [Fact]
+    public async Task ClassWithCustomMefV1ExportAndNonDefaultConstructor_CodeFixAddsCorrectPartNotDiscoverableAttribute()
+    {
+        string testCode = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            [PartNotDiscoverable]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(13, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 2);
+    }
+
+    [Fact]
+    public async Task ClassWithCustomMefV2ExportAndNonDefaultConstructor_CodeFixAddsCorrectPartNotDiscoverableAttribute()
+    {
+        string testCode = """
+            using System;
+            using System.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        string fixedCode = """
+            using System;
+            using System.Composition;
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute() : base() { }
+            }
+
+            [MyExport]
+            [PartNotDiscoverable]
+            class Service
+            {
+                public Service(string config) { }
+            }
+            """;
+
+        DiagnosticResult expected = VerifyCS.Diagnostic().WithLocation(13, 12).WithArguments("Service");
+        await VerifyCS.VerifyCodeFixAsync(testCode, expected, fixedCode, codeActionIndex: 2);
     }
 }
