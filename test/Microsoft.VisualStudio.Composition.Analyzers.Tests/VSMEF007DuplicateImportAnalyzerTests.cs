@@ -1025,4 +1025,518 @@ public class VSMEF007DuplicateImportAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task LazyImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:Value1|} { get; set; }
+
+                [Import]
+                public Lazy<string> {|VSMEF007:Value2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyImportsWithDifferentUnderlyingTypes_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> StringValue { get; set; }
+
+                [Import]
+                public Lazy<int> IntValue { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyAndNonLazyWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:LazyValue|} { get; set; }
+
+                [Import]
+                public string {|VSMEF007:DirectValue|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public ExportFactory<string> {|VSMEF007:Factory1|} { get; set; }
+
+                [Import]
+                public ExportFactory<string> {|VSMEF007:Factory2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryImportsWithDifferentUnderlyingTypes_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public ExportFactory<string> StringFactory { get; set; }
+
+                [Import]
+                public ExportFactory<int> IntFactory { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryAndDirectImportWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public ExportFactory<string> {|VSMEF007:Factory|} { get; set; }
+
+                [Import]
+                public string {|VSMEF007:DirectValue|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyAndExportFactoryWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:LazyValue|} { get; set; }
+
+                [Import]
+                public ExportFactory<string> {|VSMEF007:Factory|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithMetadataImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface IMetadata { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string, IMetadata> {|VSMEF007:Value1|} { get; set; }
+
+                [Import]
+                public Lazy<string, IMetadata> {|VSMEF007:Value2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithMetadataAndLazyWithoutMetadata_SameType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface IMetadata { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string, IMetadata> {|VSMEF007:ValueWithMetadata|} { get; set; }
+
+                [Import]
+                public Lazy<string> {|VSMEF007:ValueWithoutMetadata|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryWithMetadataImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IMetadata { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public ExportFactory<string, IMetadata> {|VSMEF007:Factory1|} { get; set; }
+
+                [Import]
+                public ExportFactory<string, IMetadata> {|VSMEF007:Factory2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ConstructorWithLazyImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(Lazy<string> {|VSMEF007:value1|}, Lazy<string> {|VSMEF007:value2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ConstructorWithLazyAndDirectImportsSameType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(Lazy<string> {|VSMEF007:lazyValue|}, string {|VSMEF007:directValue|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ConstructorWithExportFactoryImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [ImportingConstructor]
+                public Foo(ExportFactory<string> {|VSMEF007:factory1|}, ExportFactory<string> {|VSMEF007:factory2|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MixedPropertyAndConstructorLazyImports_SameType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:PropertyValue|} { get; set; }
+
+                [ImportingConstructor]
+                public Foo(Lazy<string> {|VSMEF007:constructorValue|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MixedPropertyLazyAndConstructorDirect_SameType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:PropertyValue|} { get; set; }
+
+                [ImportingConstructor]
+                public Foo(string {|VSMEF007:constructorValue|})
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV2LazyImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:Value1|} { get; set; }
+
+                [Import]
+                public Lazy<string> {|VSMEF007:Value2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyImportsWithDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import("Contract1")]
+                public Lazy<string> Value1 { get; set; }
+
+                [Import("Contract2")]
+                public Lazy<string> Value2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryImportsWithDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import("Contract1")]
+                public ExportFactory<string> Factory1 { get; set; }
+
+                [Import("Contract2")]
+                public ExportFactory<string> Factory2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ThreeLazyImportsWithSameUnderlyingType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:Value1|} { get; set; }
+
+                [Import]
+                public Lazy<string> {|VSMEF007:Value2|} { get; set; }
+
+                [Import]
+                public Lazy<string> {|VSMEF007:Value3|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyExportFactoryAndDirect_AllSameType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> {|VSMEF007:LazyValue|} { get; set; }
+
+                [Import]
+                public ExportFactory<string> {|VSMEF007:Factory|} { get; set; }
+
+                [Import]
+                public string {|VSMEF007:DirectValue|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithGenericInterface_SameClosedType_Warning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface IService<T> { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<IService<string>> {|VSMEF007:Value1|} { get; set; }
+
+                [Import]
+                public Lazy<IService<string>> {|VSMEF007:Value2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithGenericInterface_DifferentClosedTypes_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface IService<T> { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<IService<string>> StringService { get; set; }
+
+                [Import]
+                public Lazy<IService<int>> IntService { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithNonSharedCreationPolicy_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public Lazy<string> Value1 { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public Lazy<string> Value2 { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryWithNonSharedCreationPolicy_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public ExportFactory<string> {|VSMEF007:Factory1|} { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public ExportFactory<string> {|VSMEF007:Factory2|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }
