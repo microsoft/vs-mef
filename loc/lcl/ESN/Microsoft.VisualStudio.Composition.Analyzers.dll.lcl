@@ -12,7 +12,7 @@
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
     <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
-      <Item ItemId=";VSMEF001_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";VSMEF001_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A property with an [ImportAttribute]5D; must define a setter so the export can be set on the property.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
@@ -30,7 +30,7 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";VSMEF002_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";VSMEF002_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The type "{0}" contains a mix of attributes from MEFv1 and MEFv2. Consolidate to just one variety of attributes.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
@@ -39,7 +39,7 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";VSMEF002_Title" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";VSMEF002_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Avoid mixing MEF attribute varieties]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
@@ -62,6 +62,150 @@
           <Val><![CDATA[Exported type not implemented by exporting class]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[El tipo exportado no está implementado por la clase exportadora]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF004_CodeFix_AddImportingConstructorAttribute" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add [ImportingConstructor]5D; attribute]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Agregar atributo [ImportingConstructor]5D;]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF004_CodeFix_AddParameterlessConstructor" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add parameterless constructor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Agregar constructor sin parámetros]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF004_CodeFix_AddPartNotDiscoverableAttribute" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add [PartNotDiscoverable]5D; attribute]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Agregar atributo [PartNotDiscoverable]5D;]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF004_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" defines exports but has non-default constructors that are not annotated with [ImportingConstructor]5D;. Add a parameterless constructor, or annotate a constructor with [ImportingConstructor]5D;.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[El tipo "{0}" define exportaciones pero tiene constructores no predeterminados que no están anotados con [ImportingConstructor]5D;. Agregue un constructor sin parámetros o anote un constructor con [ImportingConstructor]5D;.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF004_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Exported type missing importing constructor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Falta el constructor de importación en el tipo exportado]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF005_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" has multiple constructors annotated with [ImportingConstructor]5D;. Only one constructor should be marked as importing.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[El tipo "{0}" tiene varios constructores anotados con [ImportingConstructor]5D;. Solo un constructor debe estar marcado como de importación.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF005_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Multiple importing constructors]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Varios constructores de importación]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_AllowDefaultWithoutNullable_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The import "{0}" has AllowDefault = true but is not nullable. Consider making the type nullable or removing AllowDefault.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La importación "{0}" tiene AllowDefault = true pero no admite un valor NULL. Considere hacer que el tipo admita un valor NULL o eliminar AllowDefault.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_CodeFix_AddAllowDefault" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add AllowDefault = true]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Agregar AllowDefault = true]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_CodeFix_MakeTypeNonNullable" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Make type non-nullable]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hacer que el tipo no acepte valores NULL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_CodeFix_MakeTypeNullable" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Make type nullable]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Hacer que el tipo acepte valores NULL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_CodeFix_RemoveAllowDefault" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove AllowDefault = true]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Quitar AllowDefault = true]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_NullableWithoutAllowDefault_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The import "{0}" is nullable but does not have AllowDefault = true. Consider adding AllowDefault = true or making the type non-nullable (and either add a 'required' modifier or an '= null!' initializer).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La importación "{0}" admite un valor NULL pero no tiene AllowDefault = true. Considere agregar AllowDefault = true o hacer que el tipo no acepte valores NULL (y agregar un modificador "required" o un inicializador "= null!").]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF006_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import nullability and AllowDefault mismatch]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Incompatibilidad entre la nulabilidad de importación y AllowDefault]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF007_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" imports the same contract "{1}" multiple times. Each contract should only be imported once per type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[El tipo "{0}" importa el mismo contrato "{1}" varias veces. Cada contrato debe importarse solo una vez por tipo.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF007_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Duplicate import contract]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Contrato de importación duplicado]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
