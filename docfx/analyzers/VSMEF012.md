@@ -12,8 +12,8 @@ A MEF attribute from a disallowed version is used when the project has been conf
 
 MEF has two attribute libraries:
 
-- **MEFv1**: `System.ComponentModel.Composition` (from .NET Framework and NuGet)
-- **MEFv2**: `System.Composition` (lightweight, portable)
+- **MEFv1**: <xref:System.ComponentModel.Composition> (from .NET Framework and NuGet)
+- **MEFv2**: <xref:System.Composition> (lightweight, portable)
 
 While VS-MEF supports both attribute libraries, mixing them can lead to confusion and subtle bugs. Some projects may want to standardize on a single version for consistency.
 
@@ -108,12 +108,12 @@ Replace the disallowed MEF attributes with the equivalent attributes from the al
 
 | MEFv1 Attribute | MEFv2 Attribute |
 |-----------------|-----------------|
-| `System.ComponentModel.Composition.ExportAttribute` | `System.Composition.ExportAttribute` |
-| `System.ComponentModel.Composition.ImportAttribute` | `System.Composition.ImportAttribute` |
-| `System.ComponentModel.Composition.ImportManyAttribute` | `System.Composition.ImportManyAttribute` |
-| `System.ComponentModel.Composition.ImportingConstructorAttribute` | `System.Composition.ImportingConstructorAttribute` |
-| `System.ComponentModel.Composition.PartCreationPolicyAttribute` | `System.Composition.SharedAttribute` / `System.Composition.PartNotDiscoverableAttribute` |
-| `System.ComponentModel.Composition.ExportMetadataAttribute` | Custom metadata attribute |
+| <xref:System.ComponentModel.Composition.ExportAttribute?displayProperty=fullName> | <xref:System.Composition.ExportAttribute?displayProperty=fullName> |
+| <xref:System.ComponentModel.Composition.ImportAttribute?displayProperty=fullName> | <xref:System.Composition.ImportAttribute?displayProperty=fullName> |
+| <xref:System.ComponentModel.Composition.ImportManyAttribute?displayProperty=fullName> | <xref:System.Composition.ImportManyAttribute?displayProperty=fullName> |
+| <xref:System.ComponentModel.Composition.ImportingConstructorAttribute?displayProperty=fullName> | <xref:System.Composition.ImportingConstructorAttribute?displayProperty=fullName> |
+| <xref:System.ComponentModel.Composition.PartCreationPolicyAttribute?displayProperty=fullName> | <xref:System.Composition.SharedAttribute?displayProperty=fullName> / <xref:System.Composition.PartNotDiscoverableAttribute?displayProperty=fullName> |
+| <xref:System.ComponentModel.Composition.ExportMetadataAttribute?displayProperty=fullName> | Custom metadata attribute |
 
 ### MEFv2 to MEFv1
 
@@ -130,4 +130,4 @@ Suppress this warning if:
 
 - This analyzer is disabled by default. You must explicitly enable it and configure the allowed version.
 - This analyzer is distinct from VSMEF002, which warns about *mixing* MEF versions on the same type. VSMEF013 disallows a version entirely.
-- Some MEFv1-only features (like `InheritedExport`, `PartCreationPolicy`, `ExportMetadata`) have no direct MEFv2 equivalents.
+- Some MEFv1-only features (like <xref:System.ComponentModel.Composition.InheritedExportAttribute>, <xref:System.ComponentModel.Composition.PartCreationPolicyAttribute>, <xref:System.ComponentModel.Composition.ExportMetadataAttribute>) have no direct MEFv2 equivalents.
