@@ -3,6 +3,7 @@
 
 namespace Microsoft.VisualStudio.Composition.Analyzers;
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -103,16 +104,50 @@ public class VSMEF009ImportManyMemberCollectionTypeAnalyzer : DiagnosticAnalyzer
                 lazyType,
                 lazyWithMetadataType);
 
-            context.RegisterSymbolAction(ctx => AnalyzeProperty(ctx, state), SymbolKind.Property);
             context.RegisterSymbolAction(ctx => AnalyzeField(ctx, state), SymbolKind.Field);
             context.RegisterSymbolAction(ctx => AnalyzeMethod(ctx, state), SymbolKind.Method);
+
+            context.RegisterSymbolStartAction(
+                typeContext =>
+                {
+                    // Track which properties each constructor assigns, populated by operation callbacks.
+                    // This provides full semantic resolution without requiring GetSemanticModel().
+                    var constructorPropertyAssignments = new ConcurrentDictionary<IMethodSymbol, ConcurrentBag<IPropertySymbol>>(SymbolEqualityComparer.Default);
+
+                    typeContext.RegisterOperationAction(
+                        opCtx =>
+                        {
+                            if (opCtx.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } ctor)
+                            {
+                                var assignment = (ISimpleAssignmentOperation)opCtx.Operation;
+                                if (assignment.Target is IPropertyReferenceOperation propRef &&
+                                    propRef.Instance is IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.ContainingTypeInstance })
+                                {
+                                    var bag = constructorPropertyAssignments.GetOrAdd(ctor, _ => new ConcurrentBag<IPropertySymbol>());
+                                    bag.Add(propRef.Property);
+                                }
+                            }
+                        },
+                        OperationKind.SimpleAssignment);
+
+                    typeContext.RegisterSymbolEndAction(endCtx =>
+                    {
+                        var typeSymbol = (INamedTypeSymbol)endCtx.Symbol;
+                        foreach (ISymbol member in typeSymbol.GetMembers())
+                        {
+                            if (member is IPropertySymbol property)
+                            {
+                                AnalyzeProperty(endCtx, property, state, constructorPropertyAssignments);
+                            }
+                        }
+                    });
+                },
+                SymbolKind.NamedType);
         });
     }
 
-    private static void AnalyzeProperty(SymbolAnalysisContext context, AnalyzerState state)
+    private static void AnalyzeProperty(SymbolAnalysisContext context, IPropertySymbol property, AnalyzerState state, ConcurrentDictionary<IMethodSymbol, ConcurrentBag<IPropertySymbol>> constructorPropertyAssignments)
     {
-        var property = (IPropertySymbol)context.Symbol;
-
         if (!HasImportManyAttribute(property.GetAttributes(), state))
         {
             return;
@@ -176,7 +211,7 @@ public class VSMEF009ImportManyMemberCollectionTypeAnalyzer : DiagnosticAnalyzer
         }
 
         // Check if the property is definitely initialized
-        if (!IsPropertyDefinitelyInitialized(property, context.Compilation))
+        if (!IsPropertyDefinitelyInitialized(property, constructorPropertyAssignments))
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 NotInitializedDescriptor,
@@ -368,7 +403,7 @@ public class VSMEF009ImportManyMemberCollectionTypeAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    private static bool IsPropertyDefinitelyInitialized(IPropertySymbol property, Compilation compilation)
+    private static bool IsPropertyDefinitelyInitialized(IPropertySymbol property, ConcurrentDictionary<IMethodSymbol, ConcurrentBag<IPropertySymbol>> constructorPropertyAssignments)
     {
         // Check for property initializer
         foreach (SyntaxReference syntaxRef in property.DeclaringSyntaxReferences)
@@ -422,10 +457,13 @@ public class VSMEF009ImportManyMemberCollectionTypeAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        // Check if all non-chaining constructors assign the property
+        // Check if all non-chaining constructors assign the property.
+        // The constructorPropertyAssignments map is populated by RegisterOperationAction
+        // on ISimpleAssignmentOperation, which provides full semantic resolution.
         foreach (IMethodSymbol ctor in nonChainingConstructors)
         {
-            if (!ConstructorAssignsProperty(ctor, property, compilation))
+            if (!constructorPropertyAssignments.TryGetValue(ctor, out ConcurrentBag<IPropertySymbol>? assignedProperties) ||
+                !assignedProperties.Any(p => SymbolEqualityComparer.Default.Equals(p, property)))
             {
                 return false;
             }
@@ -453,37 +491,6 @@ public class VSMEF009ImportManyMemberCollectionTypeAnalyzer : DiagnosticAnalyzer
                     {
                         return true;
                     }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static bool ConstructorAssignsProperty(IMethodSymbol constructor, IPropertySymbol property, Compilation compilation)
-    {
-        foreach (SyntaxReference syntaxRef in constructor.DeclaringSyntaxReferences)
-        {
-            SyntaxNode syntax = syntaxRef.GetSyntax();
-
-            // We need the semantic model to resolve IOperation from syntax nodes.
-            // This is necessary to determine if an assignment targets our specific property.
-#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
-            SemanticModel? model = compilation.GetSemanticModel(syntax.SyntaxTree);
-#pragma warning restore RS1030
-
-            // Walk the constructor body looking for assignments to the property
-            foreach (SyntaxNode node in syntax.DescendantNodes())
-            {
-                // Look for assignment expressions
-                IOperation? operation = model.GetOperation(node);
-                if (operation is ISimpleAssignmentOperation assignment &&
-                    assignment.Target is IPropertyReferenceOperation propRef &&
-                    SymbolEqualityComparer.Default.Equals(propRef.Property, property) &&
-                    propRef.Instance is IInstanceReferenceOperation instanceRef &&
-                    instanceRef.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
-                {
-                    return true;
                 }
             }
         }
