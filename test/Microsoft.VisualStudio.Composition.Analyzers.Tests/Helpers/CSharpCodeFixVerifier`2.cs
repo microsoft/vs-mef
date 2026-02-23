@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Text;
 
 public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
     where TAnalyzer : DiagnosticAnalyzer, new()
@@ -23,6 +24,18 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         return test.RunAsync();
     }
 
+    public static Task VerifyAnalyzerAsync(string source, string? editorConfig, params DiagnosticResult[] expected)
+    {
+        var test = new Test { TestCode = source };
+        if (editorConfig is not null)
+        {
+            test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", SourceText.From(editorConfig)));
+        }
+
+        test.ExpectedDiagnostics.AddRange(expected);
+        return test.RunAsync();
+    }
+
     public static Task VerifyCodeFixAsync(string source, string fixedSource, int? codeActionIndex = null)
         => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource, codeActionIndex);
 
@@ -37,6 +50,27 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
             FixedCode = fixedSource,
             CodeActionIndex = codeActionIndex,
         };
+
+        test.ExpectedDiagnostics.AddRange(expected);
+        return test.RunAsync();
+    }
+
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource, string? editorConfig, int? codeActionIndex = null)
+        => VerifyCodeFixAsync(source, new[] { expected }, fixedSource, editorConfig, codeActionIndex);
+
+    public static Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource, string? editorConfig, int? codeActionIndex)
+    {
+        var test = new Test
+        {
+            TestCode = source,
+            FixedCode = fixedSource,
+            CodeActionIndex = codeActionIndex,
+        };
+
+        if (editorConfig is not null)
+        {
+            test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", SourceText.From(editorConfig)));
+        }
 
         test.ExpectedDiagnostics.AddRange(expected);
         return test.RunAsync();
