@@ -83,19 +83,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // A timeout is acceptable. It suggests the container
                 // is threadsafe in a manner that does not allow a shared part's constructor
                 // to be invoked multiple times.
-                // Make sure it was in fact only invoked once.
-                Assert.Equal(threads - 1, SharedPartWithBlockableConstructor.ConstructorEnteredCountdown.CurrentCount);
+                // Under slow reflection or heavy load, no thread may have reached the constructor yet.
+                // At most one thread should have entered the constructor within the timeout period.
+                int currentCount = SharedPartWithBlockableConstructor.ConstructorEnteredCountdown.CurrentCount;
+                Assert.True(currentCount >= threads - 1, $"Expected at most 1 thread to have entered the constructor, but {threads - currentCount} entered.");
 
-                // Signal to unblock the one constructor invocation that we have.
+                // Signal to unblock any constructor invocation that we have or that will eventually start.
                 SharedPartWithBlockableConstructor.ImportingConstructorBlockEvent.Set();
             }
 
+            // Wait for all tasks to complete before verifying results.
+            SharedPartWithBlockableConstructor[] results = await Task.WhenAll(contrivedPartTasks);
+
             Assert.Equal(1, SharedPartWithBlockableConstructor.CtorInvocationCounter);
 
-            // Verify that all threaded saw just one instance of the shared part satisfying all the imports.
+            // Verify that all threads saw just one instance of the shared part satisfying all the imports.
             for (int i = 1; i < threads; i++)
             {
-                Assert.Same(await contrivedPartTasks[0], await contrivedPartTasks[i]);
+                Assert.Same(results[0], results[i]);
             }
         }
 

@@ -33,6 +33,7 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzer : DiagnosticAnalyzer
     /// </summary>
     public const string Id = "VSMEF012";
 
+#pragma warning disable RS2001 // https://github.com/dotnet/roslyn/issues/82495
     /// <summary>
     /// The descriptor for disallowing MEFv1 attributes.
     /// </summary>
@@ -56,6 +57,7 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzer : DiagnosticAnalyzer
         category: "Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: false);
+#pragma warning restore RS2001 // https://github.com/dotnet/roslyn/issues/82495
 
     private static readonly ImmutableDictionary<string, string?> V1Properties = ImmutableDictionary<string, string?>.Empty.Add("AttributeVersion", "V1");
 

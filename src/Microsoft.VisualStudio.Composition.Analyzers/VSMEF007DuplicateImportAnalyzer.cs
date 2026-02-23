@@ -61,12 +61,27 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
             // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
             if (Utils.ReferencesMefAttributes(context.Compilation))
             {
-                context.RegisterSymbolAction(AnalyzeType, SymbolKind.NamedType);
+                INamedTypeSymbol? lazyType = context.Compilation.GetTypeByMetadataName("System.Lazy`1");
+                INamedTypeSymbol? lazyWithMetadataType = context.Compilation.GetTypeByMetadataName("System.Lazy`2");
+                INamedTypeSymbol? exportFactoryV1Type = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportFactory`1");
+                INamedTypeSymbol? exportFactoryV1WithMetadataType = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportFactory`2");
+                INamedTypeSymbol? exportFactoryV2Type = context.Compilation.GetTypeByMetadataName("System.Composition.ExportFactory`1");
+                INamedTypeSymbol? exportFactoryV2WithMetadataType = context.Compilation.GetTypeByMetadataName("System.Composition.ExportFactory`2");
+
+                var wrapperTypes = new WrapperTypes(
+                    lazyType,
+                    lazyWithMetadataType,
+                    exportFactoryV1Type,
+                    exportFactoryV1WithMetadataType,
+                    exportFactoryV2Type,
+                    exportFactoryV2WithMetadataType);
+
+                context.RegisterSymbolAction(ctx => AnalyzeType(ctx, wrapperTypes), SymbolKind.NamedType);
             }
         });
     }
 
-    private static void AnalyzeType(SymbolAnalysisContext context)
+    private static void AnalyzeType(SymbolAnalysisContext context, WrapperTypes wrapperTypes)
     {
         var namedType = (INamedTypeSymbol)context.Symbol;
 
@@ -79,7 +94,9 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         var imports = new List<Import>();
 
         // Collect all imports from properties
-        // Note: We skip NonShared imports because each gets a unique instance, so they're not problematic duplicates
+        // Note: We skip NonShared imports because each gets a unique instance, so they're not problematic duplicates.
+        // However, we don't skip ExportFactory imports even with NonShared, because ExportFactory already creates
+        // new instances on demand - having multiple identical ExportFactory imports is still redundant.
         foreach (ISymbol member in namedType.GetMembers())
         {
             if (member is IPropertySymbol property)
@@ -88,13 +105,13 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
                 if (importAttribute is not null)
                 {
-                    if (Utils.IsNonSharedImport(importAttribute))
+                    if (Utils.IsNonSharedImport(importAttribute) && !IsExportFactoryType(property.Type, wrapperTypes))
                     {
-                        // Skip NonShared imports, each gets a unique instance.
+                        // Skip NonShared imports (except ExportFactory), each gets a unique instance.
                         continue;
                     }
 
-                    Contract contract = GetImportContract(importAttribute, property.Type);
+                    Contract contract = GetImportContract(importAttribute, property.Type, wrapperTypes);
 
                     imports.Add(new Import(contract, property.Name, property.Locations[0]));
                 }
@@ -114,13 +131,13 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
                     {
                         AttributeData? importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
 
-                        if (importAttribute is not null && Utils.IsNonSharedImport(importAttribute))
+                        if (importAttribute is not null && Utils.IsNonSharedImport(importAttribute) && !IsExportFactoryType(parameter.Type, wrapperTypes))
                         {
-                            // Skip NonShared imports, each gets a unique instance.
+                            // Skip NonShared imports (except ExportFactory), each gets a unique instance.
                             continue;
                         }
 
-                        Contract contract = GetImportContract(importAttribute, parameter.Type);
+                        Contract contract = GetImportContract(importAttribute, parameter.Type, wrapperTypes);
 
                         imports.Add(new Import(contract, parameter.Name, parameter.Locations[0]));
                     }
@@ -144,7 +161,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static Contract GetImportContract(AttributeData? importAttribute, ITypeSymbol importType)
+    private static Contract GetImportContract(AttributeData? importAttribute, ITypeSymbol importType, WrapperTypes wrapperTypes)
     {
         string? explicitContractName = null;
         ITypeSymbol? explicitContractType = null;
@@ -184,6 +201,11 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
         // If contract type is explicitly specified, use it; otherwise use the import parameter type.
         ITypeSymbol type = explicitContractType ?? importType;
+
+        // Unwrap Lazy<T>, Lazy<T, TMetadata>, ExportFactory<T>, ExportFactory<T, TMetadata>
+        // This ensures that importing T and Lazy<T> are correctly detected as duplicates.
+        type = UnwrapLazyOrExportFactory(type, wrapperTypes);
+
         string typeName = type.ToDisplayString();
 
         // Contract name: use explicit name if provided, otherwise default to type name.
@@ -191,6 +213,54 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
         return new Contract(typeName, name);
     }
+
+    private static ITypeSymbol UnwrapLazyOrExportFactory(ITypeSymbol type, WrapperTypes wrapperTypes)
+    {
+        if (type is not INamedTypeSymbol namedType || !namedType.IsGenericType)
+        {
+            return type;
+        }
+
+        INamedTypeSymbol originalDef = namedType.OriginalDefinition;
+
+        // Check for Lazy<T> or Lazy<T, TMetadata>
+        if (SymbolEqualityComparer.Default.Equals(originalDef, wrapperTypes.LazyType) ||
+            SymbolEqualityComparer.Default.Equals(originalDef, wrapperTypes.LazyWithMetadataType))
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        // Check for ExportFactory<T> or ExportFactory<T, TMetadata> (both V1 and V2)
+        if (IsExportFactoryType(type, wrapperTypes))
+        {
+            return namedType.TypeArguments[0];
+        }
+
+        return type;
+    }
+
+    private static bool IsExportFactoryType(ITypeSymbol type, WrapperTypes wrapperTypes)
+    {
+        if (type is not INamedTypeSymbol namedType || !namedType.IsGenericType)
+        {
+            return false;
+        }
+
+        INamedTypeSymbol originalDef = namedType.OriginalDefinition;
+
+        return SymbolEqualityComparer.Default.Equals(originalDef, wrapperTypes.ExportFactoryV1Type) ||
+               SymbolEqualityComparer.Default.Equals(originalDef, wrapperTypes.ExportFactoryV1WithMetadataType) ||
+               SymbolEqualityComparer.Default.Equals(originalDef, wrapperTypes.ExportFactoryV2Type) ||
+               SymbolEqualityComparer.Default.Equals(originalDef, wrapperTypes.ExportFactoryV2WithMetadataType);
+    }
+
+    private sealed record WrapperTypes(
+        INamedTypeSymbol? LazyType,
+        INamedTypeSymbol? LazyWithMetadataType,
+        INamedTypeSymbol? ExportFactoryV1Type,
+        INamedTypeSymbol? ExportFactoryV1WithMetadataType,
+        INamedTypeSymbol? ExportFactoryV2Type,
+        INamedTypeSymbol? ExportFactoryV2WithMetadataType);
 
     // A MEF contract consists of both a contract name and a contract type.
     // Both must match for two imports to be considered duplicates.
