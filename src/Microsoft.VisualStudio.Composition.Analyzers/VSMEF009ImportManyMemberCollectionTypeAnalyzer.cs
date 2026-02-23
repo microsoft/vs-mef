@@ -477,19 +477,13 @@ public class VSMEF009ImportManyMemberCollectionTypeAnalyzer : DiagnosticAnalyzer
             {
                 // Look for assignment expressions
                 IOperation? operation = model.GetOperation(node);
-                if (operation is ISimpleAssignmentOperation assignment)
+                if (operation is ISimpleAssignmentOperation assignment &&
+                    assignment.Target is IPropertyReferenceOperation propRef &&
+                    SymbolEqualityComparer.Default.Equals(propRef.Property, property) &&
+                    propRef.Instance is IInstanceReferenceOperation instanceRef &&
+                    instanceRef.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
                 {
-                    // Check if the target is our property
-                    if (assignment.Target is IPropertyReferenceOperation propRef &&
-                        SymbolEqualityComparer.Default.Equals(propRef.Property, property))
-                    {
-                        // Check if it's assigning to 'this'
-                        if (propRef.Instance is IInstanceReferenceOperation instanceRef &&
-                            instanceRef.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance)
-                        {
-                            return true;
-                        }
-                    }
+                    return true;
                 }
             }
         }
