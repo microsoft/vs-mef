@@ -31,9 +31,9 @@
     <PackageVersion Include="OpenSoftware.DgmlBuilder" Version="2.1.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.21216.1" />
-    <PackageVersion Include="System.ComponentModel.Composition" Version="9.0.0" />
-    <PackageVersion Include="System.Composition.AttributedModel" Version="9.0.0" />
-    <PackageVersion Include="System.Composition" Version="9.0.0" />
+    <PackageVersion Include="System.ComponentModel.Composition" Version="10.0.1" />
+    <PackageVersion Include="System.Composition.AttributedModel" Version="10.0.1" />
+    <PackageVersion Include="System.Composition" Version="10.0.1" />
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="8.0.1" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.1" />
