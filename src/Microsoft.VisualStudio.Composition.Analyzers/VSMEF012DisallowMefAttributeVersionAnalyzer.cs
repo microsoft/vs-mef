@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 /// <code>
 /// [*.cs]
 /// dotnet_diagnostic.VSMEF012.severity = warning
-/// dotnet_diagnostic.VSMEF012.allowed_mef_version = V2  # or V1
+/// dotnet_diagnostic.VSMEF012.allowed_mef_version = System.Composition  # or System.ComponentModel.Composition
 /// </code>
 /// </para>
 /// </remarks>
@@ -165,8 +165,8 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// The editorconfig option key for specifying which MEF version is allowed.
-    /// Set to "V1" or "V2" to enforce a specific version.
+    /// The editorconfig option key for specifying which MEF attribute namespace is allowed.
+    /// Set to <c>System.ComponentModel.Composition</c> or <c>System.Composition</c> to enforce a specific version.
     /// </summary>
     internal const string AllowedMefVersionOptionKey = "dotnet_diagnostic.VSMEF012.allowed_mef_version";
 
@@ -182,10 +182,10 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzer : DiagnosticAnalyzer
 
         if (configOptions.TryGetValue(AllowedMefVersionOptionKey, out string? value))
         {
-            return value?.ToUpperInvariant() switch
+            return value switch
             {
-                "V1" => MefVersion.V1,
-                "V2" => MefVersion.V2,
+                string v when v.Equals("System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) => MefVersion.V1,
+                string v when v.Equals("System.Composition", StringComparison.OrdinalIgnoreCase) => MefVersion.V2,
                 _ => null,
             };
         }

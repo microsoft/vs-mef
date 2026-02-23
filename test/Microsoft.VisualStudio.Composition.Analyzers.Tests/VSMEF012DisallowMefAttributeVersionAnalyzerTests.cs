@@ -12,7 +12,7 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzerTests
 
         [*.cs]
         dotnet_diagnostic.VSMEF012.severity = warning
-        dotnet_diagnostic.VSMEF012.allowed_mef_version = V2
+        dotnet_diagnostic.VSMEF012.allowed_mef_version = System.Composition
 
         """;
 
@@ -22,7 +22,7 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzerTests
 
         [*.cs]
         dotnet_diagnostic.VSMEF012.severity = warning
-        dotnet_diagnostic.VSMEF012.allowed_mef_version = V1
+        dotnet_diagnostic.VSMEF012.allowed_mef_version = System.ComponentModel.Composition
 
         """;
 
@@ -101,6 +101,37 @@ public class VSMEF012DisallowMefAttributeVersionAnalyzerTests
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    /// <summary>
+    /// Verifies that an unrecognized value for the editorconfig option does not
+    /// cause an unhandled exception and the analyzer silently does nothing.
+    /// </summary>
+    [Fact]
+    public async Task GarbageConfigValue_NoWarningAndNoException()
+    {
+        string editorConfig = """
+
+            root = true
+
+            [*.cs]
+            dotnet_diagnostic.VSMEF012.severity = warning
+            dotnet_diagnostic.VSMEF012.allowed_mef_version = garbage
+
+            """;
+
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public string Value { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test, editorConfig);
     }
 
     [Fact]

@@ -19,8 +19,8 @@ While VS-MEF supports both attribute libraries, mixing them can lead to confusio
 
 This analyzer can be configured to:
 
-- Only allow MEFv1 attributes (`AllowedMefVersion = V1`)
-- Only allow MEFv2 attributes (`AllowedMefVersion = V2`)
+- Only allow MEFv1 attributes (`allowed_mef_version = System.ComponentModel.Composition`)
+- Only allow MEFv2 attributes (`allowed_mef_version = System.Composition`)
 
 When configured, using an attribute from the disallowed version will produce a diagnostic.
 
@@ -34,18 +34,18 @@ Add the following to your `.editorconfig` file:
 dotnet_diagnostic.VSMEF012.severity = warning
 
 # Allow only MEFv1 attributes
-dotnet_diagnostic.VSMEF012.allowed_mef_version = V1
+dotnet_diagnostic.VSMEF012.allowed_mef_version = System.ComponentModel.Composition
 
 # Or allow only MEFv2 attributes
-dotnet_diagnostic.VSMEF012.allowed_mef_version = V2
+dotnet_diagnostic.VSMEF012.allowed_mef_version = System.Composition
 ```
 
 ## Examples of violations
 
-### When configured for V1 only
+### When configured for System.ComponentModel.Composition only
 
 ```cs
-// .editorconfig: dotnet_diagnostic.VSMEF012.allowed_mef_version = V1
+// .editorconfig: dotnet_diagnostic.VSMEF012.allowed_mef_version = System.ComponentModel.Composition
 
 using System.Composition;  // MEFv2 namespace
 
@@ -57,10 +57,10 @@ class Service
 }
 ```
 
-### When configured for V2 only
+### When configured for System.Composition only
 
 ```cs
-// .editorconfig: dotnet_diagnostic.VSMEF012.allowed_mef_version = V2
+// .editorconfig: dotnet_diagnostic.VSMEF012.allowed_mef_version = System.Composition
 
 using System.ComponentModel.Composition;  // MEFv1 namespace
 
@@ -77,7 +77,7 @@ class Service
 ### Using allowed version
 
 ```cs
-// .editorconfig: dotnet_diagnostic.VSMEF012.allowed_mef_version = V1
+// .editorconfig: dotnet_diagnostic.VSMEF012.allowed_mef_version = System.ComponentModel.Composition
 
 using System.ComponentModel.Composition;  // MEFv1 namespace
 
@@ -129,5 +129,6 @@ Suppress this warning if:
 ## Notes
 
 - This analyzer is disabled by default. You must explicitly enable it and configure the allowed version.
-- This analyzer is distinct from VSMEF002, which warns about *mixing* MEF versions on the same type. VSMEF013 disallows a version entirely.
+- This analyzer is distinct from VSMEF002, which warns about *mixing* MEF versions on the same type. VSMEF012 disallows a version entirely.
+- This analyzer walks the inheritance hierarchy, so custom attributes that derive from MEF attributes (e.g., a custom export attribute that derives from <xref:System.ComponentModel.Composition.ExportAttribute>) are correctly detected.
 - Some MEFv1-only features (like <xref:System.ComponentModel.Composition.InheritedExportAttribute>, <xref:System.ComponentModel.Composition.PartCreationPolicyAttribute>, <xref:System.ComponentModel.Composition.ExportMetadataAttribute>) have no direct MEFv2 equivalents.
