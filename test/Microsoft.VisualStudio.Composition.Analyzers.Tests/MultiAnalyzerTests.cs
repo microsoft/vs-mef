@@ -7,7 +7,7 @@ using VerifyAll = CSharpMultiAnalyzerVerifier;
 /// These tests verify that valid code does not trigger any analyzer diagnostics.
 /// Each test verifies the source code against all VSMEF analyzers simultaneously.
 /// </summary>
-public class NoWarningTests
+public class MultiAnalyzerTests
 {
     [Fact]
     public async Task ClassWithNoConstructors_NoWarning()
@@ -35,6 +35,22 @@ public class NoWarningTests
             {
                 [ImportingConstructor]
                 public Foo(string value) { }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ClassWithSingleDefaultConstructor_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                public Foo() { }
             }
             """;
 

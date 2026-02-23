@@ -6,22 +6,6 @@ using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyz
 public class VSMEF005MultipleImportingConstructorsAnalyzerTests
 {
     [Fact]
-    public async Task ClassWithSingleNonImportingConstructor_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                public Foo(string value) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ClassWithMultipleImportingConstructors_Warning()
     {
         string test = """
