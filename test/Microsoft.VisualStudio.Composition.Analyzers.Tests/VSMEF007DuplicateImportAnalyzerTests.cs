@@ -439,27 +439,6 @@ public class VSMEF007DuplicateImportAnalyzerTests
     }
 
     [Fact]
-    public async Task LazyImportsWithDifferentUnderlyingTypes_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                [Import]
-                public Lazy<string> StringValue { get; set; }
-
-                [Import]
-                public Lazy<int> IntValue { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task LazyAndNonLazyWithSameUnderlyingType_Warning()
     {
         string test = """
@@ -494,26 +473,6 @@ public class VSMEF007DuplicateImportAnalyzerTests
 
                 [Import]
                 public ExportFactory<string> {|VSMEF007:Factory2|} { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ExportFactoryImportsWithDifferentUnderlyingTypes_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                [Import]
-                public ExportFactory<string> StringFactory { get; set; }
-
-                [Import]
-                public ExportFactory<int> IntFactory { get; set; }
             }
             """;
 
@@ -756,47 +715,6 @@ public class VSMEF007DuplicateImportAnalyzerTests
     }
 
     [Fact]
-    public async Task LazyImportsWithDifferentContractNames_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                [Import("Contract1")]
-                public Lazy<string> Value1 { get; set; }
-
-                [Import("Contract2")]
-                public Lazy<string> Value2 { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ExportFactoryImportsWithDifferentContractNames_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                [Import("Contract1")]
-                public ExportFactory<string> Factory1 { get; set; }
-
-                [Import("Contract2")]
-                public ExportFactory<string> Factory2 { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ThreeLazyImportsWithSameUnderlyingType_Warning()
     {
         string test = """
@@ -861,50 +779,6 @@ public class VSMEF007DuplicateImportAnalyzerTests
 
                 [Import]
                 public Lazy<IService<string>> {|VSMEF007:Value2|} { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task LazyWithGenericInterface_DifferentClosedTypes_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-
-            interface IService<T> { }
-
-            [Export]
-            class Foo
-            {
-                [Import]
-                public Lazy<IService<string>> StringService { get; set; }
-
-                [Import]
-                public Lazy<IService<int>> IntService { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task LazyWithNonSharedCreationPolicy_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
-                public Lazy<string> Value1 { get; set; }
-
-                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
-                public Lazy<string> Value2 { get; set; }
             }
             """;
 

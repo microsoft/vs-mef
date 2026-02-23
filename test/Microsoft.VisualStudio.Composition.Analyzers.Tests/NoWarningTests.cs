@@ -2226,4 +2226,130 @@ public class NoWarningTests
 
         await VerifyAll.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task LazyImportsWithDifferentUnderlyingTypes_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<string> StringValue { get; set; }
+
+                [Import]
+                public Lazy<int> IntValue { get; set; }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryImportsWithDifferentUnderlyingTypes_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public ExportFactory<string> StringFactory { get; set; }
+
+                [Import]
+                public ExportFactory<int> IntFactory { get; set; }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyImportsWithDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import("Contract1")]
+                public Lazy<string> Value1 { get; set; }
+
+                [Import("Contract2")]
+                public Lazy<string> Value2 { get; set; }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ExportFactoryImportsWithDifferentContractNames_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import("Contract1")]
+                public ExportFactory<string> Factory1 { get; set; }
+
+                [Import("Contract2")]
+                public ExportFactory<string> Factory2 { get; set; }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithGenericInterface_DifferentClosedTypes_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface IService<T> { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                public Lazy<IService<string>> StringService { get; set; }
+
+                [Import]
+                public Lazy<IService<int>> IntService { get; set; }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task LazyWithNonSharedCreationPolicy_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            [Export]
+            class Foo
+            {
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public Lazy<string> Value1 { get; set; }
+
+                [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+                public Lazy<string> Value2 { get; set; }
+            }
+            """;
+
+        await VerifyAll.VerifyAnalyzerAsync(test);
+    }
 }
