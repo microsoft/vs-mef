@@ -30,6 +30,7 @@
     <PackageVersion Include="Nerdbank.NetStandardBridge" Version="1.1.46" />
     <PackageVersion Include="OpenSoftware.DgmlBuilder" Version="2.1.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.Memory" Version="4.6.2" />
     <PackageVersion Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.21216.1" />
     <PackageVersion Include="System.ComponentModel.Composition" Version="10.0.1" />
     <PackageVersion Include="System.Composition.AttributedModel" Version="10.0.1" />
