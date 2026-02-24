@@ -7,7 +7,7 @@
     <MicrosoftTestingPlatformVersion>2.1.0</MicrosoftTestingPlatformVersion>
 
     <MicroBuildVersion>2.0.208</MicroBuildVersion>
-    <CodeAnalysisVersion>4.13.0</CodeAnalysisVersion>
+    <CodeAnalysisVersion>5.0.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.2</CodefixTestingVersion>
   </PropertyGroup>
   <ItemGroup>
