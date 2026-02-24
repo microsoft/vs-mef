@@ -451,4 +451,92 @@ public class VSMEF003ExportTypeMismatchAnalyzerTests
 
         await VerifyCS.VerifyAnalyzerAsync(test);
     }
+
+    [Fact]
+    public async Task MefV1ExportWithContractNameAndUnimplementedType_ProducesDiagnostic()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface ITest
+            {
+            }
+
+            [Export("SomeContract", typeof(ITest))]
+            class [|Test|]
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task MefV1ExportWithContractNameAndImplementedType_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface ITest
+            {
+            }
+
+            [Export("SomeContract", typeof(ITest))]
+            class Test : ITest
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task CustomExportAttributeWithUnimplementedType_ProducesDiagnostic()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface ITest
+            {
+            }
+
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute(Type contractType) : base(contractType) { }
+            }
+
+            [MyExport(typeof(ITest))]
+            class [|Test|]
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task CustomExportAttributeWithImplementedType_ProducesNoDiagnostic()
+    {
+        string test = """
+            using System;
+            using System.ComponentModel.Composition;
+
+            interface ITest
+            {
+            }
+
+            class MyExportAttribute : ExportAttribute
+            {
+                public MyExportAttribute(Type contractType) : base(contractType) { }
+            }
+
+            [MyExport(typeof(ITest))]
+            class Test : ITest
+            {
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
 }
