@@ -39,23 +39,19 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(context =>
         {
             // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
-            if (context.Compilation.ReferencedAssemblyNames.Any(i =>
-                string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
+            if (Utils.ReferencesMefAttributes(context.Compilation))
             {
-                INamedTypeSymbol? mefV1ExportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
-                INamedTypeSymbol? mefV2ExportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
                 context.RegisterSymbolAction(
-                    context => AnalyzeTypeDeclaration(context, mefV1ExportAttribute, mefV2ExportAttribute),
+                    context => AnalyzeTypeDeclaration(context),
                     SymbolKind.NamedType);
                 context.RegisterSymbolAction(
-                    context => AnalyzePropertyDeclaration(context, mefV1ExportAttribute, mefV2ExportAttribute),
+                    context => AnalyzePropertyDeclaration(context),
                     SymbolKind.Property);
             }
         });
     }
 
-    private static void AnalyzeTypeDeclaration(SymbolAnalysisContext context, INamedTypeSymbol? mefV1ExportAttribute, INamedTypeSymbol? mefV2ExportAttribute)
+    private static void AnalyzeTypeDeclaration(SymbolAnalysisContext context)
     {
         var namedType = (INamedTypeSymbol)context.Symbol;
 
@@ -75,11 +71,10 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         foreach (AttributeData attributeData in namedType.GetAttributes())
         {
             // Check if this is an Export attribute
-            if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
-                SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ExportAttribute))
+            if (Utils.IsExportAttribute(attributeData.AttributeClass))
             {
                 // Check if the export attribute has a type argument
-                if (attributeData.ConstructorArguments is [{ Kind: TypedConstantKind.Type, Value: INamedTypeSymbol exportedType }, ..])
+                if (TryGetExportedType(attributeData, out INamedTypeSymbol? exportedType))
                 {
                     // Check if the exporting type implements or inherits from the exported type
                     if (!IsTypeCompatible(namedType, exportedType))
@@ -95,7 +90,7 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static void AnalyzePropertyDeclaration(SymbolAnalysisContext context, INamedTypeSymbol? mefV1ExportAttribute, INamedTypeSymbol? mefV2ExportAttribute)
+    private static void AnalyzePropertyDeclaration(SymbolAnalysisContext context)
     {
         var property = (IPropertySymbol)context.Symbol;
 
@@ -109,11 +104,10 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
         foreach (AttributeData attributeData in property.GetAttributes())
         {
             // Check if this is an Export attribute
-            if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ExportAttribute) ||
-                SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ExportAttribute))
+            if (Utils.IsExportAttribute(attributeData.AttributeClass))
             {
                 // Check if the export attribute has a type argument
-                if (attributeData.ConstructorArguments is [{ Kind: TypedConstantKind.Type, Value: INamedTypeSymbol exportedType }, ..])
+                if (TryGetExportedType(attributeData, out INamedTypeSymbol? exportedType))
                 {
                     // Check if the property type is compatible with the exported type
                     if (!IsPropertyTypeCompatible(property.Type, exportedType))
@@ -127,6 +121,32 @@ public class VSMEF003ExportTypeMismatchAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Tries to get the exported type from an export attribute's constructor arguments.
+    /// </summary>
+    /// <param name="attributeData">The export attribute data.</param>
+    /// <param name="exportedType">The exported type, if found.</param>
+    /// <returns><see langword="true"/> if a type argument was found; otherwise, <see langword="false"/>.</returns>
+    private static bool TryGetExportedType(AttributeData attributeData, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out INamedTypeSymbol? exportedType)
+    {
+        // Handle [Export(typeof(T))] - single type argument
+        if (attributeData.ConstructorArguments is [{ Kind: TypedConstantKind.Type, Value: INamedTypeSymbol singleTypeArg }, ..])
+        {
+            exportedType = singleTypeArg;
+            return true;
+        }
+
+        // Handle [Export("contractName", typeof(T))] - string name followed by type argument (MEF v1 only)
+        if (attributeData.ConstructorArguments is [{ Kind: TypedConstantKind.Primitive }, { Kind: TypedConstantKind.Type, Value: INamedTypeSymbol namedTypeArg }, ..])
+        {
+            exportedType = namedTypeArg;
+            return true;
+        }
+
+        exportedType = null;
+        return false;
     }
 
     private static bool IsTypeCompatible(INamedTypeSymbol implementingType, INamedTypeSymbol exportedType)
