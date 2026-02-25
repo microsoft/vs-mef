@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.CodeAnalysis.Text;
 using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF008ImportContractTypeMismatchAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 public class VSMEF008ImportContractTypeMismatchAnalyzerTests
@@ -192,5 +193,91 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithAllowListedAssignment_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNS
+            {
+                interface IServiceBroker { }
+                class SVsFullAccessServiceBroker { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsFullAccessServiceBroker))]
+                    public IServiceBroker Value { get; set; }
+                }
+            }
+            """;
+
+        string allowList = "MyNS.IServiceBroker <= MyNS.SVsFullAccessServiceBroker\n";
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task ImportWithAllowListedAssignmentWithComments_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNS
+            {
+                interface IServiceBroker { }
+                class SVsFullAccessServiceBroker { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsFullAccessServiceBroker))]
+                    public IServiceBroker Value { get; set; }
+                }
+            }
+            """;
+
+        string allowList = """
+            # This is a comment
+            MyNS.IServiceBroker <= MyNS.SVsFullAccessServiceBroker
+
+            """;
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task ImportWithUnrelatedAllowList_StillReportsWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNS
+            {
+                interface IServiceBroker { }
+                class SVsFullAccessServiceBroker { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsFullAccessServiceBroker))]
+                    public IServiceBroker {|VSMEF008:Value|} { get; set; }
+                }
+            }
+            """;
+
+        // The allow-list entry maps a different pair so the warning should still fire
+        string allowList = "MyNS.IOtherService <= MyNS.SVsFullAccessServiceBroker\n";
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
+        await verifier.RunAsync();
     }
 }

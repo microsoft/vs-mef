@@ -4,11 +4,11 @@ When using `[Import(typeof(T))]` or `[ImportMany(typeof(T))]` with an explicit c
 
 ## Cause
 
-An import specifies a `ContractType` that is incompatible with the member type receiving the import. This will cause a composition failure at runtime.
+An import specifies a `ContractType` that is incompatible with the member type receiving the import. This may cause a composition failure at runtime.
 
 ## Rule description
 
-MEF allows you to specify an explicit contract type using `[Import(typeof(T))]` or `[ImportMany(typeof(T))]`. The exports matching this contract must be assignable to the member where the import is declared. If the types are incompatible, composition will fail at runtime.
+MEF allows you to specify an explicit contract type using `[Import(typeof(T))]` or `[ImportMany(typeof(T))]`. The exports matching this contract must be assignable to the member where the import is declared. If the types are incompatible, composition may fail at runtime.
 
 This analyzer detects the following incompatibilities:
 
@@ -152,9 +152,32 @@ public IDatabase Database { get; set; }  // Change contract to match member type
 public ILogger Logger { get; set; }  // Let MEF infer the contract type
 ```
 
-## When to suppress errors
+### Option 4: Add an allow-list entry (for SDK scenarios)
 
-This error should generally not be suppressed as it indicates a bug that will cause runtime failures. If you're doing something unusual with MEF that the analyzer doesn't understand, ensure you have tests that verify the composition works correctly.
+Some SDKs use a type identity as a contract name even when that type is not assignable to the import type. For example, the Visual Studio SDK uses `SVsFullAccessServiceBroker` as a contract name for imports of type `IServiceBroker`.
+
+If your project relies on such a convention, you can suppress this warning for specific pairs by adding an `AdditionalFiles` entry named `vs-mef.ContractNamesAssignability.txt` to your project:
+
+```xml
+<ItemGroup>
+  <AdditionalFiles Include="vs-mef.ContractNamesAssignability.txt" />
+</ItemGroup>
+```
+
+The file format is one entry per line, using the pattern `MemberType <= ContractType`:
+
+```
+# Lines starting with # are comments
+Microsoft.VisualStudio.Shell.ServiceBroker.IServiceBroker <= Microsoft.VisualStudio.Shell.SVsFullAccessServiceBroker
+Microsoft.VisualStudio.Shell.Interop.IAsyncServiceProvider <= Microsoft.VisualStudio.Shell.SAsyncServiceProvider
+Microsoft.VisualStudio.Shell.Interop.IAsyncServiceProvider2 <= Microsoft.VisualStudio.Shell.SAsyncServiceProvider
+```
+
+Each line declares that `ContractType` is a known-good contract name for an import of `MemberType`, even though the types are not statically assignable.
+
+## When to suppress warnings
+
+This warning indicates a potential bug in most cases. However, if you're using a contract name that is a type identity not assignable to the import type (a common SDK pattern), consider using the allow-list approach described in Option 4 instead of suppressing the diagnostic globally.
 
 ## Notes
 
