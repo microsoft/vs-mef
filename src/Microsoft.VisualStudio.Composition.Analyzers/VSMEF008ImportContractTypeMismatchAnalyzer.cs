@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 /// <summary>
 /// Creates a diagnostic when an Import attribute specifies a contract type that is not assignable to the member type.
@@ -29,6 +30,21 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
     public const string Id = "VSMEF008";
 
     /// <summary>
+    /// The filename for AdditionalFiles that declare allowed contract type assignments.
+    /// </summary>
+    /// <remarks>
+    /// Each line in this file should follow the pattern: <c>MemberType &lt;= ContractType</c>.
+    /// Lines starting with <c>#</c> and blank lines are ignored.
+    /// </remarks>
+    public const string ContractNamesAssignabilityFileName = "vs-mef.ContractNamesAssignability.txt";
+
+    /// <summary>
+    /// The display format used to produce fully-qualified type names for allow-list matching.
+    /// </summary>
+    private static readonly SymbolDisplayFormat FullyQualifiedTypeNameFormat = new(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
+    /// <summary>
     /// The descriptor used for diagnostics created by this rule.
     /// </summary>
     internal static readonly DiagnosticDescriptor Descriptor = new(
@@ -37,7 +53,7 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
         messageFormat: Strings.VSMEF008_MessageFormat,
         helpLinkUri: Utils.GetHelpLink(Id),
         category: "Usage",
-        defaultSeverity: DiagnosticSeverity.Error,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
     /// <inheritdoc/>
@@ -78,7 +94,8 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
                 lazyWithMetadataType,
                 exportFactoryType,
                 exportFactoryWithMetadataType,
-                ienumerableType);
+                ienumerableType,
+                ParseAllowedAssignments(context.Options.AdditionalFiles, context.CancellationToken));
 
             context.RegisterSymbolAction(ctx => AnalyzeProperty(ctx, state), SymbolKind.Property);
             context.RegisterSymbolAction(ctx => AnalyzeField(ctx, state), SymbolKind.Field);
@@ -156,6 +173,13 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
             // Check if the contract type is assignable to the expected type
             if (!IsAssignableTo(explicitContractType, expectedType, context.Compilation))
             {
+                // Check the allow-list before reporting
+                if (state.AllowedAssignments.Contains(
+                        (GetFullTypeName(expectedType), GetFullTypeName(explicitContractType))))
+                {
+                    continue;
+                }
+
                 context.ReportDiagnostic(Diagnostic.Create(
                     Descriptor,
                     location,
@@ -257,6 +281,58 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
         return type;
     }
 
+    private static string GetFullTypeName(ITypeSymbol type) => type.ToDisplayString(FullyQualifiedTypeNameFormat);
+
+    private static ImmutableHashSet<(string MemberType, string ContractType)> ParseAllowedAssignments(
+        ImmutableArray<AdditionalText> additionalFiles,
+        System.Threading.CancellationToken cancellationToken)
+    {
+        ImmutableHashSet<(string, string)>.Builder? builder = null;
+
+        foreach (AdditionalText file in additionalFiles)
+        {
+            if (!string.Equals(
+                    System.IO.Path.GetFileName(file.Path),
+                    ContractNamesAssignabilityFileName,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            SourceText? text = file.GetText(cancellationToken);
+            if (text is null)
+            {
+                continue;
+            }
+
+            foreach (TextLine line in text.Lines)
+            {
+                string lineText = line.ToString().Trim();
+                if (lineText.Length == 0 || lineText[0] == '#')
+                {
+                    continue;
+                }
+
+                int separatorIndex = lineText.IndexOf("<=", StringComparison.Ordinal);
+                if (separatorIndex < 0)
+                {
+                    continue;
+                }
+
+                string memberType = lineText.Substring(0, separatorIndex).Trim();
+                string contractType = lineText.Substring(separatorIndex + 2).Trim();
+
+                if (memberType.Length > 0 && contractType.Length > 0)
+                {
+                    builder ??= ImmutableHashSet.CreateBuilder<(string, string)>();
+                    builder.Add((memberType, contractType));
+                }
+            }
+        }
+
+        return builder?.ToImmutable() ?? ImmutableHashSet<(string, string)>.Empty;
+    }
+
     private static bool IsAssignableTo(ITypeSymbol source, ITypeSymbol target, Compilation compilation)
     {
         // Direct equality check
@@ -308,5 +384,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol? LazyWithMetadataType,
         INamedTypeSymbol? ExportFactoryType,
         INamedTypeSymbol? ExportFactoryWithMetadataType,
-        INamedTypeSymbol? IEnumerableType);
+        INamedTypeSymbol? IEnumerableType,
+        ImmutableHashSet<(string MemberType, string ContractType)> AllowedAssignments);
 }
