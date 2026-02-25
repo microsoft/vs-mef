@@ -168,9 +168,9 @@ The file format is one entry per line, using the pattern `MemberType <= Contract
 
 ```
 # Lines starting with # are comments
-Microsoft.VisualStudio.Shell.ServiceBroker.IServiceBroker <= Microsoft.VisualStudio.Shell.SVsFullAccessServiceBroker
-Microsoft.VisualStudio.Shell.Interop.IAsyncServiceProvider <= Microsoft.VisualStudio.Shell.SAsyncServiceProvider
-Microsoft.VisualStudio.Shell.Interop.IAsyncServiceProvider2 <= Microsoft.VisualStudio.Shell.SAsyncServiceProvider
+Microsoft.ServiceHub.Framework.IServiceBroker <= Microsoft.VisualStudio.Shell.ServiceBroker.SVsFullAccessServiceBroker
+Microsoft.VisualStudio.Shell.IAsyncServiceProvider <= Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider
+Microsoft.VisualStudio.Shell.IAsyncServiceProvider2 <= Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider
 ```
 
 Each line declares that `ContractType` is a known-good contract name for an import of `MemberType`, even though the types are not statically assignable.
