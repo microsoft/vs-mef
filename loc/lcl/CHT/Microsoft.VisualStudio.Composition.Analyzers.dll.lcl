@@ -210,6 +210,189 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF008_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import may fail at runtime.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[合約類型「{0}」無法指派給成員類型「{1}」。匯入可能在執行階段時失敗。]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import will fail at runtime.]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF008_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import contract type not assignable to member type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[匯入合約類型無法指派至成員類型]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_AddInitializer_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add a property initializer (e.g., = new List<T>();) or initialize the property in all constructors.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新增屬性初始設定式 (例如，= new List<T>();) 或初始化所有建構函式中的屬性。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_ArrayWithoutSetter_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The property "{0}" is an array without a setter. Arrays cannot be pre-initialized for ImportMany because they don't support Add().]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[屬性 "{0}" 是沒有 setter 的陣列。ImportMany 無法對陣列進行預先初始化，因為陣列不支援 Add()。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_LazyWrappingCollection_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Lazy<T> wrapping a collection is not valid for ImportMany. Use a collection of Lazy<T> instead (e.g., IEnumerable<Lazy<T>>).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lazy<T> 包裝集合不適用於 ImportMany。請改為使用 Lazy<T> 的集合 (例如 IEnumerable<Lazy<T>>)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_MustImplementICollection_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type must implement ICollection<T> to support pre-initialization.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此類型必須實作 ICollection<T> 以支援預先初始化。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NonCollection_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" is not a valid collection type for ImportMany. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[類型 "{0}" 並非 ImportMany 的有效集合類型。 {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NotCollectionType_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type must be a collection type such as T[]5D;, IEnumerable<T>, List<T>, or a type implementing ICollection<T>.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[類型必須是集合類型，例如 T[]5D;、IEnumerable<T>、List<T>，或是實作 ICollection<T> 的類別。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NotInitialized_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The property "{0}" has no setter and may not be initialized. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[屬性 "{0}" 沒有 setter，且可能未初始化。{1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ImportMany on non-collection type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[非集合類型上的 ImportMany]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF010_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The collection type "{0}" is not supported for ImportMany on constructor parameter "{1}". Use T[]5D; or IEnumerable<T> instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[集合類型 "{0}" 不支援用於建構函式參數 "{1}" 的 ImportMany。請改為使用 T[]5D; 或 IEnumerable<T>。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF010_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ImportMany with unsupported collection type in constructor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[建構函式中的 ImportMany 使用了不支援的集合類型]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_CodeFix_RemoveImportKeepImportMany" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove [Import]5D; attribute (keep [ImportMany]5D; for collection)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[移除 [Import]5D; 屬性 (僅針對集合保留 [ImportMany]5D;)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_CodeFix_RemoveImportManyKeepImport" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove [ImportMany]5D; attribute (keep [Import]5D; for single value)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[移除 [ImportMany]5D; 屬性 (僅針對單一值保留 [Import]5D;)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The member "{0}" has both [Import]5D; and [ImportMany]5D; attributes. These attributes are mutually exclusive.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[成員 "{0}" 同時具有 [Import]5D; 與 [ImportMany]5D; 屬性。這些屬性是互斥的。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Both Import and ImportMany applied to same member]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[同一成員同時套用了 Import 與 ImportMany]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_CodeFix_MigrateToMefV2" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Migrate to System.Composition.{0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[移轉至 System.Composition。{0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disallowed MEF attribute version]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不允許的 MEF 屬性版本]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_V1Disallowed_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEFv1 attribute "{0}" is not allowed. Use the MEFv2 equivalent from System.Composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不允許 MEFv1 屬性 "{0}"。使用來自 System.Composition 的 MEFv2 對等項目。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_V2Disallowed_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEFv2 attribute "{0}" is not allowed. Use the MEFv1 equivalent from System.ComponentModel.Composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[不允許 MEFv2 屬性 "{0}"。使用來自 System.ComponentModel.Composition 的 MEFv1 對等項目。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">

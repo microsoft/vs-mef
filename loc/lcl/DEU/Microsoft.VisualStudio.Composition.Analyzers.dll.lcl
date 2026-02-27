@@ -210,6 +210,189 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF008_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import may fail at runtime.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Vertragstyp „{0}“ kann dem Elementtyp „{1}“ nicht zugewiesen werden. Der Import kann zur Laufzeit fehlschlagen.]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import will fail at runtime.]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF008_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import contract type not assignable to member type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Importvertragstyp kann dem Elementtyp nicht zugewiesen werden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_AddInitializer_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add a property initializer (e.g., = new List<T>();) or initialize the property in all constructors.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fügen Sie einen Eigenschafteninitialisierer hinzu (z. B. = new List<T>();) oder initialisieren Sie die Eigenschaft in allen Konstruktoren.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_ArrayWithoutSetter_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The property "{0}" is an array without a setter. Arrays cannot be pre-initialized for ImportMany because they don't support Add().]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Eigenschaft „{0}“ ist ein Array ohne Setter. Arrays können für ImportMany nicht vorab initialisiert werden, da sie Add() nicht unterstützen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_LazyWrappingCollection_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Lazy<T> wrapping a collection is not valid for ImportMany. Use a collection of Lazy<T> instead (e.g., IEnumerable<Lazy<T>>).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das Lazy<T> -Umbrechen einer Sammlung ist für ImportMany ungültig. Verwenden Sie stattdessen eine Auflistung von Lazy<T> (z. B. IEnumerable<Lazy<T>>).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_MustImplementICollection_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type must implement ICollection<T> to support pre-initialization.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Typ muss ICollection<T> implementieren, um die Vorinitialisierung zu unterstützen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NonCollection_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" is not a valid collection type for ImportMany. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Typ „{0}“ ist kein gültiger Sammlungstyp für ImportMany. {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NotCollectionType_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type must be a collection type such as T[]5D;, IEnumerable<T>, List<T>, or a type implementing ICollection<T>.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Typ muss ein Auflistungstyp wie T[]5D;, IEnumerable<T>, List<T> oder ein Typ sein, der ICollection<T> implementiert.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NotInitialized_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The property "{0}" has no setter and may not be initialized. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Eigenschaft „{0}“ hat keinen Setter und kann nicht initialisiert werden. {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ImportMany on non-collection type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ImportMany für Nichtsammlungstypen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF010_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The collection type "{0}" is not supported for ImportMany on constructor parameter "{1}". Use T[]5D; or IEnumerable<T> instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Sammlungstyp „{0}“ wird für ImportMany für den Konstruktorparameter „{1}“ nicht unterstützt. Verwenden Sie stattdessen T[]5D; oder IEnumerable<T>.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF010_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ImportMany with unsupported collection type in constructor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ImportMany mit nicht unterstütztem Sammlungstyp im Konstruktor]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_CodeFix_RemoveImportKeepImportMany" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove [Import]5D; attribute (keep [ImportMany]5D; for collection)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Import]5D;-Attribut entfernen ([ImportMany]5D; für Sammlung beibehalten)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_CodeFix_RemoveImportManyKeepImport" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove [ImportMany]5D; attribute (keep [Import]5D; for single value)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[ImportMany]5D;-Attribut entfernen ([Import]5D; für Einzelwert beibehalten)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The member "{0}" has both [Import]5D; and [ImportMany]5D; attributes. These attributes are mutually exclusive.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das Element „{0}“ weist sowohl das [Import]5D;- als auch das [ImportMany]5D;-Attribut auf. Diese Attribute schließen sich gegenseitig aus.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Both Import and ImportMany applied to same member]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sowohl „Import“ als auch „ImportMany“ wurden auf dasselbe Mitglied angewendet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_CodeFix_MigrateToMefV2" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Migrate to System.Composition.{0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Migrieren Sie zu System.Composition.{0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disallowed MEF attribute version]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Unzulässige MEF-Attributversion]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_V1Disallowed_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEFv1 attribute "{0}" is not allowed. Use the MEFv2 equivalent from System.Composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das MEFv1-Attribut „{0}“ ist nicht zulässig. Verwenden Sie das MEFv2-Äquivalent aus System.Composition.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_V2Disallowed_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEFv2 attribute "{0}" is not allowed. Use the MEFv1 equivalent from System.ComponentModel.Composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Das MEFv2-Attribut „{0}“ ist nicht zulässig. Verwenden Sie das MEFv1-Äquivalent von System.ComponentModel.Composition.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">

@@ -210,6 +210,189 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF008_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import may fail at runtime.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ kontraktu {0} nelze přiřadit k typu člena {1}. Import může selhat za běhu.]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import will fail at runtime.]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF008_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import contract type not assignable to member type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ kontraktu importu nelze přiřadit k typu člena]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_AddInitializer_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add a property initializer (e.g., = new List<T>();) or initialize the property in all constructors.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Přidejte inicializátor vlastnosti (např. = new List<T>();) nebo inicializujte vlastnost ve všech konstruktorech.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_ArrayWithoutSetter_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The property "{0}" is an array without a setter. Arrays cannot be pre-initialized for ImportMany because they don't support Add().]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vlastnost {0} je pole bez metody setter. Pole nelze pro ImportMany předem inicializovat, protože nepodporují metodu Add().]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_LazyWrappingCollection_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Lazy<T> wrapping a collection is not valid for ImportMany. Use a collection of Lazy<T> instead (e.g., IEnumerable<Lazy<T>>).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ Lazy<T> zabalující kolekci není platný při použití s atributem ImportMany. Místo toho použijte kolekci objektů Lazy<T> (například IEnumerable<Lazy<T>>).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_MustImplementICollection_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type must implement ICollection<T> to support pre-initialization.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ musí implementovat rozhraní ICollection<T> pro podporu předběžné inicializace.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NonCollection_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type "{0}" is not a valid collection type for ImportMany. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ {0} není platným typem kolekce pro ImportMany. {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NotCollectionType_Detail" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The type must be a collection type such as T[]5D;, IEnumerable<T>, List<T>, or a type implementing ICollection<T>.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ musí být typ kolekce, například T[]5D;, IEnumerable<T>, List<T> nebo typ implementující rozhraní ICollection<T>.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_NotInitialized_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The property "{0}" has no setter and may not be initialized. {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vlastnost {0} nemá žádnou metodu setter a nelze ji inicializovat. {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF009_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ImportMany on non-collection type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ImportMany u typu, který není kolekcí]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF010_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The collection type "{0}" is not supported for ImportMany on constructor parameter "{1}". Use T[]5D; or IEnumerable<T> instead.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Typ kolekce {0} není podporován pro ImportMany u parametru konstruktoru {1}. Místo toho použijte T[]5D; nebo IEnumerable<T>.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF010_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ImportMany with unsupported collection type in constructor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ImportMany s nepodporovaným typem kolekce v konstruktoru]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_CodeFix_RemoveImportKeepImportMany" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove [Import]5D; attribute (keep [ImportMany]5D; for collection)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odeberte atribut [Import]5D; (zachovejte atribut [ImportMany]5D; pro kolekci).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_CodeFix_RemoveImportManyKeepImport" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Remove [ImportMany]5D; attribute (keep [Import]5D; for single value)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odeberte atribut [ImportMany]5D; (atribut [Import]5D; ponechte pro jednu hodnotu).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The member "{0}" has both [Import]5D; and [ImportMany]5D; attributes. These attributes are mutually exclusive.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Člen {0} má atributy [Import]5D; i [ImportMany]5D;. Tyto atributy se vzájemně vylučují.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF011_Title" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Both Import and ImportMany applied to same member]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[U stejného člena jsou použity atributy Import i ImportMany]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_CodeFix_MigrateToMefV2" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Migrate to System.Composition.{0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Migrujte na System.Composition.{0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_Title" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disallowed MEF attribute version]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nepovolená verze atributu MEF]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_V1Disallowed_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEFv1 attribute "{0}" is not allowed. Use the MEFv2 equivalent from System.Composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Atribut MEFv1 {0} není povolen. Použijte ekvivalent MEFv2 ze System.Composition.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF012_V2Disallowed_MessageFormat" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEFv2 attribute "{0}" is not allowed. Use the MEFv1 equivalent from System.ComponentModel.Composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Atribut MEFv2 {0} není povolen. Použijte ekvivalent MEFv1 z oboru názvů System.ComponentModel.Composition.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
