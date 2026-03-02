@@ -43,6 +43,81 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
     }
 
     [Fact]
+    public async Task ImportWithContractNameTypeMismatch_Error()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IImported { }
+            interface IExported { }
+
+            [Export("MyService", typeof(IExported))]
+            internal class ExportedService : IImported { }
+
+            [Export]
+            class SomeClass
+            {
+                [Import("MyService", typeof(IExported))]
+                internal IImported {|VSMEF008:ImportingProperty|} { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithContractNameTypeMismatch_AllowListedByContractName_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IImported { }
+            interface IExported { }
+
+            [Export("MyService", typeof(IExported))]
+            internal class ExportedService : IImported { }
+
+            [Export]
+            class SomeClass
+            {
+                [Import("MyService", typeof(IExported))]
+                internal IImported ImportingProperty { get; set; }
+            }
+            """;
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From("IImported <= MyService\n")));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task ImportWithContractNameTypeMismatch_AllowListedByTypeIdentity_StillReportsWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            interface IImported { }
+            interface IExported { }
+
+            [Export("MyService", typeof(IExported))]
+            internal class ExportedService : IImported { }
+
+            [Export]
+            class SomeClass
+            {
+                [Import("MyService", typeof(IExported))]
+                internal IImported {|VSMEF008:ImportingProperty|} { get; set; }
+            }
+            """;
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From("IImported <= IExported\n")));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
     public async Task ImportManyWithIncompatibleContractType_Error()
     {
         string test = """

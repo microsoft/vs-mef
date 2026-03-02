@@ -8,6 +8,9 @@ namespace Microsoft.VisualStudio.Composition.Analyzers;
 /// </summary>
 internal static class Utils
 {
+    private static readonly SymbolDisplayFormat FullyQualifiedTypeNameFormat = new(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
     /// <summary>
     /// Gets the URL to the help topic for a particular analyzer.
     /// </summary>
@@ -295,6 +298,59 @@ internal static class Utils
                IsAttributeOfType(attributeType, "ImportAttribute", MefV2AttributeNamespace.AsSpan()) ||
                IsAttributeOfType(attributeType, "ImportManyAttribute", MefV1AttributeNamespace.AsSpan()) ||
                IsAttributeOfType(attributeType, "ImportManyAttribute", MefV2AttributeNamespace.AsSpan());
+    }
+
+    /// <summary>
+    /// Gets explicit contract name and type values from an import/export-style attribute.
+    /// </summary>
+    /// <remarks>
+    /// Supports positional and named arguments used by MEF attributes:
+    /// <c>(string contractName)</c>, <c>(Type contractType)</c>, and <c>(string contractName, Type contractType)</c>.
+    /// Empty contract names are treated as unspecified.
+    /// </remarks>
+    internal static (string? ExplicitContractName, INamedTypeSymbol? ExplicitContractType) GetExplicitContractInfo(AttributeData attribute)
+    {
+        (string? explicitContractName, INamedTypeSymbol? explicitContractType) = attribute.ConstructorArguments switch
+        {
+            [TypedConstant { Value: string { Length: not 0 } contractName }] => (contractName, null),
+            [TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
+            [TypedConstant { Value: string { Length: not 0 } contractName }, TypedConstant { Value: INamedTypeSymbol contractType }] => (contractName, contractType),
+            [TypedConstant { Value: null or string { Length: 0 } }, TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
+            _ => (null, null),
+        };
+
+        TypedConstant? nameArg = attribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName").Value;
+        if (nameArg?.Value is string { Length: not 0 } namedContractName)
+        {
+            explicitContractName = namedContractName;
+        }
+
+        TypedConstant? typeArg = attribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType").Value;
+        if (typeArg?.Value is INamedTypeSymbol namedContractType)
+        {
+            explicitContractType = namedContractType;
+        }
+
+        return (explicitContractName, explicitContractType);
+    }
+
+    /// <summary>
+    /// Computes an approximate MEF contract name from explicit contract metadata.
+    /// </summary>
+    /// <remarks>
+    /// MEF's exact contract-name algorithm is more complex (see ContractNameServices), but this provides a
+    /// shared approximation for analyzers so future improvements can be made in one place.
+    /// </remarks>
+    internal static string GetApproximateMefContractName(string? explicitContractName, ITypeSymbol contractType, bool fullyQualifiedTypeName = false)
+    {
+        if (explicitContractName is { Length: > 0 })
+        {
+            return explicitContractName;
+        }
+
+        return fullyQualifiedTypeName
+            ? contractType.ToDisplayString(FullyQualifiedTypeNameFormat)
+            : contractType.ToDisplayString();
     }
 
     internal static bool GetAllowDefaultValue(AttributeData importAttribute)
