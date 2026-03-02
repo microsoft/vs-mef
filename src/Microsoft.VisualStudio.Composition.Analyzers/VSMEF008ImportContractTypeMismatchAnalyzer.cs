@@ -183,8 +183,8 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(
                     Descriptor,
                     location,
-                    explicitContractType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat),
-                    expectedType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat)));
+                    explicitContractType.ToDisplayString(FullyQualifiedTypeNameFormat),
+                    expectedType.ToDisplayString(FullyQualifiedTypeNameFormat)));
             }
         }
     }
