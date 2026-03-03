@@ -297,6 +297,53 @@ internal static class Utils
                IsAttributeOfType(attributeType, "ImportManyAttribute", MefV2AttributeNamespace.AsSpan());
     }
 
+    /// <summary>
+    /// Gets explicit contract name and type values from an import/export-style attribute.
+    /// </summary>
+    /// <remarks>
+    /// Supports positional and named arguments used by MEF attributes:
+    /// <c>(string contractName)</c>, <c>(Type contractType)</c>, and <c>(string contractName, Type contractType)</c>.
+    /// Empty contract names are treated as unspecified.
+    /// </remarks>
+    internal static (string? ExplicitContractName, INamedTypeSymbol? ExplicitContractType) GetExplicitContractInfo(AttributeData attribute)
+    {
+        (string? explicitContractName, INamedTypeSymbol? explicitContractType) = attribute.ConstructorArguments switch
+        {
+            [TypedConstant { Value: string { Length: not 0 } contractName }] => (contractName, null),
+            [TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
+            [TypedConstant { Value: string { Length: not 0 } contractName }, TypedConstant { Value: INamedTypeSymbol contractType }] => (contractName, contractType),
+            [TypedConstant { Value: null or string { Length: 0 } }, TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
+            _ => (null, null),
+        };
+
+        TypedConstant? nameArg = attribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName").Value;
+        if (nameArg?.Value is string { Length: not 0 } namedContractName)
+        {
+            explicitContractName = namedContractName;
+        }
+
+        TypedConstant? typeArg = attribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType").Value;
+        if (typeArg?.Value is INamedTypeSymbol namedContractType)
+        {
+            explicitContractType = namedContractType;
+        }
+
+        return (explicitContractName, explicitContractType);
+    }
+
+    /// <summary>
+    /// Computes MEF contract name from explicit contract metadata.
+    /// </summary>
+    internal static string GetMefContractName(string? explicitContractName, ITypeSymbol contractType)
+    {
+        if (explicitContractName is { Length: > 0 })
+        {
+            return explicitContractName;
+        }
+
+        return MefContractNameServices.GetTypeIdentity(contractType);
+    }
+
     internal static bool GetAllowDefaultValue(AttributeData importAttribute)
     {
         KeyValuePair<string, TypedConstant> allowDefaultArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "AllowDefault");

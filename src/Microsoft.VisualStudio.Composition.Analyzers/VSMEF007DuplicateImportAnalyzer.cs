@@ -168,37 +168,11 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
         if (importAttribute is not null)
         {
-            // Check for explicit contract name or type in constructor arguments.
-            // Uses patterns from both System.Composition.ImportAttribute and System.ComponentModel.Composition.ImportAttribute.
-            // An empty or null contract name means "no explicit name".
-            (explicitContractName, explicitContractType) = importAttribute.ConstructorArguments switch
-            {
-                [TypedConstant { Value: string { Length: not 0 } contractName }] => (contractName, null),
-                [TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
-                [TypedConstant { Value: string { Length: not 0 } contractName }, TypedConstant { Value: INamedTypeSymbol contractType }] => (contractName, contractType),
-                [TypedConstant { Value: null or string { Length: 0 } }, TypedConstant { Value: INamedTypeSymbol contractType }] => (null, contractType),
-                _ => (null, null),
-            };
-
-            // Check for contract name in named arguments
-            TypedConstant? nameArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractName").Value;
-            if (nameArg?.Value is string { Length: not 0 } namedContractName)
-            {
-                explicitContractName = namedContractName;
-            }
-
-            // Check for contract type in named arguments
-            TypedConstant? typeArg = importAttribute.NamedArguments.FirstOrDefault(arg => arg.Key == "ContractType").Value;
-            if (typeArg?.Value is INamedTypeSymbol namedContractType)
-            {
-                explicitContractType = namedContractType;
-            }
+            (explicitContractName, INamedTypeSymbol? parsedContractType) = Utils.GetExplicitContractInfo(importAttribute);
+            explicitContractType = parsedContractType;
         }
 
         // Determine the base type for defaulting contract name and type.
-        // Note that the actual contract name used by MEF is more complex than this. See ContractNameServices
-        // for the full logic. This approximation suffices for catching duplicates, for the purposes of this analyzer.
-
         // If contract type is explicitly specified, use it; otherwise use the import parameter type.
         ITypeSymbol type = explicitContractType ?? importType;
 
@@ -208,8 +182,8 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
 
         string typeName = type.ToDisplayString();
 
-        // Contract name: use explicit name if provided, otherwise default to type name.
-        string name = explicitContractName ?? typeName;
+        // Contract name approximation is centralized so future accuracy improvements can be made in one place.
+        string name = Utils.GetMefContractName(explicitContractName, type);
 
         return new Contract(typeName, name);
     }

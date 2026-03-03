@@ -164,7 +164,7 @@ If your project relies on such a convention, you can suppress this warning for s
 </ItemGroup>
 ```
 
-The file format is one entry per line, using the pattern `MemberType <= ContractType`:
+The file format is one entry per line, using the pattern `MemberType <= ContractName`:
 
 ```
 # Lines starting with # are comments
@@ -173,7 +173,34 @@ Microsoft.VisualStudio.Shell.IAsyncServiceProvider <= Microsoft.VisualStudio.She
 Microsoft.VisualStudio.Shell.IAsyncServiceProvider2 <= Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider
 ```
 
-Each line declares that `ContractType` is a known-good contract name for an import of `MemberType`, even though the types are not statically assignable.
+Each line declares that `ContractName` is a known-good contract name for an import of `MemberType`, even though the types are not statically assignable.
+
+The right-hand side is the imported contract name, not necessarily the exported type identity. For example:
+
+```cs
+using System.ComponentModel.Composition;
+
+interface IImported { }
+interface IExported { }
+
+[Export("MyService", typeof(IExported))]
+internal class ExportedService : IImported { }
+
+[Export]
+class SomeClass
+{
+    [Import("MyService", typeof(IExported))]
+    internal IImported ImportingProperty { get; set; }
+}
+```
+
+Without an allow-list entry, this import reports VSMEF008 because `IExported` is not assignable to `IImported`.
+
+Adding this entry suppresses VSMEF008 for that pattern:
+
+```text
+IImported <= MyService
+```
 
 ## When to suppress warnings
 

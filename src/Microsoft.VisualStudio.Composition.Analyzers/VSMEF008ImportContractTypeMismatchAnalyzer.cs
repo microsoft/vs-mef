@@ -30,10 +30,10 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
     public const string Id = "VSMEF008";
 
     /// <summary>
-    /// The filename for AdditionalFiles that declare allowed contract type assignments.
+    /// The filename for AdditionalFiles that declare allowed contract name assignments.
     /// </summary>
     /// <remarks>
-    /// Each line in this file should follow the pattern: <c>MemberType &lt;= ContractType</c>.
+    /// Each line in this file should follow the pattern: <c>MemberType &lt;= ContractName</c>.
     /// Lines starting with <c>#</c> and blank lines are ignored.
     /// </remarks>
     public const string ContractNamesAssignabilityFileName = "vs-mef.ContractNamesAssignability.txt";
@@ -159,13 +159,16 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            // Get the explicit contract type from the attribute
-            INamedTypeSymbol? explicitContractType = GetExplicitContractType(attribute);
+            // Get explicit contract metadata from the attribute.
+            (string? explicitContractName, INamedTypeSymbol? explicitContractType) = Utils.GetExplicitContractInfo(attribute);
             if (explicitContractType is null)
             {
                 // No explicit contract type specified, nothing to check
                 continue;
             }
+
+            // Contract name approximation is centralized so future accuracy improvements can be made in one place.
+            string importContractName = Utils.GetMefContractName(explicitContractName, explicitContractType);
 
             // Get the expected type from the member, unwrapping wrappers and collections
             ITypeSymbol expectedType = GetExpectedType(memberType, isImportMany, state);
@@ -174,8 +177,7 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
             if (!IsAssignableTo(explicitContractType, expectedType, context.Compilation))
             {
                 // Check the allow-list before reporting
-                if (state.AllowedAssignments.Contains(
-                        (GetFullTypeName(expectedType), GetFullTypeName(explicitContractType))))
+                if (state.AllowedAssignments.Contains((GetFullTypeName(expectedType), importContractName)))
                 {
                     continue;
                 }
@@ -187,30 +189,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
                     expectedType.ToDisplayString(FullyQualifiedTypeNameFormat)));
             }
         }
-    }
-
-    private static INamedTypeSymbol? GetExplicitContractType(AttributeData attribute)
-    {
-        // Check constructor arguments for contract type
-        // Import(Type contractType) or Import(string contractName, Type contractType)
-        foreach (TypedConstant arg in attribute.ConstructorArguments)
-        {
-            if (arg.Kind == TypedConstantKind.Type && arg.Value is INamedTypeSymbol contractType)
-            {
-                return contractType;
-            }
-        }
-
-        // Check named arguments for ContractType
-        foreach (KeyValuePair<string, TypedConstant> namedArg in attribute.NamedArguments)
-        {
-            if (namedArg.Key == "ContractType" && namedArg.Value.Value is INamedTypeSymbol contractType)
-            {
-                return contractType;
-            }
-        }
-
-        return null;
     }
 
     private static ITypeSymbol GetExpectedType(ITypeSymbol memberType, bool isImportMany, AnalyzerState state)
@@ -283,7 +261,7 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
 
     private static string GetFullTypeName(ITypeSymbol type) => type.ToDisplayString(FullyQualifiedTypeNameFormat);
 
-    private static ImmutableHashSet<(string MemberType, string ContractType)> ParseAllowedAssignments(
+    private static ImmutableHashSet<(string MemberType, string ContractName)> ParseAllowedAssignments(
         ImmutableArray<AdditionalText> additionalFiles,
         System.Threading.CancellationToken cancellationToken)
     {
@@ -320,12 +298,12 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
                 }
 
                 string memberType = lineText.Substring(0, separatorIndex).Trim();
-                string contractType = lineText.Substring(separatorIndex + 2).Trim();
+                string contractName = lineText.Substring(separatorIndex + 2).Trim();
 
-                if (memberType.Length > 0 && contractType.Length > 0)
+                if (memberType.Length > 0 && contractName.Length > 0)
                 {
                     builder ??= ImmutableHashSet.CreateBuilder<(string, string)>();
-                    builder.Add((memberType, contractType));
+                    builder.Add((memberType, contractName));
                 }
             }
         }
@@ -385,5 +363,5 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
         INamedTypeSymbol? ExportFactoryType,
         INamedTypeSymbol? ExportFactoryWithMetadataType,
         INamedTypeSymbol? IEnumerableType,
-        ImmutableHashSet<(string MemberType, string ContractType)> AllowedAssignments);
+        ImmutableHashSet<(string MemberType, string ContractName)> AllowedAssignments);
 }
