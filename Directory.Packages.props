@@ -22,7 +22,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
     <PackageVersion Include="Nerdbank.MessagePack" Version="1.0.11" />
