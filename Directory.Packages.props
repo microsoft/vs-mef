@@ -7,7 +7,7 @@
     <MicrosoftTestingPlatformVersion>2.1.0</MicrosoftTestingPlatformVersion>
 
     <MicroBuildVersion>2.0.208</MicroBuildVersion>
-    <CodeAnalysisVersion>4.13.0</CodeAnalysisVersion>
+    <CodeAnalysisVersion>4.14.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.2</CodefixTestingVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -29,14 +29,14 @@
     <PackageVersion Include="Nerdbank.MSBuildExtension" Version="0.1.17-beta" />
     <PackageVersion Include="Nerdbank.NetStandardBridge" Version="1.1.46" />
     <PackageVersion Include="OpenSoftware.DgmlBuilder" Version="2.1.0" />
-    <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="9.0.0" />
     <PackageVersion Include="System.Memory" Version="4.6.3" />
     <PackageVersion Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.21216.1" />
     <PackageVersion Include="System.ComponentModel.Composition" Version="10.0.1" />
     <PackageVersion Include="System.Composition.AttributedModel" Version="10.0.1" />
     <PackageVersion Include="System.Composition" Version="10.0.1" />
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageVersion Include="System.Reflection.Metadata" Version="8.0.1" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="9.0.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="8.0.1" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.console" Version="2.9.3" />
