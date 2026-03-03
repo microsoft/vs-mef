@@ -212,10 +212,13 @@
       </Item>
       <Item ItemId=";VSMEF008_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import will fail at runtime.]]></Val>
+          <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import may fail at runtime.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Il tipo di contratto "{0}" non può essere assegnato al tipo di membro "{1}". L'importazione fallirà in fase di esecuzione.]]></Val>
+            <Val><![CDATA[Il tipo di contratto "{0}" non può essere assegnato al tipo di membro "{1}". L'importazione potrebbe non riuscire in fase di esecuzione.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[The contract type "{0}" is not assignable to the member type "{1}". The import will fail at runtime.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
