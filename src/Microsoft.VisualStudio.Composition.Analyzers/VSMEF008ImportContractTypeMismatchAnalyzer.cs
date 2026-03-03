@@ -168,7 +168,7 @@ public class VSMEF008ImportContractTypeMismatchAnalyzer : DiagnosticAnalyzer
             }
 
             // Contract name approximation is centralized so future accuracy improvements can be made in one place.
-            string importContractName = Utils.GetApproximateMefContractName(explicitContractName, explicitContractType, fullyQualifiedTypeName: true);
+            string importContractName = Utils.GetMefContractName(explicitContractName, explicitContractType);
 
             // Get the expected type from the member, unwrapping wrappers and collections
             ITypeSymbol expectedType = GetExpectedType(memberType, isImportMany, state);

@@ -8,9 +8,6 @@ namespace Microsoft.VisualStudio.Composition.Analyzers;
 /// </summary>
 internal static class Utils
 {
-    private static readonly SymbolDisplayFormat FullyQualifiedTypeNameFormat = new(
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-
     /// <summary>
     /// Gets the URL to the help topic for a particular analyzer.
     /// </summary>
@@ -335,22 +332,16 @@ internal static class Utils
     }
 
     /// <summary>
-    /// Computes an approximate MEF contract name from explicit contract metadata.
+    /// Computes MEF contract name from explicit contract metadata.
     /// </summary>
-    /// <remarks>
-    /// MEF's exact contract-name algorithm is more complex (see ContractNameServices), but this provides a
-    /// shared approximation for analyzers so future improvements can be made in one place.
-    /// </remarks>
-    internal static string GetApproximateMefContractName(string? explicitContractName, ITypeSymbol contractType, bool fullyQualifiedTypeName = false)
+    internal static string GetMefContractName(string? explicitContractName, ITypeSymbol contractType)
     {
         if (explicitContractName is { Length: > 0 })
         {
             return explicitContractName;
         }
 
-        return fullyQualifiedTypeName
-            ? contractType.ToDisplayString(FullyQualifiedTypeNameFormat)
-            : contractType.ToDisplayString();
+        return MefContractNameServices.GetTypeIdentity(contractType);
     }
 
     internal static bool GetAllowDefaultValue(AttributeData importAttribute)

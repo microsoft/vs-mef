@@ -183,7 +183,7 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         string typeName = type.ToDisplayString();
 
         // Contract name approximation is centralized so future accuracy improvements can be made in one place.
-        string name = Utils.GetApproximateMefContractName(explicitContractName, type);
+        string name = Utils.GetMefContractName(explicitContractName, type);
 
         return new Contract(typeName, name);
     }
