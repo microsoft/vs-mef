@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition.Analyzers;
 using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF008ImportContractTypeMismatchAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 public class VSMEF008ImportContractTypeMismatchAnalyzerTests
@@ -279,5 +280,31 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
         verifier.TestState.AdditionalFiles.Add(
             ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
         await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task DiagnosticMessage_UsesFullyQualifiedTypeNames()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyCompany.Services
+            {
+                interface IServiceBroker { }
+                class SVsServiceProvider { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsServiceProvider))]
+                    public IServiceBroker {|#0:Value|} { get; set; }
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            test,
+            VerifyCS.Diagnostic(VSMEF008ImportContractTypeMismatchAnalyzer.Id)
+                .WithLocation(0)
+                .WithArguments("MyCompany.Services.SVsServiceProvider", "MyCompany.Services.IServiceBroker"));
     }
 }
