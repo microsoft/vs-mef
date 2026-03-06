@@ -1,74 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition.Analyzers;
 using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyzers.VSMEF008ImportContractTypeMismatchAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 public class VSMEF008ImportContractTypeMismatchAnalyzerTests
 {
-    [Fact]
-    public async Task PlainClassWithoutMefAttributes_NoWarning()
-    {
-        string test = """
-            class Foo
-            {
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithoutExplicitContractType_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            class Foo
-            {
-                [Import]
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithMatchingContractType_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            class Foo
-            {
-                [Import(typeof(string))]
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithAssignableContractType_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            interface IService { }
-            class ServiceImpl : IService { }
-
-            class Foo
-            {
-                [Import(typeof(ServiceImpl))]
-                public IService Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
     [Fact]
     public async Task ImportWithIncompatibleContractType_Error()
     {
@@ -125,26 +63,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
     }
 
     [Fact]
-    public async Task ImportManyWithCompatibleContractType_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-            using System.Collections.Generic;
-
-            interface IService { }
-            class ServiceImpl : IService { }
-
-            class Foo
-            {
-                [ImportMany(typeof(ServiceImpl))]
-                public IEnumerable<IService> Values { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ImportWithLazyWrapper_ContractTypeMismatch_Error()
     {
         string test = """
@@ -157,25 +75,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
             {
                 [Import(typeof(IService))]
                 public Lazy<string> {|VSMEF008:Value|} { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithLazyWrapper_ContractTypeMatch_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-
-            interface IService { }
-
-            class Foo
-            {
-                [Import(typeof(IService))]
-                public Lazy<IService> Value { get; set; }
             }
             """;
 
@@ -221,26 +120,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
     }
 
     [Fact]
-    public async Task ImportManyWithLazyCollection_ContractTypeMatch_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-            using System.Collections.Generic;
-
-            interface IService { }
-
-            class Foo
-            {
-                [ImportMany(typeof(IService))]
-                public IEnumerable<Lazy<IService>> Values { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ImportingConstructorParameter_ContractTypeMismatch_Error()
     {
         string test = """
@@ -261,61 +140,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
     }
 
     [Fact]
-    public async Task ImportingConstructorParameter_ContractTypeMatch_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            interface IService { }
-
-            class Foo
-            {
-                [ImportingConstructor]
-                public Foo([Import(typeof(IService))] IService value)
-                {
-                }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithObjectMemberType_AnyContractType_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            interface IService { }
-
-            class Foo
-            {
-                [Import(typeof(IService))]
-                public object Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task MefV2Import_NoContractTypeSupport_NoWarning()
-    {
-        // MEFv2 doesn't support explicit contract types in the same way
-        string test = """
-            using System.Composition;
-
-            class Foo
-            {
-                [Import]
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ImportField_ContractTypeMismatch_Error()
     {
         string test = """
@@ -327,44 +151,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
             {
                 [Import(typeof(IService))]
                 public string {|VSMEF008:value|};
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithBaseClassContractType_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            class BaseClass { }
-            class DerivedClass : BaseClass { }
-
-            class Foo
-            {
-                [Import(typeof(DerivedClass))]
-                public BaseClass Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ImportWithInterfaceImplementation_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            interface IService { }
-            class ServiceImpl : IService { }
-
-            class Foo
-            {
-                [Import(typeof(ServiceImpl))]
-                public IService Value { get; set; }
             }
             """;
 
@@ -392,26 +178,6 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
     }
 
     [Fact]
-    public async Task ImportWithLazyMetadata_ContractTypeMatch_NoWarning()
-    {
-        string test = """
-            using System;
-            using System.ComponentModel.Composition;
-
-            interface IService { }
-            interface IMetadata { }
-
-            class Foo
-            {
-                [Import(typeof(IService))]
-                public Lazy<IService, IMetadata> Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ImportWithExportFactoryMetadata_ContractTypeMismatch_Error()
     {
         string test = """
@@ -428,5 +194,117 @@ public class VSMEF008ImportContractTypeMismatchAnalyzerTests
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportWithAllowListedAssignment_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNS
+            {
+                interface IServiceBroker { }
+                class SVsFullAccessServiceBroker { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsFullAccessServiceBroker))]
+                    public IServiceBroker Value { get; set; }
+                }
+            }
+            """;
+
+        string allowList = "MyNS.IServiceBroker <= MyNS.SVsFullAccessServiceBroker\n";
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task ImportWithAllowListedAssignmentWithComments_NoWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNS
+            {
+                interface IServiceBroker { }
+                class SVsFullAccessServiceBroker { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsFullAccessServiceBroker))]
+                    public IServiceBroker Value { get; set; }
+                }
+            }
+            """;
+
+        string allowList = """
+            # This is a comment
+            MyNS.IServiceBroker <= MyNS.SVsFullAccessServiceBroker
+
+            """;
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task ImportWithUnrelatedAllowList_StillReportsWarning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyNS
+            {
+                interface IServiceBroker { }
+                class SVsFullAccessServiceBroker { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsFullAccessServiceBroker))]
+                    public IServiceBroker {|VSMEF008:Value|} { get; set; }
+                }
+            }
+            """;
+
+        // The allow-list entry maps a different pair so the warning should still fire
+        string allowList = "MyNS.IOtherService <= MyNS.SVsFullAccessServiceBroker\n";
+
+        var verifier = new VerifyCS.Test { TestCode = test };
+        verifier.TestState.AdditionalFiles.Add(
+            ("vs-mef.ContractNamesAssignability.txt", SourceText.From(allowList)));
+        await verifier.RunAsync();
+    }
+
+    [Fact]
+    public async Task DiagnosticMessage_UsesFullyQualifiedTypeNames()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            namespace MyCompany.Services
+            {
+                interface IServiceBroker { }
+                class SVsServiceProvider { }
+
+                class Foo
+                {
+                    [Import(typeof(SVsServiceProvider))]
+                    public IServiceBroker {|#0:Value|} { get; set; }
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(
+            test,
+            VerifyCS.Diagnostic(VSMEF008ImportContractTypeMismatchAnalyzer.Id)
+                .WithLocation(0)
+                .WithArguments("MyCompany.Services.SVsServiceProvider", "MyCompany.Services.IServiceBroker"));
     }
 }

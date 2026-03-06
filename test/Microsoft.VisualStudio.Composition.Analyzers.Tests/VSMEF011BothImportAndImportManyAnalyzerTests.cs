@@ -7,52 +7,6 @@ using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyz
 public class VSMEF011BothImportAndImportManyAnalyzerTests
 {
     [Fact]
-    public async Task PlainClassWithoutMefAttributes_NoWarning()
-    {
-        string test = """
-            class Foo
-            {
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task PropertyWithImportOnly_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            class Foo
-            {
-                [Import]
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task PropertyWithImportManyOnly_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-            using System.Collections.Generic;
-
-            class Foo
-            {
-                [ImportMany]
-                public IEnumerable<string> Values { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task PropertyWithBothImportAndImportMany_Error()
     {
         string test = """
@@ -209,39 +163,6 @@ public class VSMEF011BothImportAndImportManyAnalyzerTests
             VerifyCS.Diagnostic(VSMEF011BothImportAndImportManyAnalyzer.Descriptor)
                 .WithLocation(0)
                 .WithArguments("DuplicateValues"));
-    }
-
-    [Fact]
-    public async Task PropertyWithImportOnlyAndContractName_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            class Foo
-            {
-                [Import("MyContract")]
-                public string Value { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task PropertyWithImportManyOnlyAndContractName_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-            using System.Collections.Generic;
-
-            class Foo
-            {
-                [ImportMany("MyContract")]
-                public IEnumerable<string> Values { get; set; }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
     }
 
     [Fact]

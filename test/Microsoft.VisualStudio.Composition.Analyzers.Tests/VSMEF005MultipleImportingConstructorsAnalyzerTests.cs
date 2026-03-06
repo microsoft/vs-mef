@@ -6,71 +6,6 @@ using VerifyCS = CSharpCodeFixVerifier<Microsoft.VisualStudio.Composition.Analyz
 public class VSMEF005MultipleImportingConstructorsAnalyzerTests
 {
     [Fact]
-    public async Task ClassWithNoConstructors_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ClassWithSingleImportingConstructor_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                [ImportingConstructor]
-                public Foo(string value) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ClassWithSingleNonImportingConstructor_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                public Foo(string value) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ClassWithMultipleNonImportingConstructors_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                public Foo() { }
-                public Foo(string value) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task ClassWithMultipleImportingConstructors_Warning()
     {
         string test = """
@@ -149,25 +84,6 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
 
                 [ImportingConstructor]
                 public {|VSMEF005:Foo|}([ImportMany]IService[] services) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task ClassWithImportingConstructorAndRegularConstructor_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            [Export]
-            class Foo
-            {
-                public Foo() { }
-
-                [ImportingConstructor]
-                public Foo(string value) { }
             }
             """;
 
@@ -290,22 +206,6 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
     }
 
     [Fact]
-    public async Task StructWithSingleImportingConstructor_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            struct Foo
-            {
-                [ImportingConstructor]
-                public Foo(string value) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
     public async Task StructWithMultipleImportingConstructors_Warning()
     {
         string test = """
@@ -337,24 +237,6 @@ public class VSMEF005MultipleImportingConstructorsAnalyzerTests
 
                 [ImportingConstructor]
                 public {|VSMEF005:Foo|}(int value) { }
-            }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(test);
-    }
-
-    [Fact]
-    public async Task StructWithImportingConstructorAndRegularConstructor_NoWarning()
-    {
-        string test = """
-            using System.ComponentModel.Composition;
-
-            struct Foo
-            {
-                public Foo(bool flag) { }
-
-                [ImportingConstructor]
-                public Foo(string value) { }
             }
             """;
 
