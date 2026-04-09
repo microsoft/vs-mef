@@ -49,7 +49,6 @@ namespace Microsoft.VisualStudio.Composition
         private readonly Func<object?> readObjectDelegate;
         private readonly Func<TypeRef?> readTypeRefDelegate;
 
-        private readonly ImmutableDictionary<string, object?>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
         private readonly Stack<ImmutableArray<TypeRef?>.Builder> typeRefBuilders = new Stack<ImmutableArray<TypeRef?>.Builder>();
 
         private readonly byte[] guidBuffer = new byte[128 / 8];
@@ -58,6 +57,8 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly object BoxedTrue = true;
         private static readonly object BoxedFalse = false;
+
+        private static readonly IReadOnlyDictionary<string, object?> EmptyMetadata = ImmutableDictionary<string, object?>.Empty;
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -801,7 +802,7 @@ namespace Microsoft.VisualStudio.Composition
                 // implicitly resolving TypeRefs to Types which is undesirable.
                 metadata = LazyMetadataWrapper.TryUnwrap(metadata);
 
-                serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
+                serializedMetadata = new LazyMetadataWrapper(metadata.ToDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
 
                 foreach (var entry in serializedMetadata)
                 {
@@ -815,32 +816,22 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("Metadata"))
             {
-                // PERF TIP: if ReadMetadata shows up on startup perf traces,
-                // we could simply read the blob containing the metadata into a byte[]
-                // and defer actually deserializing it until such time as the metadata
-                // is actually required.
-                // We might do this with minimal impact to other code by implementing
-                // IReadOnlyDictionary<string, object> ourselves such that on the first
-                // access of any of its contents, we'll do a just-in-time deserialization,
-                // and perhaps only of the requested values.
                 uint count = this.ReadCompressedUInt();
-                var metadata = ImmutableDictionary<string, object?>.Empty;
 
-                if (count > 0)
+                if (count == 0)
                 {
-                    var builder = this.metadataBuilder; // reuse builder to save on GC pressure
-                    for (int i = 0; i < count; i++)
-                    {
-                        string? key = this.ReadString();
-                        object? value = this.ReadObject();
-                        builder.Add(key, value);
-                    }
-
-                    metadata = builder.ToImmutable();
-                    builder.Clear(); // clean up for the next user.
+                    return EmptyMetadata;
                 }
 
-                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver);
+                var dictionary = new Dictionary<string, object?>((int)count);
+                for (int i = 0; i < count; i++)
+                {
+                    string? key = this.ReadString();
+                    object? value = this.ReadObject();
+                    dictionary.Add(key, value);
+                }
+
+                return new LazyMetadataWrapper(dictionary, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver);
             }
         }
 
