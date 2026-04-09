@@ -57,14 +57,14 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly object BoxedTrue = true;
         private static readonly object BoxedFalse = false;
+
+        private static readonly IReadOnlyDictionary<string, object?> EmptyMetadata = ImmutableDictionary<string, object?>.Empty;
         private static readonly object BoxedCreationPolicyAny = CreationPolicy.Any;
         private static readonly object BoxedCreationPolicyShared = CreationPolicy.Shared;
         private static readonly object BoxedCreationPolicyNonShared = CreationPolicy.NonShared;
         private static readonly object BoxedInt32Zero = 0;
         private static readonly object BoxedInt32One = 1;
         private static readonly object BoxedInt32NegativeOne = -1;
-
-        private static readonly IReadOnlyDictionary<string, object?> EmptyMetadata = ImmutableDictionary<string, object?>.Empty;
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -756,6 +756,41 @@ namespace Microsoft.VisualStudio.Composition
                     // Probably either file corruption or a bug in serialization.
                     // Let's not take untold amounts of memory by throwing out suspiciously large lengths.
                     throw new NotSupportedException();
+                }
+
+                // Use typed fast paths for common element types to avoid
+                // the reflection overhead of Array.CreateInstance + Array.SetValue.
+                if (elementType == typeof(object))
+                {
+                    var array = new object?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = itemReader();
+                    }
+
+                    return array;
+                }
+
+                if (elementType == typeof(string))
+                {
+                    var array = new string?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (string?)itemReader();
+                    }
+
+                    return array;
+                }
+
+                if (elementType == typeof(Type))
+                {
+                    var array = new Type?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (Type?)itemReader();
+                    }
+
+                    return array;
                 }
 
                 var list = Array.CreateInstance(elementType, (int)count);
