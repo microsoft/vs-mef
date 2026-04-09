@@ -57,6 +57,12 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly object BoxedTrue = true;
         private static readonly object BoxedFalse = false;
+        private static readonly object BoxedCreationPolicyAny = CreationPolicy.Any;
+        private static readonly object BoxedCreationPolicyShared = CreationPolicy.Shared;
+        private static readonly object BoxedCreationPolicyNonShared = CreationPolicy.NonShared;
+        private static readonly object BoxedInt32Zero = 0;
+        private static readonly object BoxedInt32One = 1;
+        private static readonly object BoxedInt32NegativeOne = -1;
 
         private static readonly IReadOnlyDictionary<string, object?> EmptyMetadata = ImmutableDictionary<string, object?>.Empty;
 
@@ -1084,7 +1090,14 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.UInt64:
                         return this.reader.ReadUInt64();
                     case ObjectType.Int32:
-                        return this.reader.ReadInt32();
+                        int int32Value = this.reader.ReadInt32();
+                        return int32Value switch
+                        {
+                            0 => BoxedInt32Zero,
+                            1 => BoxedInt32One,
+                            -1 => BoxedInt32NegativeOne,
+                            _ => int32Value,
+                        };
                     case ObjectType.UInt32:
                         return this.reader.ReadUInt32();
                     case ObjectType.Int16:
@@ -1106,7 +1119,13 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Guid:
                         return this.ReadGuid();
                     case ObjectType.CreationPolicy:
-                        return (CreationPolicy)this.reader.ReadByte();
+                        return this.reader.ReadByte() switch
+                        {
+                            (byte)CreationPolicy.Any => BoxedCreationPolicyAny,
+                            (byte)CreationPolicy.Shared => BoxedCreationPolicyShared,
+                            (byte)CreationPolicy.NonShared => BoxedCreationPolicyNonShared,
+                            byte b => (CreationPolicy)b,
+                        };
                     case ObjectType.Type:
                         return this.ReadTypeRef().Resolve();
                     case ObjectType.TypeRef:
