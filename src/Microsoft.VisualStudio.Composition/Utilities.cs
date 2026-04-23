@@ -228,5 +228,21 @@ namespace Microsoft.VisualStudio.Composition
 
             return dictionary;
         }
+
+        /// <summary>
+        /// Creates a <see cref="Dictionary{TKey, TValue}"/> from an <see cref="IReadOnlyDictionary{TKey, TValue}"/>.
+        /// The BCL Dictionary constructor does not accept IReadOnlyDictionary on netstandard2.0.
+        /// </summary>
+        internal static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source)
+            where TKey : notnull
+        {
+            var dictionary = new Dictionary<TKey, TValue>(source.Count);
+            foreach (var kvp in source)
+            {
+                dictionary.Add(kvp.Key, kvp.Value);
+            }
+
+            return dictionary;
+        }
     }
 }
