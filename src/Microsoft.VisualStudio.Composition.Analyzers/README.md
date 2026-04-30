@@ -11,3 +11,9 @@ VSMEF004 | Ensures exported types have a parameterless constructor or importing 
 VSMEF005 | Detects multiple constructors marked with `[ImportingConstructor]`.
 VSMEF006 | Ensures import nullability matches `AllowDefault` setting.
 VSMEF007 | Detects when a type imports the same contract multiple times.
+
+## Diagnostic Suppressors
+
+Suppressor ID | Suppressed Diagnostic | Description
+--|--|--
+VSMEF013 | IDE0044 | Suppresses "Make field readonly" for fields decorated with MEF `[Import]` or `[ImportMany]` attributes, since such fields are assigned at runtime via reflection.

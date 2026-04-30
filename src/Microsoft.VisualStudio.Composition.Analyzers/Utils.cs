@@ -284,6 +284,18 @@ internal static class Utils
         return attributes.FirstOrDefault(attr => IsImportAttribute(attr.AttributeClass));
     }
 
+    internal static bool IsFieldImportAttribute(INamedTypeSymbol? attributeType)
+    {
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        // MEFv2 attributes don't support field imports, so only check MEFv1 Import and ImportMany attributes.
+        return IsAttributeOfType(attributeType, "ImportAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ImportManyAttribute", MefV1AttributeNamespace.AsSpan());
+    }
+
     internal static bool IsImportAttribute(INamedTypeSymbol? attributeType)
     {
         if (attributeType is null)
