@@ -6,6 +6,7 @@
     <PackageId>Microsoft.VisualStudio.Composition.Analyzers.Only</PackageId>
     <IsAnalyzerProject>true</IsAnalyzerProject>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
