@@ -393,6 +393,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF013_Justification" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fields with [Import]5D; or [ImportMany]5D; attributes are assigned at runtime via reflection and cannot be made readonly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Felder mit den Attributen [Import]5D; oder [ImportMany]5D; werden zur Laufzeit per Reflexion zugewiesen und können nicht schreibgeschützt sein.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
