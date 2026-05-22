@@ -393,6 +393,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF013_Justification" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fields with [Import]5D; or [ImportMany]5D; attributes are assigned at runtime via reflection and cannot be made readonly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Import]5D; 또는 [ImportMany]5D; 특성이 있는 필드는 리플렉션을 통해 런타임에 할당되므로 읽기 전용으로 만들 수 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
