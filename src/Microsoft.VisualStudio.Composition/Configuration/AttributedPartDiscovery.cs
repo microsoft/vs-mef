@@ -356,13 +356,41 @@ namespace Microsoft.VisualStudio.Composition
                     contractType = contractType.GetTypeInfo().GetGenericArguments()[0];
                 }
 
+                // Detect parameterized generic imports on open-generic parts:
+                // e.g. IOptionsFactory<TOptions> where TOptions is the part's own type parameter.
+                // Switch the contract to the open generic and record the parameter index positions so
+                // the runtime can close the import with the concrete type arguments.
+                int[]? genericParamIndexes = null;
+                if (contractType.IsConstructedGenericType)
+                {
+                    var typeArgs = contractType.GetGenericArguments();
+                    if (typeArgs.All(a => a.IsGenericParameter))
+                    {
+                        genericParamIndexes = typeArgs.Select(a => a.GenericParameterPosition).ToArray();
+                        contractType = contractType.GetGenericTypeDefinition();
+                    }
+                }
+
                 importConstraints = importConstraints
-                    .Union(this.GetMetadataViewConstraints(importingType, importMany: false))
-                    .Union(GetExportTypeIdentityConstraints(contractType));
+                    .Union(this.GetMetadataViewConstraints(importingType, importMany: false));
+
+                // Only add the type-identity constraint for normal (non-generic-parameter) imports.
+                // For parameterized generic imports the contract name is the open generic definition,
+                // and its exports carry a format-string identity that would not match a static constraint.
+                if (genericParamIndexes is null)
+                {
+                    importConstraints = importConstraints.Union(GetExportTypeIdentityConstraints(contractType));
+                }
+
+                var importMetadata = genericParamIndexes is not null
+                    ? ImmutableDictionary.Create<string, object?>()
+                        .Add(CompositionConstants.GenericParameterIndexesMetadataName, genericParamIndexes)
+                    : GetImportMetadataForGenericTypeImport(contractType);
+
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                    GetImportMetadataForGenericTypeImport(contractType),
+                    importMetadata,
                     importConstraints,
                     sharingBoundaries);
                 return true;
