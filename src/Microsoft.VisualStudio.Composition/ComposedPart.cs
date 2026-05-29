@@ -75,7 +75,10 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             var importsWithGenericTypeParameters = this.Definition.Imports
-                .Where(import => import.ImportingSiteElementTypeRef.GenericTypeParameterCount != 0).ToList();
+                .Where(import =>
+                    import.ImportingSiteElementTypeRef.GenericTypeParameterCount != 0 &&
+                    !import.ImportDefinition.Metadata.ContainsKey(CompositionConstants.GenericParameterIndexesMetadataName))
+                .ToList();
             foreach (var import in importsWithGenericTypeParameters)
             {
                 yield return new ComposedPartDiagnostic(
