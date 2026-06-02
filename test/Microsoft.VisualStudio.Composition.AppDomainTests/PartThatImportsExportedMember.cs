@@ -13,6 +13,6 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
     public class PartThatImportsExportedMember
     {
         [Import]
-        public MemberTypeToExport ImportingProperty { get; set; }
+        public MemberTypeToExport ImportingProperty { get; set; } = null!;
     }
 }

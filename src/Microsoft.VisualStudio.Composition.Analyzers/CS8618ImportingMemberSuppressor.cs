@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers;
 /// Suppresses CS8618 for MEF importing fields and properties on exported parts,
 /// since MEF initializes such members after construction.
 /// </summary>
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 public class CS8618ImportingMemberSuppressor : DiagnosticSuppressor
 {
     /// <summary>
