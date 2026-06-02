@@ -45,6 +45,11 @@ public class CS8618ImportingMemberSuppressor : DiagnosticSuppressor
                 continue;
             }
 
+            if (affectedSymbol is IPropertySymbol { SetMethod: null })
+            {
+                continue;
+            }
+
             INamedTypeSymbol? containingType = affectedSymbol.ContainingType;
             if (containingType is null ||
                 !Utils.HasInstanceExports(containingType) ||

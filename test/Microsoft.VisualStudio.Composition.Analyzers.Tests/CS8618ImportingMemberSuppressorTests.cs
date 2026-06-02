@@ -262,6 +262,37 @@ public class CS8618ImportingMemberSuppressorTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task DerivedImportAttributeOnGetOnlyProperty_DoesNotSuppressCS8618()
+    {
+        string test = """
+            #nullable enable
+            #pragma warning disable CS1591
+            using System;
+            using System.ComponentModel.Composition;
+
+            [AttributeUsage(AttributeTargets.Property)]
+            public class MyImportAttribute : ImportAttribute
+            {
+            }
+
+            [Export]
+            public class SomeService
+            {
+                [MyImport]
+                public IService SomeOtherService { get; }
+            }
+
+            public interface IService { }
+            """;
+
+        await new Test
+        {
+            TestCode = test,
+            ExpectedDiagnostics = { Cs8618Diagnostic("property", "SomeOtherService", 15, 21, 15, 37, 15, 21, 15, 37) },
+        }.RunAsync();
+    }
+
     private static DiagnosticResult Cs8618Diagnostic(
         string memberKind,
         string memberName,
