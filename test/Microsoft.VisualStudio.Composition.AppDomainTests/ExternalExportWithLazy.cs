@@ -14,6 +14,6 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
     public class ExternalExportWithLazy
     {
         [Import("YetAnotherExport")]
-        public Lazy<object> YetAnotherExport { get; set; } = null!;
+        public Lazy<object> YetAnotherExport { get; set; }
     }
 }

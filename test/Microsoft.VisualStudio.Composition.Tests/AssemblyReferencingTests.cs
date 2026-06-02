@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<SomeExport, ISomeInterface> SomeImport { get; set; } = null!;
+            public Lazy<SomeExport, ISomeInterface> SomeImport { get; set; }
         }
 
         [Export, MefV1.Export]

@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RequiredImportMissing
         {
             [Import]
-            public ICustomFormatter MissingRequiredImport { get; set; } = null!;
+            public ICustomFormatter MissingRequiredImport { get; set; }
         }
 
         [Export]

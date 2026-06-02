@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
     public class PartThatImportsLazyOfEmbeddedType
     {
         [MefV1.Import, MefV2.Import]
-        public Lazy<TEmbedded> RetargetProject { get; set; } = null!;
+        public Lazy<TEmbedded> RetargetProject { get; set; }
 
         public TEmbedded RetargetProjectNoLazy
         {
@@ -44,14 +44,14 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
         }
 
         [MefV1.Import, MefV2.Import]
-        internal Lazy<TEmbedded> RetargetProject { get; set; } = null!;
+        internal Lazy<TEmbedded> RetargetProject { get; set; }
     }
 
     [MefV1.Export, MefV2.Export]
     public class PartThatImportsEmbeddedType
     {
         [MefV1.Import, MefV2.Import]
-        public TEmbedded RetargetProject { get; set; } = null!;
+        public TEmbedded RetargetProject { get; set; }
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
     public class PartThatImportsExportFactoryOfEmbeddedTypeV1
     {
         [MefV1.Import]
-        public MefV1.ExportFactory<TEmbedded> RetargetProjectFactory { get; set; } = null!;
+        public MefV1.ExportFactory<TEmbedded> RetargetProjectFactory { get; set; }
 
         public TEmbedded CreateExport()
         {
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
     public class PartThatImportsExportFactoryOfEmbeddedTypeV2
     {
         [MefV2.Import]
-        public MefV2.ExportFactory<TEmbedded> RetargetProjectFactory { get; set; } = null!;
+        public MefV2.ExportFactory<TEmbedded> RetargetProjectFactory { get; set; }
 
         public TEmbedded CreateExport()
         {

@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class CompositionServiceImportingPart
         {
             [Import]
-            public ICompositionService CompositionService { get; set; } = null!;
+            public ICompositionService CompositionService { get; set; }
         }
 
         public class ImportOnlyPart
@@ -151,40 +151,40 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPart
         {
             [MefV2.Import, MefV2.SharingBoundary("a")]
-            public MefV2.ExportFactory<SubScopedPart> ScopeFactory { get; set; } = null!;
+            public MefV2.ExportFactory<SubScopedPart> ScopeFactory { get; set; }
 
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; } = null!;
+            public ICompositionService CompositionService { get; set; }
 
             [Import, MefV2.Import]
-            public AnotherRootPart AnotherRootPart { get; set; } = null!;
+            public AnotherRootPart AnotherRootPart { get; set; }
         }
 
         [MefV2.Export, MefV2.Shared]
         public class AnotherRootPart
         {
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; } = null!;
+            public ICompositionService CompositionService { get; set; }
         }
 
         [MefV2.Export, MefV2.Shared("a")]
         public class SubScopedPart
         {
             [Import, MefV2.Import]
-            public RootPart Root { get; set; } = null!;
+            public RootPart Root { get; set; }
 
             [Import, MefV2.Import]
-            public AnotherSubScopedPart AnotherSubScopedPart { get; set; } = null!;
+            public AnotherSubScopedPart AnotherSubScopedPart { get; set; }
 
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; } = null!;
+            public ICompositionService CompositionService { get; set; }
         }
 
         [MefV2.Export, MefV2.Shared("a")]
         public class AnotherSubScopedPart
         {
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; } = null!;
+            public ICompositionService CompositionService { get; set; }
         }
 
         #endregion

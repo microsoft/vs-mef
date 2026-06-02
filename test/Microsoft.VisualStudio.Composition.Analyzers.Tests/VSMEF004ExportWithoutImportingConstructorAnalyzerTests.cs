@@ -132,6 +132,24 @@ public class VSMEF004ExportWithoutImportingConstructorAnalyzerTests
     }
 
     [Fact]
+    public async Task ClassWithInheritedExportAndNonDefaultConstructorWithoutImportingConstructor_Warning()
+    {
+        string test = """
+            using System.ComponentModel.Composition;
+
+            [InheritedExport]
+            class Foo
+            {
+                public {|VSMEF004:Foo|}(string parameter)
+                {
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task ClassWithExportAndPrimaryDefaultConstructorWithoutImportingConstructor_Warning()
     {
         string test = """

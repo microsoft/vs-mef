@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
     public class PartThatLazyImportsExportWithTypeMetadataViaTMetadata
     {
         [Import("AnExportWithMetadataTypeValue")]
-        public Lazy<object, IMetadataView> ImportWithTMetadata { get; set; } = null!;
+        public Lazy<object, IMetadataView> ImportWithTMetadata { get; set; }
     }
 
     public interface IMetadataView

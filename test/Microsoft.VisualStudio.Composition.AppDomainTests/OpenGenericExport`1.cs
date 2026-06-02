@@ -20,6 +20,6 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
     public class PartImportingOpenGenericExport
     {
         [Import]
-        public OpenGenericExport<SomeOtherType> ImportingProperty { get; set; } = null!;
+        public OpenGenericExport<SomeOtherType> ImportingProperty { get; set; }
     }
 }

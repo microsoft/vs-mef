@@ -57,6 +57,7 @@ public static partial class CSharpMultiAnalyzerVerifier
                 new VSMEF011BothImportAndImportManyAnalyzer(),
                 new VSMEF012DisallowMefAttributeVersionAnalyzer(),
                 new IDE0044ImportFieldSuppressor(),
+                new CS8618ImportingMemberSuppressor(),
             ];
         }
 
