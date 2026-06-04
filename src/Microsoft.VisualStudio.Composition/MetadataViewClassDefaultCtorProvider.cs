@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadataType, nameof(metadataType));
             var typeInfo = metadataType.GetTypeInfo();
 
-            return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
+            return typeInfo.IsClass && !typeInfo.IsAbstract && !MetadataView.IsDirectMetadataViewType(metadataType) && FindConstructor(typeInfo) != null;
         }
 
         public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(defaultValues, nameof(defaultValues));
             Requires.NotNull(metadataViewType, nameof(metadataViewType));
+            MetadataView.ThrowIfDirectMetadataViewType(metadataViewType);
 
             TypeInfo typeInfo = metadataViewType.GetTypeInfo();
             ConstructorInfo? ctor = FindConstructor(typeInfo);

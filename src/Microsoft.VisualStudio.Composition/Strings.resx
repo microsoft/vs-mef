@@ -163,6 +163,15 @@
     <value>The type {0} is an unsupported type of metadata view.</value>
     <comment>{0} is the metadata view type.</comment>
   </data>
+  <data name="MetadataViewImplementationTypeMustImplementMetadataView" xml:space="preserve">
+    <value>The metadata view implementation type "{0}" must implement the metadata view interface "{1}".</value>
+  </data>
+  <data name="MetadataViewImplementationConstructorUnsupported" xml:space="preserve">
+    <value>The metadata view implementation type "{0}" for metadata view "{1}" must declare one of the supported constructors: a public parameterless constructor when deriving from Microsoft.VisualStudio.Composition.MetadataView, or a public .ctor(IDictionary&lt;string, object?&gt;) / .ctor(IReadOnlyDictionary&lt;string, object?&gt;).</value>
+  </data>
+  <data name="MetadataViewDirectUseUnsupported" xml:space="preserve">
+    <value>The metadata view type "{0}" derives from Microsoft.VisualStudio.Composition.MetadataView and must be consumed through an interface metadata view annotated with MetadataViewImplementationAttribute, not used directly as TMetadata.</value>
+  </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>Unable to determine the primary sharing boundary for MEF part "{0}".</value>
   </data>

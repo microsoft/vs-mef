@@ -29,11 +29,12 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadataType, nameof(metadataType));
             var typeInfo = metadataType.GetTypeInfo();
 
-            return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
+            return typeInfo.IsClass && !typeInfo.IsAbstract && !MetadataView.IsDirectMetadataViewType(metadataType) && FindConstructor(typeInfo) != null;
         }
 
         public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
+            MetadataView.ThrowIfDirectMetadataViewType(metadataViewType);
             ConstructorInfo? ctor = FindConstructor(metadataViewType.GetTypeInfo());
             Requires.Argument(ctor is not null, nameof(metadataViewType), "No public constructor with the required signature found.");
 

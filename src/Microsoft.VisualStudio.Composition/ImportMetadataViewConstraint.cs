@@ -173,7 +173,9 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(resolver, nameof(resolver));
 
             var metadataView = metadataViewRef.Resolve();
-            bool hasMetadataViewImplementation = MetadataViewImplProxy.HasMetadataViewImplementation(metadataView);
+            MetadataViewImplProxy.ImplementationKind metadataViewImplementationKind = MetadataViewImplProxy.GetImplementationKind(metadataView);
+            bool hasMetadataViewImplementation = metadataViewImplementationKind != MetadataViewImplProxy.ImplementationKind.None;
+            bool usesInterfaceMetadataSemantics = metadataViewImplementationKind == MetadataViewImplProxy.ImplementationKind.MetadataViewBase;
             if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)) && !metadataView.Equals(typeof(IReadOnlyDictionary<string, object>)))
             {
                 var requiredMetadata = ImmutableDictionary.CreateBuilder<string, MetadatumRequirement>();
@@ -182,8 +184,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     bool required = !property.IsAttributeDefined<DefaultValueAttribute>();
 
-                    // Ignore properties that have a default value and have a metadataview implementation.
-                    if (required || !hasMetadataViewImplementation)
+                    // Legacy dictionary-backed metadata view implementations preserve MEFv1's behavior
+                    // of ignoring optional properties during filtering. Newer implementation paths
+                    // can safely use the full interface contract because they reuse interface semantics.
+                    if (required || !hasMetadataViewImplementation || usesInterfaceMetadataSemantics)
                     {
                         requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property), resolver), required));
                     }
