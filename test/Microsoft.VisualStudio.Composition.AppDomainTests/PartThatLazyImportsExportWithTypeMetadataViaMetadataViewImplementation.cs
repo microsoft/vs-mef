@@ -34,4 +34,24 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
 
         public string SomeProperty => this.GetMetadata<string>();
     }
+
+    [Export]
+    public class PartThatLazyImportsExportWithTypeMetadataViaDirectMetadataView
+    {
+        [Import("AnExportWithMetadataTypeValue")]
+        public Lazy<object, DirectMetadataView> ImportWithTMetadata { get; set; } = null!;
+    }
+
+    public class DirectMetadataViewBase : MetadataView
+    {
+        [DefaultValue("default")]
+        public string SomeProperty => this.GetMetadata<string>();
+    }
+
+    public class DirectMetadataView : DirectMetadataViewBase
+    {
+        public Type SomeType => this.GetMetadata<Type>();
+
+        public Type[] SomeTypes => this.GetMetadata<Type[]>();
+    }
 }

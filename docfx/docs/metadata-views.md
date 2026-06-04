@@ -37,13 +37,13 @@ For these legacy dictionary-backed implementation classes:
 
 Because the implementation is working directly from the raw dictionary, it does **not** automatically inherit the full interface metadata-view behavior.
 
-## `MetadataView`-based implementation classes
+## Interface-backed `MetadataView` implementation classes
 
 VS MEF now includes <xref:Microsoft.VisualStudio.Composition.MetadataView> to make concrete metadata view implementations easier to write while still keeping the interface as the metadata contract.
 
 [!code-csharp[](../../samples/docs/MetadataViews.cs#MetadataViewBaseImplementation)]
 
-For `MetadataView`-derived implementation classes:
+For interface-backed `MetadataView`-derived implementation classes:
 
 - the interface remains the canonical filtering contract
 - required properties filter by presence and type compatibility
@@ -54,14 +54,32 @@ For `MetadataView`-derived implementation classes:
 This is the recommended approach when you want a concrete metadata view type without reimplementing the filtering and lazy metadata semantics yourself.
 
 > [!IMPORTANT]
-> A type derived from <xref:Microsoft.VisualStudio.Composition.MetadataView> is **not** meant to be used directly as `TMetadata` in `Lazy<T, TMetadata>`. It must be reached through an interface metadata view that is annotated with <xref:System.ComponentModel.Composition.MetadataViewImplementationAttribute>. VS MEF rejects direct use as an unsupported metadata view type, so declared imports fail during composition and direct export queries fail when the query is evaluated.
+> When a <xref:Microsoft.VisualStudio.Composition.MetadataView>-derived type is reached through <xref:System.ComponentModel.Composition.MetadataViewImplementationAttribute>, the attributed interface remains the metadata contract.
+
+## Direct `MetadataView` classes
+
+You can also use a <xref:Microsoft.VisualStudio.Composition.MetadataView>-derived class directly as `TMetadata`.
+
+[!code-csharp[](../../samples/docs/MetadataViews.cs#DirectMetadataView)]
+
+For direct `MetadataView` classes:
+
+- the metadata contract is the set of **public instance properties** on the class and its base types
+- required properties are those without `[DefaultValue]`
+- optional properties are those with `[DefaultValue]`
+- optional properties still filter by type compatibility when metadata is present
+- inherited public properties participate in both filtering and default handling
+- if a derived class hides a base property with the same name, the **most-derived property wins**
+- implemented interfaces are ignored for this direct path
+- metadata values such as `System.Type` and `System.Type[]` preserve VS MEF's lazy materialization behavior because the values are read through the library's metadata wrappers instead of eagerly coerced by user code
 
 ## Choosing a model
 
 Use:
 
 - a plain **interface metadata view** when an interface is sufficient
-- a **`MetadataView`-derived class** when you want a concrete type but still want interface-style filtering and metadata handling
+- an **interface-backed `MetadataView`-derived class** when you want a concrete type but want an interface to remain the metadata contract
+- a **direct `MetadataView`-derived class** when the class itself should define the metadata contract through its public instance properties
 - a **dictionary-constructor implementation** only when you need to preserve existing MEF v1 behavior or custom dictionary-based logic
 
 ## Behavior summary
@@ -70,4 +88,5 @@ Use:
 | --- | --- | --- | --- | --- |
 | Interface metadata view | Yes | Yes, when present | Yes | Yes |
 | Legacy dictionary-backed implementation | Yes | No | No, implementation decides | Not automatically |
-| `MetadataView`-derived implementation | Yes | Yes, when present | Yes | Yes |
+| Interface-backed `MetadataView` implementation | Yes | Yes, when present | Yes | Yes |
+| Direct `MetadataView` class | Yes | Yes, when present | Yes | Yes |

@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(defaultValues, nameof(defaultValues));
             Requires.NotNull(metadataViewType, nameof(metadataViewType));
-            MetadataView.ThrowIfDirectMetadataViewType(metadataViewType);
 
             TypeInfo typeInfo = metadataViewType.GetTypeInfo();
             ConstructorInfo? ctor = FindConstructor(typeInfo);

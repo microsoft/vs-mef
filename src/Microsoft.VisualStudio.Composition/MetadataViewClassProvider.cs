@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.Composition
 
         public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
-            MetadataView.ThrowIfDirectMetadataViewType(metadataViewType);
             ConstructorInfo? ctor = FindConstructor(metadataViewType.GetTypeInfo());
             Requires.Argument(ctor is not null, nameof(metadataViewType), "No public constructor with the required signature found.");
 

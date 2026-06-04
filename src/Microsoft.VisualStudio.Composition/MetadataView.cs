@@ -5,7 +5,6 @@ namespace Microsoft.VisualStudio.Composition;
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 
 /// <summary>
@@ -44,16 +43,6 @@ public abstract class MetadataView
 
         this.metadata = metadata;
         this.defaultValues = defaultValues;
-    }
-
-    internal static void ThrowIfDirectMetadataViewType(Type metadataViewType)
-    {
-        Requires.NotNull(metadataViewType, nameof(metadataViewType));
-
-        if (IsDirectMetadataViewType(metadataViewType))
-        {
-            throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewDirectUseUnsupported, metadataViewType.FullName));
-        }
     }
 
     internal static bool IsDirectMetadataViewType(Type metadataViewType)

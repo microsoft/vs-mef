@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly ImmutableHashSet<ComposablePartDefinition> AlwaysBundledParts = ImmutableHashSet.Create(
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
+            MetadataViewDirectProvider.PartDefinition,
             MetadataViewClassProvider.PartDefinition,
             MetadataViewClassDefaultCtorProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)

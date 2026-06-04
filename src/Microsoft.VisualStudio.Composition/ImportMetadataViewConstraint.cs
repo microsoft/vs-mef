@@ -178,25 +178,44 @@ namespace Microsoft.VisualStudio.Composition
             bool usesInterfaceMetadataSemantics = metadataViewImplementationKind == MetadataViewImplProxy.ImplementationKind.MetadataViewBase;
             if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)) && !metadataView.Equals(typeof(IReadOnlyDictionary<string, object>)))
             {
-                var requiredMetadata = ImmutableDictionary.CreateBuilder<string, MetadatumRequirement>();
+                return BuildMetadataRequirements(metadataView, resolver, requiredOnly: hasMetadataViewImplementation && !usesInterfaceMetadataSemantics);
+            }
 
-                foreach (var property in metadataView.EnumProperties().WherePublicInstance())
-                {
-                    bool required = !property.IsAttributeDefined<DefaultValueAttribute>();
-
-                    // Legacy dictionary-backed metadata view implementations preserve MEFv1's behavior
-                    // of ignoring optional properties during filtering. Newer implementation paths
-                    // can safely use the full interface contract because they reuse interface semantics.
-                    if (required || !hasMetadataViewImplementation || usesInterfaceMetadataSemantics)
-                    {
-                        requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property), resolver), required));
-                    }
-                }
-
-                return requiredMetadata.ToImmutable();
+            if (MetadataView.IsDirectMetadataViewType(metadataView) && !metadataView.GetTypeInfo().IsAbstract)
+            {
+                return BuildMetadataRequirements(metadataView, resolver, requiredOnly: false);
             }
 
             return ImmutableDictionary<string, MetadatumRequirement>.Empty;
+        }
+
+        private static ImmutableDictionary<string, MetadatumRequirement> BuildMetadataRequirements(Type metadataView, Resolver resolver, bool requiredOnly)
+        {
+            Requires.NotNull(metadataView, nameof(metadataView));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            var requiredMetadata = ImmutableDictionary.CreateBuilder<string, MetadatumRequirement>();
+            var seenPropertyNames = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var property in metadataView.EnumProperties().WherePublicInstance())
+            {
+                if (!seenPropertyNames.Add(property.Name))
+                {
+                    continue;
+                }
+
+                bool required = !property.IsAttributeDefined<DefaultValueAttribute>();
+
+                // Legacy dictionary-backed metadata view implementations preserve MEFv1's behavior
+                // of ignoring optional properties during filtering. Newer implementation paths
+                // can safely use the full interface or class contract because they reuse interface semantics.
+                if (!requiredOnly || required)
+                {
+                    requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property), resolver), required));
+                }
+            }
+
+            return requiredMetadata.ToImmutable();
         }
 
         public struct MetadatumRequirement

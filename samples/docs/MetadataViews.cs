@@ -87,3 +87,28 @@ public class HandlerMetadataView : MetadataView, IConcreteHandlerMetadata
 }
 
 #endregion
+
+#region DirectMetadataView
+
+public class DirectHandlerMetadataBase : MetadataView
+{
+    [DefaultValue(false)]
+    public bool SupportsAsync => this.GetMetadata<bool>();
+}
+
+public class DirectHandlerMetadata : DirectHandlerMetadataBase
+{
+    public string Name => this.GetMetadata<string>();
+
+    [DefaultValue(null)]
+    public Type HandlerType => this.GetMetadata<Type>();
+}
+
+[MefV1.Export]
+internal class DirectMetadataImporter
+{
+    [MefV1.ImportMany("Handler")]
+    public IEnumerable<Lazy<object, DirectHandlerMetadata>> Handlers { get; set; } = null!;
+}
+
+#endregion

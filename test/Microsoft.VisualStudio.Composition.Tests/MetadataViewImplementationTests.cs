@@ -72,32 +72,47 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(new[] { 3, 4 }, partWithOptionalValue.Metadata.IntValues);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ProjectedExportingPartA))]
-        public void MetadataViewDerivedClassCannotBeUsedDirectlyAsMetadataType(IContainer container)
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ProjectedExportingPartA), typeof(ProjectedExportingPartAB), typeof(ProjectedExportingPartAWithWrongOptionalType))]
+        public void MetadataViewDerivedClassCanBeUsedDirectlyAsMetadataType(IContainer container)
         {
-            var ex = Assert.Throws<NotSupportedException>(() => container.GetExports<object, ProjectedMetadataView>("ProjectedExport").ToList());
-            Assert.Contains(typeof(ProjectedMetadataView).FullName!, ex.Message);
+            var exports = container.GetExports<object, ProjectedMetadataView>("ProjectedExport").ToList();
+            Assert.Equal(2, exports.Count);
+
+            var partWithOptionalDefault = exports.Single(e => e.Value is ProjectedExportingPartA);
+            Assert.Equal("1", partWithOptionalDefault.Metadata.A);
+            Assert.Equal("default", partWithOptionalDefault.Metadata.B);
+            Assert.Equal(new[] { "alpha", "beta" }, partWithOptionalDefault.Metadata.StringValues);
+            Assert.Equal(new[] { 1, 2 }, partWithOptionalDefault.Metadata.IntValues);
+
+            var partWithOptionalValue = exports.Single(e => e.Value is ProjectedExportingPartAB);
+            Assert.Equal("1", partWithOptionalValue.Metadata.A);
+            Assert.Equal("2", partWithOptionalValue.Metadata.B);
+            Assert.Equal(new[] { "gamma", "delta" }, partWithOptionalValue.Metadata.StringValues);
+            Assert.Equal(new[] { 3, 4 }, partWithOptionalValue.Metadata.IntValues);
         }
 
-        [Fact]
-        public async Task MetadataViewDerivedClassImportIsRejectedDuringConfiguration()
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ProjectedExportingPartA), typeof(DirectProjectedMetadataViewImporter))]
+        public void MetadataViewDerivedClassCanBeImportedDirectly(IContainer container)
         {
-            var configuration = await TestUtilities.CreateConfigurationAsync(
-                CompositionEngines.V1,
-                typeof(ProjectedExportingPartA),
-                typeof(DirectProjectedMetadataViewImporter));
-
-            Assert.False(configuration.CompositionErrors.IsEmpty);
-            var rootCauses = configuration.CompositionErrors.Peek();
-            Assert.All(rootCauses, error => Assert.Equal(typeof(DirectProjectedMetadataViewImporter), Assert.Single(error.Parts).Definition.Type));
-            Assert.Contains(rootCauses, error => error.Message.Contains(typeof(ProjectedMetadataView).FullName!, StringComparison.Ordinal));
+            var importer = container.GetExportedValue<DirectProjectedMetadataViewImporter>();
+            Assert.NotNull(importer.ImportingProperty);
+            Assert.Equal("1", importer.ImportingProperty!.Metadata.A);
+            Assert.Equal("default", importer.ImportingProperty.Metadata.B);
+            Assert.Equal(new[] { "alpha", "beta" }, importer.ImportingProperty.Metadata.StringValues);
+            Assert.Equal(new[] { 1, 2 }, importer.ImportingProperty.Metadata.IntValues);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3AllowConfigurationWithErrors, typeof(ProjectedExportingPartA), typeof(DirectProjectedMetadataViewImporter), typeof(UnrelatedProjectedExport), InvalidConfiguration = true)]
-        public void MetadataViewDerivedClassImportRejectsPartButRetainsUnrelatedParts(IContainer container)
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(DirectProjectedExportingPartComplete), typeof(DirectProjectedExportingPartMissingShadowed), typeof(DirectOnlyProjectedMetadataViewImporter))]
+        public void DirectMetadataViewWithoutInterface_UsesInheritedPropertiesAndMostDerivedMembers(IContainer container)
         {
-            Assert.Empty(container.GetExportedValues<DirectProjectedMetadataViewImporter>());
-            Assert.NotNull(container.GetExportedValue<UnrelatedProjectedExport>());
+            var importer = container.GetExportedValue<DirectOnlyProjectedMetadataViewImporter>();
+            Assert.NotNull(importer.ImportingProperty);
+            Assert.IsType<DirectProjectedExportingPartComplete>(importer.ImportingProperty!.Value);
+            Assert.Equal("1", importer.ImportingProperty.Metadata.A);
+            Assert.Equal("base-default", importer.ImportingProperty.Metadata.B);
+            Assert.Equal("shadowed", importer.ImportingProperty.Metadata.Shadowed);
+            Assert.Equal(typeof(ProjectedExportingPartA).Name, importer.ImportingProperty.Metadata.SomeType.Name);
+            Assert.Equal(new[] { 6, 7 }, importer.ImportingProperty.Metadata.IntValues);
         }
 
         [MefV1.Export]
@@ -168,6 +183,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             public string? A => this.GetMetadata<string?>();
 
+            [DefaultValue("default")]
             public string? B => this.GetMetadata<string?>();
 
             public string[] StringValues => this.GetMetadata<string[]>();
@@ -201,16 +217,55 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
         }
 
+        public class DirectOnlyProjectedMetadataViewBase : MetadataView
+        {
+            [DefaultValue("base-default")]
+            public string B => this.GetMetadata<string>();
+
+            [DefaultValue("base-shadow")]
+            public string Shadowed => this.GetMetadata<string>();
+
+            public Type SomeType => this.GetMetadata<Type>();
+        }
+
+        public class DirectOnlyProjectedMetadataView : DirectOnlyProjectedMetadataViewBase
+        {
+            public string A => this.GetMetadata<string>();
+
+            public new string Shadowed => this.GetMetadata<string>();
+
+            public int[] IntValues => this.GetMetadata<int[]>();
+        }
+
+        [MefV1.Export("DirectProjectedExport", typeof(object))]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataView.A), "1")]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataView.Shadowed), "shadowed")]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataViewBase.SomeType), typeof(ProjectedExportingPartA))]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataView.IntValues), new[] { 6, 7 })]
+        public class DirectProjectedExportingPartComplete
+        {
+        }
+
+        [MefV1.Export("DirectProjectedExport", typeof(object))]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataView.A), "2")]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataViewBase.SomeType), typeof(ProjectedExportingPartAB))]
+        [MefV1.ExportMetadata(nameof(DirectOnlyProjectedMetadataView.IntValues), new[] { 8, 9 })]
+        public class DirectProjectedExportingPartMissingShadowed
+        {
+        }
+
         [MefV1.Export]
         public class DirectProjectedMetadataViewImporter
         {
-            [MefV1.Import]
+            [MefV1.Import("ProjectedExport")]
             public Lazy<object, ProjectedMetadataView>? ImportingProperty { get; set; }
         }
 
         [MefV1.Export]
-        public class UnrelatedProjectedExport
+        public class DirectOnlyProjectedMetadataViewImporter
         {
+            [MefV1.Import("DirectProjectedExport")]
+            public Lazy<object, DirectOnlyProjectedMetadataView>? ImportingProperty { get; set; }
         }
     }
 }
