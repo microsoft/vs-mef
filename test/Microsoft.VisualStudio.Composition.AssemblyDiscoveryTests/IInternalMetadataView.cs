@@ -7,7 +7,8 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     /// An internal interface that is used as the base interface
     /// of a metadata view defined in another assembly.
     /// </summary>
-    internal interface IInternalMetadataView
+    [MetadataView]
+    internal partial interface IInternalMetadataView
     {
         string MetadataOnInternalInterface { get; }
     }

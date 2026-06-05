@@ -35,9 +35,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class ImportingPart
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [Import]
             [MefV1.Import]
             public Lazy<ExportWithMetadata, IMetadata> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         public interface IMetadata1

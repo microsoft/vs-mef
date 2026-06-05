@@ -469,9 +469,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [ImportMany]
             [MefV1.ImportMany]
             internal CustomCollectionWithPublicCtor<IInternalExtension, IPublicMetadataView> ImportingCollection { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         #endregion

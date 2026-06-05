@@ -133,6 +133,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("1", metadataView.A);
         }
 
+        [Fact]
+        public void MetadataViewBaseDictionaryConstructorHonorsDefaultValueOnInterface()
+        {
+            var metadataView = new InterfaceDefaultValueMetadataView(new Dictionary<string, object>());
+            Assert.Equal("default", metadataView.B);
+        }
+
         [MefV1.Export]
         public class ImportingPartWithoutMismatchingMetadata
         {
@@ -316,6 +323,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             public string? A { get; }
+        }
+
+        public interface IInterfaceDefaultValueMetadataView
+        {
+            [DefaultValue("default")]
+            string? B { get; }
+        }
+
+        public class InterfaceDefaultValueMetadataView : MetadataView, IInterfaceDefaultValueMetadataView
+        {
+            public InterfaceDefaultValueMetadataView(IDictionary<string, object> metadata)
+                : base(metadata)
+            {
+            }
+
+            public string? B => this.GetMetadata<string?>();
         }
 
         private static bool IsMetadataViewSupported(Type metadataViewType)

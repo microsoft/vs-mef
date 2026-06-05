@@ -138,9 +138,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class ImportingPartViaMetadataView
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [Import(AllowDefault = true)]
             [MefV1.Import(AllowDefault = true)]
             public Lazy<PartWithMultipleStringArrayCustomMetadata, ICustomMetadataWithStringArray>? CustomStringArrayMetadataViewImport { get; set; }
+#pragma warning restore VSMEF015
         }
 
         [MetadataAttribute, MefV1.MetadataAttribute]

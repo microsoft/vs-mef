@@ -3,6 +3,7 @@
 
 namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
 {
+    using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2;
 
     /// <summary>
@@ -10,7 +11,8 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     /// referenced when compiling generated code for the tests that
     /// use this interface.
     /// </summary>
-    public interface ISomeInterface
+    [MetadataView]
+    public partial interface ISomeInterface
     {
     }
 

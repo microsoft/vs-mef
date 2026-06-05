@@ -20,3 +20,6 @@ ID | Title
 [VSMEF012](VSMEF012.md) | Disallow MEF attribute version
 [VSMEF013](VSMEF013.md) | Suppress IDE0044 for MEF imported fields
 [VSMEF014](VSMEF014.md) | Suppress CS8618 for MEF importing members on exported parts
+[VSMEF015](VSMEF015.md) | Metadata view interface should be source-generated
+[VSMEF016](VSMEF016.md) | Referenced metadata view interface should be source-generated
+[VSMEF017](VSMEF017.md) | Invalid [MetadataView] usage

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="VSMEF015_Title" xml:space="preserve">
+    <value>Metadata view interface should be source-generated</value>
+    <comment>{Locked="MetadataView"} The attribute name should not be localized.</comment>
+  </data>
+  <data name="VSMEF015_MessageFormat" xml:space="preserve">
+    <value>The metadata view interface "{0}" is declared in this compilation but will not be source-generated. Annotate it with [MetadataView] and declare it partial.</value>
+    <comment>{Locked="[MetadataView]"} The attribute name in brackets should not be localized.</comment>
+  </data>
+  <data name="VSMEF016_Title" xml:space="preserve">
+    <value>Referenced metadata view interface should be source-generated</value>
+    <comment>{Locked="MetadataView"} The attribute name should not be localized.</comment>
+  </data>
+  <data name="VSMEF016_MessageFormat" xml:space="preserve">
+    <value>The metadata view interface "{0}" is declared in referenced assembly "{1}" and does not have [MetadataViewImplementation]. Recompile that assembly with [MetadataView] applied to the interface.</value>
+    <comment>{Locked="[MetadataViewImplementation]"} {Locked="[MetadataView]"} The attribute names in brackets should not be localized.</comment>
+  </data>
+  <data name="VSMEF017_Title" xml:space="preserve">
+    <value>Invalid [MetadataView] usage</value>
+    <comment>{Locked="[MetadataView]"} The attribute name in brackets should not be localized.</comment>
+  </data>
+  <data name="VSMEF017_MessageFormat" xml:space="preserve">
+    <value>Apply [MetadataView] only to partial metadata view interfaces whose containing types are also partial and whose members are get-only non-indexer properties.</value>
+    <comment>{Locked="[MetadataView]"} The attribute name in brackets should not be localized.</comment>
+  </data>
+</root>
