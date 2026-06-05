@@ -850,15 +850,18 @@ namespace Microsoft.VisualStudio.Composition
                 if (metadataView.GetTypeInfo().IsClass || (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object?>))))
                 {
                     var metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
+                    var seenPropertyNames = new HashSet<string>(StringComparer.Ordinal);
                     foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                     {
-                        if (!metadataBuilder.ContainsKey(property.Name))
+                        if (!seenPropertyNames.Add(property.Name))
                         {
-                            var defaultValueAttribute = property.GetFirstAttribute<DefaultValueAttribute>();
-                            if (defaultValueAttribute != null)
-                            {
-                                metadataBuilder.Add(property.Name, defaultValueAttribute.Value);
-                            }
+                            continue;
+                        }
+
+                        var defaultValueAttribute = property.GetFirstAttribute<DefaultValueAttribute>();
+                        if (defaultValueAttribute != null)
+                        {
+                            metadataBuilder.Add(property.Name, defaultValueAttribute.Value);
                         }
                     }
 

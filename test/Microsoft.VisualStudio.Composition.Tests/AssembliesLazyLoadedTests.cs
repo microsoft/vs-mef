@@ -352,6 +352,61 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        /// <summary>
+        /// Verifies that metadata view implementation classes can preserve lazy assembly loading
+        /// for Type and Type[] metadata when they reuse interface metadata view semantics.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesLazyLoadedByLazyMetadataViewImplementation()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaMetadataViewImplementation), typeof(AnExportWithMetadataTypeValue)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
+                driver.TestPartThatImportsExportWithTypeMetadataViaMetadataViewImplementation(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that direct MetadataView classes can preserve lazy assembly loading
+        /// for Type and Type[] metadata when used directly as TMetadata.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesLazyLoadedByLazyDirectMetadataView()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDirectMetadataView), typeof(AnExportWithMetadataTypeValue)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
+                driver.TestPartThatImportsExportWithTypeMetadataViaDirectMetadataView(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
         private static void SkipOnMono()
         {
             TestUtilities.SkipOnMono("Assemblies are loaded more eagerly in other AppDomains on Mono");
@@ -479,6 +534,36 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaTMetadata>();
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.Equal("default", exportWithLazy.ImportWithTMetadata.Metadata.SomeProperty);
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Type type = exportWithLazy.ImportWithTMetadata.Metadata.SomeType;
+                Type[] types = exportWithLazy.ImportWithTMetadata.Metadata.SomeTypes;
+                AssertEx.Equal("YetAnotherExport", type.Name);
+                types.Single(t => t.Name == "String");
+                types.Single(t => t.Name == "YetAnotherExport");
+                AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatImportsExportWithTypeMetadataViaMetadataViewImplementation(string lazyLoadedAssemblyPath)
+            {
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaMetadataViewImplementation>();
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.Equal("default", exportWithLazy.ImportWithTMetadata.Metadata.SomeProperty);
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Type type = exportWithLazy.ImportWithTMetadata.Metadata.SomeType;
+                Type[] types = exportWithLazy.ImportWithTMetadata.Metadata.SomeTypes;
+                AssertEx.Equal("YetAnotherExport", type.Name);
+                types.Single(t => t.Name == "String");
+                types.Single(t => t.Name == "YetAnotherExport");
+                AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatImportsExportWithTypeMetadataViaDirectMetadataView(string lazyLoadedAssemblyPath)
+            {
+                AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaDirectMetadataView>();
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.Equal("default", exportWithLazy.ImportWithTMetadata.Metadata.SomeProperty);
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
