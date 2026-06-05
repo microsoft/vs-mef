@@ -109,9 +109,16 @@ namespace Microsoft.VisualStudio.Composition
 
                     var parameters = ctor.GetParameters();
                     return parameters.Length == 1
-                        && (parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object?>))
-                        || parameters[0].ParameterType.IsAssignableFrom(typeof(IReadOnlyDictionary<string, object?>)));
+                        && IsSupportedDictionaryParameterType(parameters[0].ParameterType);
                 });
+        }
+
+        private static bool IsSupportedDictionaryParameterType(Type parameterType)
+        {
+            return (typeof(IDictionary<string, object?>).IsAssignableFrom(parameterType)
+                || typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(parameterType))
+                && (parameterType.IsAssignableFrom(typeof(Dictionary<string, object?>))
+                || parameterType.IsAssignableFrom(typeof(ImmutableDictionary<string, object?>)));
         }
 
         private readonly struct ImplementationActivation
@@ -149,7 +156,14 @@ namespace Microsoft.VisualStudio.Composition
 
             private static object InvokeDictionaryConstructor(IReadOnlyDictionary<string, object?> metadata, ConstructorInfo constructor)
             {
-                object metadataMaybeWrapped = constructor.GetParameters()[0].ParameterType.IsAssignableFrom(metadata.GetType()) ? metadata : ImmutableDictionary.CreateRange(metadata);
+                Type parameterType = constructor.GetParameters()[0].ParameterType;
+                object metadataMaybeWrapped = parameterType.IsInstanceOfType(metadata)
+                    ? metadata
+                    : parameterType.IsAssignableFrom(typeof(Dictionary<string, object?>))
+                    ? metadata.ToDictionary(pair => pair.Key, pair => pair.Value)
+                    : parameterType.IsAssignableFrom(typeof(ImmutableDictionary<string, object?>))
+                    ? ImmutableDictionary.CreateRange(metadata)
+                    : throw Assumes.NotReachable();
                 return constructor.Invoke(new[] { metadataMaybeWrapped });
             }
         }

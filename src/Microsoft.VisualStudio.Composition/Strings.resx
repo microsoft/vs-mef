@@ -170,7 +170,7 @@
     <value>The metadata view implementation type "{0}" for metadata view "{1}" must declare one of the supported constructors: a public parameterless constructor when deriving from Microsoft.VisualStudio.Composition.MetadataView, or a public .ctor(IDictionary&lt;string, object?&gt;) / .ctor(IReadOnlyDictionary&lt;string, object?&gt;).</value>
   </data>
   <data name="MetadataViewDirectUseUnsupported" xml:space="preserve">
-    <value>The metadata view type "{0}" derives from Microsoft.VisualStudio.Composition.MetadataView and must be consumed through an interface metadata view annotated with MetadataViewImplementationAttribute, not used directly as TMetadata.</value>
+    <value>The metadata view type "{0}" derives from Microsoft.VisualStudio.Composition.MetadataView. To be supported, it must be a non-abstract class with a public parameterless constructor when used directly as TMetadata or as the implementation type for an interface annotated with MetadataViewImplementationAttribute.</value>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>Unable to determine the primary sharing boundary for MEF part "{0}".</value>
