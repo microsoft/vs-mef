@@ -58,4 +58,6 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition=" '%(FileName)' == 'Microsoft.VisualStudio.Composition.MissingAssemblyTests' " />
     </ItemGroup>
   </Target>
+
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 </Project>

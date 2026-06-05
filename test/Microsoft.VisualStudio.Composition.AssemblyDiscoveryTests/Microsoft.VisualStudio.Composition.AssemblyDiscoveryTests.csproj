@@ -8,9 +8,11 @@
     <PackageReference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj">
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 </Project>

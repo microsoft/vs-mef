@@ -1,0 +1,18 @@
+<Project>
+  <ItemGroup>
+    <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj" />
+    <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.CSharp\Microsoft.VisualStudio.Composition.Analyzers.CSharp.csproj" Condition="'$(MSBuildProjectExtension)'=='.csproj'" />
+    <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.VB\Microsoft.VisualStudio.Composition.Analyzers.VB.csproj" Condition="'$(MSBuildProjectExtension)'=='.vbproj'" />
+
+    <ProjectReference Include="@(AnalyzerProjectReference)">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>AnalyzerAssembly</OutputItemType>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Target Name="ConsumeVsMefAnalyzersDirectly" AfterTargets="ResolveProjectReferences">
+    <ItemGroup>
+      <Analyzer Include="%(AnalyzerAssembly.Identity)" />
+    </ItemGroup>
+  </Target>
+</Project>

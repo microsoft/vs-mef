@@ -25,12 +25,25 @@ namespace Microsoft.VisualStudio.Composition
 
         public bool IsMetadataViewSupported(Type metadataType)
         {
-            return TryGetImplementationActivation(metadataType, throwOnInvalidConfiguration: true) is object;
+            Type? implementationType = GetMetadataViewImplementationType(metadataType);
+            return implementationType is object && TryGetImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration: true) is object;
         }
 
         public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
-            var activation = TryGetImplementationActivation(metadataViewType, throwOnInvalidConfiguration: true);
+            Type? implementationType = GetMetadataViewImplementationType(metadataViewType);
+            Assumes.NotNull(implementationType);
+            return CreateProxy(metadata, defaultValues, metadataViewType, implementationType);
+        }
+
+        internal static bool IsMetadataViewImplementationSupported(Type metadataType, Type implementationType, bool throwOnInvalidConfiguration = true)
+        {
+            return TryGetImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration) is object;
+        }
+
+        internal static object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType, Type implementationType)
+        {
+            var activation = TryGetImplementationActivation(metadataViewType, implementationType, throwOnInvalidConfiguration: true);
             Assumes.NotNull(activation);
             return activation.Value.CreateProxy(metadata, defaultValues, metadataViewType);
         }
@@ -49,18 +62,28 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(metadataType, nameof(metadataType));
 
-            var attr = metadataType.GetTypeInfo().GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
-            if (attr == null)
-            {
-                return null;
-            }
+            Type? implementationType = GetMetadataViewImplementationType(metadataType);
+            return implementationType is object ? TryGetImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration) : null;
+        }
 
-            Type? implementationType = attr.ImplementationType;
-            if (implementationType == null || !metadataType.IsAssignableFrom(implementationType))
+        private static Type? GetMetadataViewImplementationType(Type metadataType)
+        {
+            Requires.NotNull(metadataType, nameof(metadataType));
+
+            var attr = metadataType.GetTypeInfo().GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
+            return attr?.ImplementationType;
+        }
+
+        private static ImplementationActivation? TryGetImplementationActivation(Type metadataType, Type implementationType, bool throwOnInvalidConfiguration)
+        {
+            Requires.NotNull(metadataType, nameof(metadataType));
+            Requires.NotNull(implementationType, nameof(implementationType));
+
+            if (!metadataType.IsAssignableFrom(implementationType))
             {
                 if (throwOnInvalidConfiguration)
                 {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationTypeMustImplementMetadataView, implementationType?.FullName, metadataType.FullName));
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationTypeMustImplementMetadataView, implementationType.FullName, metadataType.FullName));
                 }
 
                 return null;

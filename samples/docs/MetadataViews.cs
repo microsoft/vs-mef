@@ -11,7 +11,8 @@ using MefV1 = System.ComponentModel.Composition;
 
 #region InterfaceMetadataView
 
-public interface IHandlerMetadata
+[MetadataView]
+public partial interface IHandlerMetadata
 {
     string Name { get; }
 
@@ -30,6 +31,29 @@ internal class InterfaceMetadataImporter
 {
     [MefV1.ImportMany("Handler")]
     public IEnumerable<Lazy<object, IHandlerMetadata>> Handlers { get; set; } = null!;
+}
+
+#endregion
+
+#region SourceGeneratedMetadataView
+
+[MetadataView]
+public partial interface IGeneratedHandlerMetadata
+{
+    string Name { get; }
+
+    [DefaultValue(false)]
+    bool SupportsAsync { get; }
+
+    [DefaultValue(null)]
+    Type HandlerType { get; }
+}
+
+[MefV1.Export]
+internal class SourceGeneratedMetadataImporter
+{
+    [MefV1.ImportMany("Handler")]
+    public IEnumerable<Lazy<object, IGeneratedHandlerMetadata>> Handlers { get; set; } = null!;
 }
 
 #endregion

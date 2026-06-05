@@ -8,12 +8,10 @@
     <ProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
     <ProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <OutputItemType>Analyzer</OutputItemType>
-    </ProjectReference>
-    <ProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <OutputItemType>Analyzer</OutputItemType>
+      <OutputItemType>AnalyzerAssembly</OutputItemType>
     </ProjectReference>
   </ItemGroup>
+
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 
 </Project>

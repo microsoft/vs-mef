@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 
 public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
 {
@@ -14,6 +15,7 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
         {
             this.ReferenceAssemblies = ReferencesHelper.DefaultReferences;
             this.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
+            this.TestState.AdditionalReferences.Add(MetadataReference.CreateFromFile(typeof(MetadataView).Assembly.Location));
 
             this.SolutionTransforms.Add((solution, projectId) =>
             {

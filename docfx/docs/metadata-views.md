@@ -3,7 +3,7 @@
 VS MEF supports several ways to consume export metadata through a strongly-typed view. The differences between them matter because they affect:
 
 - which exports are filtered out during composition
-- whether `[DefaultValue]` participates in metadata access only, or also in filtering
+- whether <xref:System.ComponentModel.DefaultValueAttribute> participates in metadata access only, or also in filtering
 - whether metadata types such as `System.Type` and `System.Type[]` preserve VS MEF's lazy assembly-load behavior
 
 ## Interface metadata views
@@ -21,6 +21,34 @@ For interface metadata views:
 
 This is the most predictable model when you want the metadata contract itself to define filtering behavior.
 
+## Source-generated metadata view implementations
+
+If you reference the VS MEF analyzers/source generator, VS MEF can generate the concrete metadata view implementation for you from a metadata interface that you annotate with <xref:Microsoft.VisualStudio.Composition.MetadataViewAttribute>.
+
+[!code-csharp[](../../samples/docs/MetadataViews.cs#SourceGeneratedMetadataView)]
+
+For source-generated metadata views:
+
+- apply `[MetadataView]` to the **interface declaration**
+- declare the interface `partial`
+- if the interface is nested, every containing type must also be `partial`
+- build the assembly that **declares** the interface with the VS MEF analyzer package enabled
+
+The generator emits a concrete <xref:Microsoft.VisualStudio.Composition.MetadataView>-derived type and adds <xref:System.ComponentModel.Composition.MetadataViewImplementationAttribute> directly to the interface in that same compilation.
+
+The generator intentionally does **not** generate another implementation when the interface already names one via <xref:System.ComponentModel.Composition.MetadataViewImplementationAttribute>.
+
+This is the **recommended** way to get a concrete metadata view type:
+
+- the interface remains the metadata contract, so filtering semantics stay the same as ordinary interface metadata views
+- `[DefaultValue]` keeps working for both filtering and metadata access
+- metadata values such as `System.Type` and `System.Type[]` preserve VS MEF's lazy materialization behavior
+- you do not have to hand-author a dictionary-reading constructor or manually forward each property through `MetadataView.GetMetadata<T>()`
+
+If the interface lives in another assembly, recompile that assembly with `[MetadataView]` applied there. VS MEF no longer generates metadata view implementations from consuming assemblies for referenced interfaces.
+
+If you own the metadata interface, prefer this source-generated path over hand-writing a `MetadataView`-derived class.
+
 ## Legacy metadata view implementation classes
 
 MEF v1 also supports applying <xref:System.ComponentModel.Composition.MetadataViewImplementationAttribute> to an interface and pointing it at a concrete implementation type.
@@ -35,9 +63,9 @@ For these legacy dictionary-backed implementation classes:
 - optional interface properties are **not** included in the filter model
 - the implementation class is responsible for reading metadata, applying defaults, and coercing values
 
-Because the implementation is working directly from the raw dictionary, it does **not** automatically inherit the full interface metadata-view behavior.
+Because the implementation is working directly from the raw dictionary, it does **not** automatically inherit the full interface metadata-view behavior and is generally less convenient than the source-generated path.
 
-## Interface-backed `MetadataView` implementation classes
+## Hand-written `MetadataView` implementation classes
 
 VS MEF now includes <xref:Microsoft.VisualStudio.Composition.MetadataView> to make concrete metadata view implementations easier to write while still keeping the interface as the metadata contract.
 
@@ -51,7 +79,7 @@ For interface-backed `MetadataView`-derived implementation classes:
 - `[DefaultValue]` is honored through the same metadata-view pipeline used for interfaces
 - metadata values such as `System.Type` and `System.Type[]` preserve VS MEF's lazy materialization behavior because the values are read through the library's metadata wrappers instead of eagerly coerced by user code
 
-This is the recommended approach when you want a concrete metadata view type without reimplementing the filtering and lazy metadata semantics yourself.
+This is a good escape hatch when the generated implementation is not sufficient, but most new code should prefer the source-generated approach so the implementation stays declarative and maintenance-free.
 
 > [!IMPORTANT]
 > When a <xref:Microsoft.VisualStudio.Composition.MetadataView>-derived type is reached through <xref:System.ComponentModel.Composition.MetadataViewImplementationAttribute>, the attributed interface remains the metadata contract.
@@ -78,7 +106,8 @@ For direct `MetadataView` classes:
 Use:
 
 - a plain **interface metadata view** when an interface is sufficient
-- an **interface-backed `MetadataView`-derived class** when you want a concrete type but want an interface to remain the metadata contract
+- a **source-generated metadata view implementation** when you want a concrete type while keeping the interface as the metadata contract
+- a hand-written **interface-backed `MetadataView`-derived class** only when you need custom implementation logic that the generator cannot express
 - a **direct `MetadataView`-derived class** when the class itself should define the metadata contract through its public instance properties
 - a **dictionary-constructor implementation** only when you need to preserve existing MEF v1 behavior or custom dictionary-based logic
 
@@ -88,5 +117,6 @@ Use:
 | --- | --- | --- | --- | --- |
 | Interface metadata view | Yes | Yes, when present | Yes | Yes |
 | Legacy dictionary-backed implementation | Yes | No | No, implementation decides | Not automatically |
-| Interface-backed `MetadataView` implementation | Yes | Yes, when present | Yes | Yes |
+| Source-generated metadata view implementation | Yes | Yes, when present | Yes | Yes |
+| Hand-written interface-backed `MetadataView` implementation | Yes | Yes, when present | Yes | Yes |
 | Direct `MetadataView` class | Yes | Yes, when present | Yes | Yes |
