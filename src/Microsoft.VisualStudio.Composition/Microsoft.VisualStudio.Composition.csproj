@@ -22,7 +22,7 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
   </ItemGroup>
 
-  <Target Name="RemovePackOnlyProjectReferenceOutputs" AfterTargets="ResolveProjectReferences">
+  <Target Name="RemovePackOnlyProjectReferenceOutputs" AfterTargets="ResolveProjectReferences" Condition="'$(IsDocFx)'!='true'">
     <!-- Workaround for https://github.com/NuGet/Home/issues/10312 -->
     <ItemGroup>
       <_ResolvedProjectReferencePaths Remove="@(_ResolvedProjectReferencePaths)" Condition="'%(_ResolvedProjectReferencePaths.PackOnlyReference)' == 'true'" />
