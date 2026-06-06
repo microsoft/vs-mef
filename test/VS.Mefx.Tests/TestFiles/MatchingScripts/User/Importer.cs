@@ -10,12 +10,14 @@ namespace User
     [Export]
     public class Importer
     {
+#pragma warning disable VSMEF007 // https://github.com/microsoft/vs-mef/issues/725
         [Import]
         [ImportMetadataConstraint("Year", 2016)]
-        private Lazy<Car>? NewerCar { get; set; }
+        private Lazy<Car> NewerCar { get; set; } = null!;
 
         [Import]
         [ImportMetadataConstraint("Type", "Used")]
-        private Car? UsedCar { get; set; }
+        private Car UsedCar { get; set; } = null!;
+#pragma warning restore VSMEF007 // https://github.com/microsoft/vs-mef/issues/725
     }
 }

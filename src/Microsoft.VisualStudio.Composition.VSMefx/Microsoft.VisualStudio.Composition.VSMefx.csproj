@@ -22,4 +22,5 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
 
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 </Project>

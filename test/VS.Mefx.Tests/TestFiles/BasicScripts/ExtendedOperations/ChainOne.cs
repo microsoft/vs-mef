@@ -10,6 +10,6 @@ namespace ExtendedOperations
     public class ChainOne
     {
         [Import]
-        public AddIn? Adder { get; set; }
+        public AddIn Adder { get; set; } = null!;
     }
 }

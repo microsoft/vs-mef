@@ -6,10 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
-    <ProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <OutputItemType>AnalyzerAssembly</OutputItemType>
-    </ProjectReference>
   </ItemGroup>
 
   <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />

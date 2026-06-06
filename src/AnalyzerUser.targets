@@ -3,16 +3,18 @@
     <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj" />
     <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.CSharp\Microsoft.VisualStudio.Composition.Analyzers.CSharp.csproj" Condition="'$(MSBuildProjectExtension)'=='.csproj'" />
     <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.VB\Microsoft.VisualStudio.Composition.Analyzers.VB.csproj" Condition="'$(MSBuildProjectExtension)'=='.vbproj'" />
+    <AnalyzerProjectReference Include="$(RepoRootPath)src\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj" />
 
     <ProjectReference Include="@(AnalyzerProjectReference)">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <OutputItemType>AnalyzerAssembly</OutputItemType>
+      <OutputItemType>Analyzer</OutputItemType>
     </ProjectReference>
   </ItemGroup>
 
-  <Target Name="ConsumeVsMefAnalyzersDirectly" AfterTargets="ResolveProjectReferences">
+  <Target Name="SuppressAnalyzersAsReferenceAssemblies" AfterTargets="ResolveProjectReferences">
+    <!-- Workaround for https://github.com/NuGet/Home/issues/10312 -->
     <ItemGroup>
-      <Analyzer Include="%(AnalyzerAssembly.Identity)" />
+      <_ResolvedProjectReferencePaths Remove="@(_ResolvedProjectReferencePaths)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Composition.Analyzers.CodeFixes'" />
     </ItemGroup>
   </Target>
 </Project>
