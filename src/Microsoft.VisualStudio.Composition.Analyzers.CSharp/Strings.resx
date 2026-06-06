@@ -17,7 +17,7 @@
     <comment>{Locked="MetadataView"} The attribute name should not be localized.</comment>
   </data>
   <data name="VSMEF015_MessageFormat" xml:space="preserve">
-    <value>The metadata view interface "{0}" is declared in this compilation but will not be source-generated. Annotate it with [MetadataView] and declare it partial.</value>
+    <value>The metadata view interface "{0}" is declared in this compilation but will not be source-generated. Annotate it with [MetadataView] (from Microsoft.VisualStudio.Composition) and declare it partial.</value>
     <comment>{Locked="[MetadataView]"} The attribute name in brackets should not be localized.</comment>
   </data>
   <data name="VSMEF016_Title" xml:space="preserve">
@@ -25,7 +25,7 @@
     <comment>{Locked="MetadataView"} The attribute name should not be localized.</comment>
   </data>
   <data name="VSMEF016_MessageFormat" xml:space="preserve">
-    <value>The metadata view interface "{0}" is declared in referenced assembly "{1}" and does not have [MetadataViewImplementation]. Recompile that assembly with [MetadataView] applied to the interface.</value>
+    <value>The metadata view interface "{0}" is declared in referenced assembly "{1}" and does not have [MetadataViewImplementation]. Recompile that assembly with [MetadataView] (from Microsoft.VisualStudio.Composition) applied to the interface.</value>
     <comment>{Locked="[MetadataViewImplementation]"} {Locked="[MetadataView]"} The attribute names in brackets should not be localized.</comment>
   </data>
   <data name="VSMEF017_Title" xml:space="preserve">

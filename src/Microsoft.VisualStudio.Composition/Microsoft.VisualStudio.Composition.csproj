@@ -8,7 +8,7 @@
     <!-- This reference is just so the analyzers package is brought in by our NuGet package. -->
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes\Microsoft.VisualStudio.Composition.Analyzers.CodeFixes.csproj">
       <PrivateAssets>none</PrivateAssets>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <PackOnlyReference>true</PackOnlyReference>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -21,5 +21,13 @@
     <PackageReference Include="System.Reflection.Metadata" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
   </ItemGroup>
+
+  <Target Name="RemovePackOnlyProjectReferenceOutputs" AfterTargets="ResolveProjectReferences" Condition="'$(IsDocFx)'!='true'">
+    <!-- Workaround for https://github.com/NuGet/Home/issues/10312 -->
+    <ItemGroup>
+      <_ResolvedProjectReferencePaths Remove="@(_ResolvedProjectReferencePaths)" Condition="'%(_ResolvedProjectReferencePaths.PackOnlyReference)' == 'true'" />
+    </ItemGroup>
+  </Target>
+
   <Import Project="..\OptProf.targets" Condition="'$(TargetFramework)'=='net472'" />
 </Project>
