@@ -271,7 +271,7 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
 
     private static bool SupportsNullableReferenceTypes(ParseOptions? parseOptions)
     {
-        return parseOptions is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp8 };
+        return parseOptions is CSharpParseOptions { LanguageVersion: LanguageVersion.Default or >= LanguageVersion.CSharp8 };
     }
 
     private static string? GetDefaultValueAttributeSource(IPropertySymbol property, CancellationToken cancellationToken)

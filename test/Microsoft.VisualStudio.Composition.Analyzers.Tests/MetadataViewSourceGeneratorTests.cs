@@ -276,9 +276,46 @@ public class MetadataViewSourceGeneratorTests
 
         GeneratorTestResult result = RunGenerator(source, LanguageVersion.CSharp12, reference);
         string generatedSource = result.OutputCompilation.SyntaxTrees.Skip(1).Single().ToString();
+        INamedTypeSymbol generatedType = GetGeneratedMetadataViewType(result.OutputCompilation, "IAttributedMetadataView");
+        IPropertySymbol property = generatedType.GetMembers("NullableProperty").OfType<IPropertySymbol>().Single();
 
         Assert.Contains("#nullable enable", generatedSource, StringComparison.Ordinal);
-        Assert.Contains("string? NullableProperty", generatedSource, StringComparison.Ordinal);
+        Assert.Equal(SpecialType.System_String, property.Type.SpecialType);
+        Assert.Equal(NullableAnnotation.Annotated, property.Type.NullableAnnotation);
+    }
+
+    [Fact]
+    public void Generator_EmitsNullableAnnotationsForDefaultLanguageVersion()
+    {
+        MetadataReference reference = CreateMetadataReference(
+            """
+            #nullable enable
+
+            public interface IBaseMetadataView
+            {
+                string? NullableProperty { get; }
+            }
+            """,
+            LanguageVersion.CSharp12,
+            nullableContextOptions: NullableContextOptions.Enable);
+
+        string source = """
+            using Microsoft.VisualStudio.Composition;
+
+            [MetadataView]
+            public partial interface IAttributedMetadataView : IBaseMetadataView
+            {
+            }
+            """;
+
+        GeneratorTestResult result = RunGenerator(source, LanguageVersion.Default, reference);
+        string generatedSource = result.OutputCompilation.SyntaxTrees.Skip(1).Single().ToString();
+        INamedTypeSymbol generatedType = GetGeneratedMetadataViewType(result.OutputCompilation, "IAttributedMetadataView");
+        IPropertySymbol property = generatedType.GetMembers("NullableProperty").OfType<IPropertySymbol>().Single();
+
+        Assert.Contains("#nullable enable", generatedSource, StringComparison.Ordinal);
+        Assert.Equal(SpecialType.System_String, property.Type.SpecialType);
+        Assert.Equal(NullableAnnotation.Annotated, property.Type.NullableAnnotation);
     }
 
     private static void AssertGeneratedMetadataViewType(INamedTypeSymbol generatedType)
@@ -291,6 +328,13 @@ public class MetadataViewSourceGeneratorTests
         AttributeData generatedCodeAttribute = definition.GetAttributes().Single(a => a.AttributeClass?.Name == nameof(GeneratedCodeAttribute));
         string expectedVersion = typeof(MetadataViewSourceGenerator).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version!;
         Assert.Equal(expectedVersion, (string?)generatedCodeAttribute.ConstructorArguments[1].Value);
+    }
+
+    private static INamedTypeSymbol GetGeneratedMetadataViewType(Compilation outputCompilation, string metadataViewInterfaceName)
+    {
+        INamedTypeSymbol metadataViewInterface = outputCompilation.GetTypeByMetadataName(metadataViewInterfaceName)!;
+        AttributeData implementationAttribute = metadataViewInterface.GetAttributes().Single(a => a.AttributeClass?.Name == "MetadataViewImplementationAttribute");
+        return (INamedTypeSymbol)implementationAttribute.ConstructorArguments[0].Value!;
     }
 
     private static GeneratorTestResult RunGenerator(string source)
