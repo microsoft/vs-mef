@@ -65,6 +65,7 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
             GeneratedTypeConstraints: GetConstraintClauses(metadataViewInterface, cancellationToken),
             GeneratedTypeAttributeQualifiedName: GetQualifiedGeneratedTypeNameForAttribute(interfaceNamespace, containingTypes, generatedTypeName, metadataViewInterface.TypeParameters.Length),
             HintName: generatedTypeName + ".g.cs",
+            ObsoleteAttributeSource: GetObsoleteAttributeSource(metadataViewInterface),
             Properties: GetMetadataProperties(metadataViewInterface)
                 .Select(property => new MetadataPropertySpec(property.Name, property.Type.ToDisplayString(TypeNameFormat), GetDefaultValueAttributeSource(property, cancellationToken)))
                 .ToImmutableArray());
@@ -98,6 +99,11 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
         writer.WriteLine("{");
         writer.WriteLine("}");
         writer.WriteLine();
+        if (metadataView.ObsoleteAttributeSource is not null)
+        {
+            writer.WriteLine(metadataView.ObsoleteAttributeSource);
+        }
+
         writer.WriteLine($"[{Types.GeneratedCodeAttribute.QualifiedName}(\"{typeof(MetadataViewSourceGenerator).FullName}\", \"{generatorVersion}\")]");
         writer.WriteLine($"internal sealed class {metadataView.GeneratedTypeName}{metadataView.GeneratedTypeTypeParameters} : {Types.MetadataView.QualifiedName}, {metadataView.InterfaceMetadataName}{metadataView.GeneratedTypeConstraints}");
         writer.WriteLine("{");
@@ -256,16 +262,30 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
     {
         AttributeData? defaultValueAttribute = property.GetAttributes()
             .FirstOrDefault(attribute => attribute.AttributeClass?.ToDisplayString() == Types.DefaultValueAttribute.FullName);
-        if (defaultValueAttribute is not null)
+        return GetAttributeSource(defaultValueAttribute, Types.DefaultValueAttribute.QualifiedName);
+    }
+
+    private static string? GetObsoleteAttributeSource(INamedTypeSymbol metadataViewInterface)
+    {
+        AttributeData? obsoleteAttribute = metadataViewInterface.GetAttributes()
+            .FirstOrDefault(attribute => attribute.AttributeClass?.ToDisplayString() == Types.ObsoleteAttribute.FullName);
+        return GetAttributeSource(obsoleteAttribute, Types.ObsoleteAttribute.QualifiedName);
+    }
+
+    private static string? GetAttributeSource(AttributeData? attribute, string attributeQualifiedName)
+    {
+        if (attribute is null)
         {
-            string arguments = string.Join(
-                ", ",
-                defaultValueAttribute.ConstructorArguments.Select(GetAttributeArgumentSource)
-                    .Concat(defaultValueAttribute.NamedArguments.Select(static arg => arg.Key + " = " + GetAttributeArgumentSource(arg.Value))));
-            return $"[{Types.DefaultValueAttribute.QualifiedName}({arguments})]";
+            return null;
         }
 
-        return null;
+        string arguments = string.Join(
+            ", ",
+            attribute.ConstructorArguments.Select(GetAttributeArgumentSource)
+                .Concat(attribute.NamedArguments.Select(static arg => arg.Key + " = " + GetAttributeArgumentSource(arg.Value))));
+        return arguments.Length > 0
+            ? $"[{attributeQualifiedName}({arguments})]"
+            : $"[{attributeQualifiedName}]";
     }
 
     private static string GetAttributeArgumentSource(TypedConstant argument)
@@ -357,6 +377,7 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
         string GeneratedTypeConstraints,
         string GeneratedTypeAttributeQualifiedName,
         string HintName,
+        string? ObsoleteAttributeSource,
         ImmutableArray<MetadataPropertySpec> Properties);
 
     private readonly record struct MetadataPropertySpec(string Name, string TypeName, string? DefaultValueAttributeSource);

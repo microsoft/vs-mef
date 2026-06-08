@@ -219,6 +219,31 @@ public class MetadataViewSourceGeneratorTests
         Assert.Equal((int)DayOfWeek.Friday, defaultValueAttribute.ConstructorArguments[0].Value);
     }
 
+    [Fact]
+    public void Generator_AnnotatesGeneratedTypeWhenMetadataViewInterfaceIsObsolete()
+    {
+        string source = """
+            using System;
+            using Microsoft.VisualStudio.Composition;
+
+            [Obsolete("Use INextMetadataView instead", DiagnosticId = "VSMEFTEST001")]
+            [MetadataView]
+            public partial interface IObsoleteMetadataView
+            {
+                string A { get; }
+            }
+            """;
+
+        Compilation outputCompilation = RunGenerator(source).OutputCompilation;
+        INamedTypeSymbol metadataViewInterface = outputCompilation.GetTypeByMetadataName("IObsoleteMetadataView")!;
+        AttributeData implementationAttribute = metadataViewInterface.GetAttributes().Single(a => a.AttributeClass?.Name == "MetadataViewImplementationAttribute");
+        INamedTypeSymbol generatedType = (INamedTypeSymbol)implementationAttribute.ConstructorArguments[0].Value!;
+
+        AttributeData obsoleteAttribute = generatedType.GetAttributes().Single(a => a.AttributeClass?.Name == nameof(ObsoleteAttribute));
+        Assert.Equal("Use INextMetadataView instead", (string?)obsoleteAttribute.ConstructorArguments[0].Value);
+        Assert.Equal("VSMEFTEST001", obsoleteAttribute.NamedArguments.Single(arg => arg.Key == nameof(ObsoleteAttribute.DiagnosticId)).Value.Value);
+    }
+
     private static void AssertGeneratedMetadataViewType(INamedTypeSymbol generatedType)
     {
         INamedTypeSymbol definition = generatedType.OriginalDefinition;
