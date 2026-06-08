@@ -340,7 +340,6 @@ public class MetadataViewSourceGeneratorTests
         AttributeData obsoleteAttribute = generatedType.GetAttributes().Single(a => a.AttributeClass?.Name == nameof(ObsoleteAttribute));
         Assert.Equal("Use INextMetadataView instead", (string?)obsoleteAttribute.ConstructorArguments[0].Value);
         Assert.Equal("VSMEFTEST001", obsoleteAttribute.NamedArguments.Single(arg => arg.Key == nameof(ObsoleteAttribute.DiagnosticId)).Value.Value);
-        Assert.Equal("VSMEFTEST001", obsoleteAttribute.NamedArguments.Single(arg => arg.Key == nameof(ObsoleteAttribute.DiagnosticId)).Value.Value);
     }
 
     private static void AssertGeneratedMetadataViewType(INamedTypeSymbol generatedType)

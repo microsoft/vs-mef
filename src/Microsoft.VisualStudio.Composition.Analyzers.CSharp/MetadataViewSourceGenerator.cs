@@ -399,7 +399,6 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
         string GeneratedTypeConstraints,
         string GeneratedTypeAttributeQualifiedName,
         string HintName,
-        ImmutableArray<MetadataPropertySpec> Properties,
         string? ObsoleteAttributeSource,
         ImmutableArray<MetadataPropertySpec> Properties,
         bool SupportsNullableReferenceTypes);
