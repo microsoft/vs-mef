@@ -219,6 +219,129 @@ public class MetadataViewSourceGeneratorTests
         Assert.Equal((int)DayOfWeek.Friday, defaultValueAttribute.ConstructorArguments[0].Value);
     }
 
+    [Fact]
+    public void Generator_OmitsNullableAnnotationsForCSharp7_3()
+    {
+        MetadataReference reference = CreateMetadataReference(
+            """
+            #nullable enable
+
+            public interface IBaseMetadataView
+            {
+                string? NullableProperty { get; }
+            }
+            """,
+            LanguageVersion.CSharp12,
+            nullableContextOptions: NullableContextOptions.Enable);
+
+        string source = """
+            using Microsoft.VisualStudio.Composition;
+
+            [MetadataView]
+            public partial interface IAttributedMetadataView : IBaseMetadataView
+            {
+            }
+            """;
+
+        GeneratorTestResult result = RunGenerator(source, LanguageVersion.CSharp7_3, reference);
+        string generatedSource = result.OutputCompilation.SyntaxTrees.Skip(1).Single().ToString();
+
+        Assert.DoesNotContain("#nullable", generatedSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("string?", generatedSource, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generator_EmitsNullableAnnotationsForCSharp12()
+    {
+        MetadataReference reference = CreateMetadataReference(
+            """
+            #nullable enable
+
+            public interface IBaseMetadataView
+            {
+                string? NullableProperty { get; }
+            }
+            """,
+            LanguageVersion.CSharp12,
+            nullableContextOptions: NullableContextOptions.Enable);
+
+        string source = """
+            using Microsoft.VisualStudio.Composition;
+
+            [MetadataView]
+            public partial interface IAttributedMetadataView : IBaseMetadataView
+            {
+            }
+            """;
+
+        GeneratorTestResult result = RunGenerator(source, LanguageVersion.CSharp12, reference);
+        string generatedSource = result.OutputCompilation.SyntaxTrees.Skip(1).Single().ToString();
+        INamedTypeSymbol generatedType = GetGeneratedMetadataViewType(result.OutputCompilation, "IAttributedMetadataView");
+        IPropertySymbol property = generatedType.GetMembers("NullableProperty").OfType<IPropertySymbol>().Single();
+
+        Assert.Contains("#nullable enable", generatedSource, StringComparison.Ordinal);
+        Assert.Equal(SpecialType.System_String, property.Type.SpecialType);
+        Assert.Equal(NullableAnnotation.Annotated, property.Type.NullableAnnotation);
+    }
+
+    [Fact]
+    public void Generator_EmitsNullableAnnotationsForDefaultLanguageVersion()
+    {
+        MetadataReference reference = CreateMetadataReference(
+            """
+            #nullable enable
+
+            public interface IBaseMetadataView
+            {
+                string? NullableProperty { get; }
+            }
+            """,
+            LanguageVersion.CSharp12,
+            nullableContextOptions: NullableContextOptions.Enable);
+
+        string source = """
+            using Microsoft.VisualStudio.Composition;
+
+            [MetadataView]
+            public partial interface IAttributedMetadataView : IBaseMetadataView
+            {
+            }
+            """;
+
+        GeneratorTestResult result = RunGenerator(source, LanguageVersion.Default, reference);
+        string generatedSource = result.OutputCompilation.SyntaxTrees.Skip(1).Single().ToString();
+        INamedTypeSymbol generatedType = GetGeneratedMetadataViewType(result.OutputCompilation, "IAttributedMetadataView");
+        IPropertySymbol property = generatedType.GetMembers("NullableProperty").OfType<IPropertySymbol>().Single();
+
+        Assert.Contains("#nullable enable", generatedSource, StringComparison.Ordinal);
+        Assert.Equal(SpecialType.System_String, property.Type.SpecialType);
+        Assert.Equal(NullableAnnotation.Annotated, property.Type.NullableAnnotation);
+    }
+
+    [Fact]
+    public void Generator_AnnotatesGeneratedTypeWhenMetadataViewInterfaceIsObsolete()
+    {
+        string source = """
+            using System;
+            using Microsoft.VisualStudio.Composition;
+
+            [Obsolete("Use INextMetadataView instead", DiagnosticId = "VSMEFTEST001")]
+            [MetadataView]
+            public partial interface IObsoleteMetadataView
+            {
+                string A { get; }
+            }
+            """;
+
+        Compilation outputCompilation = RunGenerator(source).OutputCompilation;
+        INamedTypeSymbol metadataViewInterface = outputCompilation.GetTypeByMetadataName("IObsoleteMetadataView")!;
+        AttributeData implementationAttribute = metadataViewInterface.GetAttributes().Single(a => a.AttributeClass?.Name == "MetadataViewImplementationAttribute");
+        INamedTypeSymbol generatedType = (INamedTypeSymbol)implementationAttribute.ConstructorArguments[0].Value!;
+        AttributeData obsoleteAttribute = generatedType.GetAttributes().Single(a => a.AttributeClass?.Name == nameof(ObsoleteAttribute));
+        Assert.Equal("Use INextMetadataView instead", (string?)obsoleteAttribute.ConstructorArguments[0].Value);
+        Assert.Equal("VSMEFTEST001", obsoleteAttribute.NamedArguments.Single(arg => arg.Key == nameof(ObsoleteAttribute.DiagnosticId)).Value.Value);
+    }
+
     private static void AssertGeneratedMetadataViewType(INamedTypeSymbol generatedType)
     {
         INamedTypeSymbol definition = generatedType.OriginalDefinition;
@@ -231,15 +354,27 @@ public class MetadataViewSourceGeneratorTests
         Assert.Equal(expectedVersion, (string?)generatedCodeAttribute.ConstructorArguments[1].Value);
     }
 
+    private static INamedTypeSymbol GetGeneratedMetadataViewType(Compilation outputCompilation, string metadataViewInterfaceName)
+    {
+        INamedTypeSymbol metadataViewInterface = outputCompilation.GetTypeByMetadataName(metadataViewInterfaceName)!;
+        AttributeData implementationAttribute = metadataViewInterface.GetAttributes().Single(a => a.AttributeClass?.Name == "MetadataViewImplementationAttribute");
+        return (INamedTypeSymbol)implementationAttribute.ConstructorArguments[0].Value!;
+    }
+
     private static GeneratorTestResult RunGenerator(string source)
+    {
+        return RunGenerator(source, LanguageVersion.CSharp12);
+    }
+
+    private static GeneratorTestResult RunGenerator(string source, LanguageVersion languageVersion, params MetadataReference[] additionalReferences)
     {
         CSharpCompilation compilation = CSharpCompilation.Create(
             assemblyName: "GeneratorTests",
             syntaxTrees:
             [
-                CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp12)),
+                CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(languageVersion)),
             ],
-            references: GetMetadataReferences(),
+            references: GetMetadataReferences().Concat(additionalReferences),
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         var generator = new MetadataViewSourceGenerator();
@@ -254,6 +389,23 @@ public class MetadataViewSourceGeneratorTests
         Assert.Empty(diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));
         Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity >= DiagnosticSeverity.Warning));
         return new GeneratorTestResult(outputCompilation);
+    }
+
+    private static MetadataReference CreateMetadataReference(string source, LanguageVersion languageVersion, NullableContextOptions nullableContextOptions)
+    {
+        CSharpCompilation compilation = CSharpCompilation.Create(
+            assemblyName: Guid.NewGuid().ToString("N"),
+            syntaxTrees:
+            [
+                CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(languageVersion)),
+            ],
+            references: GetMetadataReferences(),
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: nullableContextOptions));
+
+        using var stream = new MemoryStream();
+        var emitResult = compilation.Emit(stream);
+        Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+        return MetadataReference.CreateFromImage(stream.ToArray());
     }
 
     private static MetadataReference[] GetMetadataReferences()

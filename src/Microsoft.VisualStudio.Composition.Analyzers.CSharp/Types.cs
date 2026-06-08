@@ -74,6 +74,13 @@ internal static class Types
         internal const string QualifiedName = $"global::{FullName}";
     }
 
+    internal static class ObsoleteAttribute
+    {
+        internal const string Name = "ObsoleteAttribute";
+        internal const string FullName = $"System.{Name}";
+        internal const string QualifiedName = $"global::{FullName}";
+    }
+
     internal static class DefaultValueAttribute
     {
         internal const string Name = "DefaultValueAttribute";
