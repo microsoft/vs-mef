@@ -363,6 +363,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";MetadataViewDirectUseUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view type "{0}" derives from Microsoft.VisualStudio.Composition.MetadataView. To be supported, it must be a non-abstract class with a public parameterless constructor when used directly as TMetadata or as the implementation type for an interface annotated with MetadataViewImplementationAttribute.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[元数据视图类型“{0}”派生自 Microsoft.VisualStudio.Composition.MetadataView。要获得支持，则在直接将其用作 TMetadata 或使用 MetadataViewImplementationAttribute 批注的接口的实现类型时，它必须是具有公共无参数构造函数的非抽象类。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";MetadataViewImplementationConstructorUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view implementation type "{0}" for metadata view "{1}" must declare one of the supported constructors: a public parameterless constructor when deriving from Microsoft.VisualStudio.Composition.MetadataView, or a public .ctor(IDictionary<string, object?>) / .ctor(IReadOnlyDictionary<string, object?>).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[元数据视图“{1}”的元数据视图实现类型“{0}”必须声明受支持的构造函数之一: 如果派生自 Microsoft.VisualStudio.Composition.MetadataView，则为公共无参数构造函数，或公共 .ctor(IDictionary<string, object?>) / .ctor(IReadOnlyDictionary<string, object?>)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";MetadataViewImplementationTypeMustImplementMetadataView" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view implementation type "{0}" must implement the metadata view interface "{1}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[元数据视图实现类型“{0}”必须实现元数据视图接口“{1}”。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";NoImportingConstructor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No importing constructor.]]></Val>
@@ -638,15 +665,6 @@
           <Val><![CDATA[This shared part is in state {0} but must be in state {1} for this operation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[此共享的部件状态 {0} 中，但必须为此操作状态 {1} 中。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";UnresolvableMetadataToken" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Unresolvable metadata token.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[无法解析元数据标记。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

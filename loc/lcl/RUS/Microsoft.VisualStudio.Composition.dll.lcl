@@ -363,6 +363,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";MetadataViewDirectUseUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view type "{0}" derives from Microsoft.VisualStudio.Composition.MetadataView. To be supported, it must be a non-abstract class with a public parameterless constructor when used directly as TMetadata or as the implementation type for an interface annotated with MetadataViewImplementationAttribute.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Тип представления метаданных {0} наследуется от Microsoft.VisualStudio.Composition.MetadataView. Чтобы его можно было использовать, он должен быть неабстрактным классом с открытым конструктором без параметров при использовании непосредственно в качестве TMetadata или в качестве типа реализации для интерфейса, аннотированного MetadataViewImplementationAttribute.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";MetadataViewImplementationConstructorUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view implementation type "{0}" for metadata view "{1}" must declare one of the supported constructors: a public parameterless constructor when deriving from Microsoft.VisualStudio.Composition.MetadataView, or a public .ctor(IDictionary<string, object?>) / .ctor(IReadOnlyDictionary<string, object?>).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Тип реализации представления метаданных {0} для представления метаданных {1} должен объявлять один из поддерживаемых конструкторов: общедоступный конструктор без параметров при наследовании от Microsoft.VisualStudio.Composition.MetadataView или общедоступный .ctor(IDictionary<string, object?>) / .ctor(IReadOnlyDictionary<string, object?>).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";MetadataViewImplementationTypeMustImplementMetadataView" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view implementation type "{0}" must implement the metadata view interface "{1}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Тип реализации представления метаданных {0} должен реализовывать интерфейс представления метаданных {1}.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";NoImportingConstructor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No importing constructor.]]></Val>
@@ -638,15 +665,6 @@
           <Val><![CDATA[This shared part is in state {0} but must be in state {1} for this operation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Эта общая часть находится в состоянии {0}, но должна быть в состоянии {1} для данной операции.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";UnresolvableMetadataToken" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Unresolvable metadata token.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Неразрешимый токен метаданных.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

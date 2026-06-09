@@ -363,6 +363,33 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";MetadataViewDirectUseUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view type "{0}" derives from Microsoft.VisualStudio.Composition.MetadataView. To be supported, it must be a non-abstract class with a public parameterless constructor when used directly as TMetadata or as the implementation type for an interface annotated with MetadataViewImplementationAttribute.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[메타데이터 뷰 형식 "{0}"은 Microsoft.VisualStudio.Composition.MetadataView에서 파생됩니다. 지원되려면 TMetadata로 직접 사용되거나 MetadataViewImplementationAttribute가 지정된 인터페이스의 구현 형식으로 사용될 때 public 매개 변수가 없는 비추상 클래스여야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";MetadataViewImplementationConstructorUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view implementation type "{0}" for metadata view "{1}" must declare one of the supported constructors: a public parameterless constructor when deriving from Microsoft.VisualStudio.Composition.MetadataView, or a public .ctor(IDictionary<string, object?>) / .ctor(IReadOnlyDictionary<string, object?>).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[메타데이터 뷰 "{0}"의 메타데이터 뷰 구현 형식 "{1}"은 지원되는 생성자 중 하나를 선언해야 합니다. Microsoft.VisualStudio.Composition.MetadataView에서 파생되는 경우에는 public 매개 변수가 없는 생성자여야 하며, 또는 public .ctor(IDictionary<string, object?>) / .ctor(IReadOnlyDictionary<string, object?>)여야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";MetadataViewImplementationTypeMustImplementMetadataView" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The metadata view implementation type "{0}" must implement the metadata view interface "{1}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[메타데이터 뷰 구현 형식 "{0}"은 메타데이터 뷰 인터페이스 "{1}"를 구현해야 합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";NoImportingConstructor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No importing constructor.]]></Val>
@@ -638,15 +665,6 @@
           <Val><![CDATA[This shared part is in state {0} but must be in state {1} for this operation.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[이 공유 파트는 {0} 상태이지만 이 작업의 경우 {1} 상태여야 합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";UnresolvableMetadataToken" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Unresolvable metadata token.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[확인할 수 없는 메타데이터 토큰입니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
