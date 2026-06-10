@@ -49,7 +49,6 @@ namespace Microsoft.VisualStudio.Composition
         private readonly Func<object?> readObjectDelegate;
         private readonly Func<TypeRef?> readTypeRefDelegate;
 
-        private readonly ImmutableDictionary<string, object?>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
         private readonly Stack<ImmutableArray<TypeRef?>.Builder> typeRefBuilders = new Stack<ImmutableArray<TypeRef?>.Builder>();
 
         private readonly byte[] guidBuffer = new byte[128 / 8];
@@ -58,6 +57,14 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly object BoxedTrue = true;
         private static readonly object BoxedFalse = false;
+
+        private static readonly IReadOnlyDictionary<string, object?> EmptyMetadata = ImmutableDictionary<string, object?>.Empty;
+        private static readonly object BoxedCreationPolicyAny = CreationPolicy.Any;
+        private static readonly object BoxedCreationPolicyShared = CreationPolicy.Shared;
+        private static readonly object BoxedCreationPolicyNonShared = CreationPolicy.NonShared;
+        private static readonly object BoxedInt32Zero = 0;
+        private static readonly object BoxedInt32One = 1;
+        private static readonly object BoxedInt32NegativeOne = -1;
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -751,6 +758,41 @@ namespace Microsoft.VisualStudio.Composition
                     throw new NotSupportedException();
                 }
 
+                // Use typed fast paths for common element types to avoid
+                // the reflection overhead of Array.CreateInstance + Array.SetValue.
+                if (elementType == typeof(object))
+                {
+                    var array = new object?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = itemReader();
+                    }
+
+                    return array;
+                }
+
+                if (elementType == typeof(string))
+                {
+                    var array = new string?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (string?)itemReader();
+                    }
+
+                    return array;
+                }
+
+                if (elementType == typeof(Type))
+                {
+                    var array = new Type?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (Type?)itemReader();
+                    }
+
+                    return array;
+                }
+
                 var list = Array.CreateInstance(elementType, (int)count);
                 for (int i = 0; i < list.Length; i++)
                 {
@@ -801,7 +843,7 @@ namespace Microsoft.VisualStudio.Composition
                 // implicitly resolving TypeRefs to Types which is undesirable.
                 metadata = LazyMetadataWrapper.TryUnwrap(metadata);
 
-                serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
+                serializedMetadata = new LazyMetadataWrapper(metadata.ToDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
 
                 foreach (var entry in serializedMetadata)
                 {
@@ -815,32 +857,22 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("Metadata"))
             {
-                // PERF TIP: if ReadMetadata shows up on startup perf traces,
-                // we could simply read the blob containing the metadata into a byte[]
-                // and defer actually deserializing it until such time as the metadata
-                // is actually required.
-                // We might do this with minimal impact to other code by implementing
-                // IReadOnlyDictionary<string, object> ourselves such that on the first
-                // access of any of its contents, we'll do a just-in-time deserialization,
-                // and perhaps only of the requested values.
                 uint count = this.ReadCompressedUInt();
-                var metadata = ImmutableDictionary<string, object?>.Empty;
 
-                if (count > 0)
+                if (count == 0)
                 {
-                    var builder = this.metadataBuilder; // reuse builder to save on GC pressure
-                    for (int i = 0; i < count; i++)
-                    {
-                        string? key = this.ReadString();
-                        object? value = this.ReadObject();
-                        builder.Add(key, value);
-                    }
-
-                    metadata = builder.ToImmutable();
-                    builder.Clear(); // clean up for the next user.
+                    return EmptyMetadata;
                 }
 
-                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver);
+                var dictionary = new Dictionary<string, object?>((int)count);
+                for (int i = 0; i < count; i++)
+                {
+                    string? key = this.ReadString();
+                    object? value = this.ReadObject();
+                    dictionary.Add(key, value);
+                }
+
+                return new LazyMetadataWrapper(dictionary, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver);
             }
         }
 
@@ -1093,7 +1125,14 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.UInt64:
                         return this.reader.ReadUInt64();
                     case ObjectType.Int32:
-                        return this.reader.ReadInt32();
+                        int int32Value = this.reader.ReadInt32();
+                        return int32Value switch
+                        {
+                            0 => BoxedInt32Zero,
+                            1 => BoxedInt32One,
+                            -1 => BoxedInt32NegativeOne,
+                            _ => int32Value,
+                        };
                     case ObjectType.UInt32:
                         return this.reader.ReadUInt32();
                     case ObjectType.Int16:
@@ -1115,7 +1154,13 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Guid:
                         return this.ReadGuid();
                     case ObjectType.CreationPolicy:
-                        return (CreationPolicy)this.reader.ReadByte();
+                        return this.reader.ReadByte() switch
+                        {
+                            (byte)CreationPolicy.Any => BoxedCreationPolicyAny,
+                            (byte)CreationPolicy.Shared => BoxedCreationPolicyShared,
+                            (byte)CreationPolicy.NonShared => BoxedCreationPolicyNonShared,
+                            byte b => (CreationPolicy)b,
+                        };
                     case ObjectType.Type:
                         return this.ReadTypeRef().Resolve();
                     case ObjectType.TypeRef:
