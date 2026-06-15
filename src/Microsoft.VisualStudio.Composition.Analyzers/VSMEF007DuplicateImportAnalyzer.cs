@@ -101,13 +101,19 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         {
             if (member is IPropertySymbol property)
             {
-                AttributeData? importAttribute = Utils.GetImportAttribute(property.GetAttributes());
+                ImmutableArray<AttributeData> attributes = property.GetAttributes();
+                AttributeData? importAttribute = Utils.GetImportAttribute(attributes);
 
                 if (importAttribute is not null)
                 {
                     if (Utils.IsNonSharedImport(importAttribute) && !IsExportFactoryType(property.Type, wrapperTypes))
                     {
                         // Skip NonShared imports (except ExportFactory), each gets a unique instance.
+                        continue;
+                    }
+
+                    if (HasImportMetadataConstraintAttribute(attributes))
+                    {
                         continue;
                     }
 
@@ -129,11 +135,17 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
                 {
                     foreach (IParameterSymbol parameter in method.Parameters)
                     {
-                        AttributeData? importAttribute = Utils.GetImportAttribute(parameter.GetAttributes());
+                        ImmutableArray<AttributeData> attributes = parameter.GetAttributes();
+                        AttributeData? importAttribute = Utils.GetImportAttribute(attributes);
 
                         if (importAttribute is not null && Utils.IsNonSharedImport(importAttribute) && !IsExportFactoryType(parameter.Type, wrapperTypes))
                         {
                             // Skip NonShared imports (except ExportFactory), each gets a unique instance.
+                            continue;
+                        }
+
+                        if (HasImportMetadataConstraintAttribute(attributes))
+                        {
                             continue;
                         }
 
@@ -186,6 +198,22 @@ public class VSMEF007DuplicateImportAnalyzer : DiagnosticAnalyzer
         string name = Utils.GetMefContractName(explicitContractName, type);
 
         return new Contract(typeName, name);
+    }
+
+    private static bool HasImportMetadataConstraintAttribute(ImmutableArray<AttributeData> attributes)
+    {
+        return attributes.Any(attribute => IsImportMetadataConstraintAttribute(attribute.AttributeClass));
+    }
+
+    private static bool IsImportMetadataConstraintAttribute(INamedTypeSymbol? attributeType)
+    {
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        return attributeType.Name == "ImportMetadataConstraintAttribute" &&
+               Utils.IsNamespaceMatch(attributeType.ContainingNamespace, ["System", "Composition"]);
     }
 
     private static ITypeSymbol UnwrapLazyOrExportFactory(ITypeSymbol type, WrapperTypes wrapperTypes)
