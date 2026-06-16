@@ -145,6 +145,56 @@ public class VSMEF007DuplicateImportAnalyzerTests
     }
 
     [Fact]
+    public async Task ImportMetadataConstraintsWithDifferentValues_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.Composition;
+
+            class Car { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                [ImportMetadataConstraint("Year", 2016)]
+                public Lazy<Car> NewerCar { get; set; }
+
+                [Import]
+                [ImportMetadataConstraint("Type", "Used")]
+                public Car UsedCar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
+    public async Task ImportMetadataConstraintsWithSameValues_NoWarning()
+    {
+        string test = """
+            using System;
+            using System.Composition;
+
+            class Car { }
+
+            [Export]
+            class Foo
+            {
+                [Import]
+                [ImportMetadataConstraint("Year", 2016)]
+                public Lazy<Car> FirstCar { get; set; }
+
+                [Import]
+                [ImportMetadataConstraint("Year", 2016)]
+                public Car SecondCar { get; set; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(test);
+    }
+
+    [Fact]
     public async Task ConstructorWithSameContractNames_Warning()
     {
         string test = """
