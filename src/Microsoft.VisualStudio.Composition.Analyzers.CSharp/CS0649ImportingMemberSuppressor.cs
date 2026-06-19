@@ -43,13 +43,12 @@ public class CS0649ImportingMemberSuppressor : DiagnosticSuppressor
                 continue;
             }
 
-            ISymbol? affectedSymbol = ImportingMemberSuppressorUtilities.GetAffectedMemberSymbol(context, diagnostic);
-            if (affectedSymbol is not IFieldSymbol and not IPropertySymbol)
+            if (ImportingMemberSuppressorUtilities.GetAffectedMemberSymbol(context, diagnostic) is not IFieldSymbol affectedField)
             {
                 continue;
             }
 
-            INamedTypeSymbol? containingType = affectedSymbol.ContainingType;
+            INamedTypeSymbol? containingType = affectedField.ContainingType;
             if (containingType is null ||
                 !ImportingMemberSuppressorUtilities.HasInstanceExports(containingType) ||
                 ImportingMemberSuppressorUtilities.HasPartNotDiscoverableAttribute(containingType))
@@ -57,7 +56,7 @@ public class CS0649ImportingMemberSuppressor : DiagnosticSuppressor
                 continue;
             }
 
-            if (ImportingMemberSuppressorUtilities.GetImportAttribute(affectedSymbol.GetAttributes()) is null)
+            if (ImportingMemberSuppressorUtilities.GetImportAttribute(affectedField.GetAttributes()) is null)
             {
                 continue;
             }
