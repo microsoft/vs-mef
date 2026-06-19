@@ -3,11 +3,15 @@
 
 namespace Microsoft.VisualStudio.Composition.Analyzers;
 
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
 /// <summary>
 /// Suppresses CS8618 for MEF importing fields and properties on exported parts,
 /// since MEF initializes such members after construction.
 /// </summary>
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class CS8618ImportingMemberSuppressor : DiagnosticSuppressor
 {
     /// <summary>
@@ -23,7 +27,7 @@ public class CS8618ImportingMemberSuppressor : DiagnosticSuppressor
     internal static readonly SuppressionDescriptor Descriptor = new(
         id: Id,
         suppressedDiagnosticId: SuppressedDiagnosticId,
-        justification: Strings.VSMEF014_Justification);
+        justification: "Importing members on exported MEF parts are initialized after construction unless AllowDefault = true is specified.");
 
     /// <inheritdoc/>
     public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions =>
@@ -39,7 +43,7 @@ public class CS8618ImportingMemberSuppressor : DiagnosticSuppressor
                 continue;
             }
 
-            ISymbol? affectedSymbol = this.GetAffectedMemberSymbol(context, diagnostic);
+            ISymbol? affectedSymbol = ImportingMemberSuppressorUtilities.GetAffectedMemberSymbol(context, diagnostic);
             if (affectedSymbol is not IFieldSymbol and not IPropertySymbol)
             {
                 continue;
@@ -52,59 +56,19 @@ public class CS8618ImportingMemberSuppressor : DiagnosticSuppressor
 
             INamedTypeSymbol? containingType = affectedSymbol.ContainingType;
             if (containingType is null ||
-                !Utils.HasInstanceExports(containingType) ||
-                Utils.HasPartNotDiscoverableAttribute(containingType))
+                !ImportingMemberSuppressorUtilities.HasInstanceExports(containingType) ||
+                ImportingMemberSuppressorUtilities.HasPartNotDiscoverableAttribute(containingType))
             {
                 continue;
             }
 
-            AttributeData? importAttribute = Utils.GetImportAttribute(affectedSymbol.GetAttributes());
-            if (importAttribute is null || Utils.GetAllowDefaultValue(importAttribute))
+            AttributeData? importAttribute = ImportingMemberSuppressorUtilities.GetImportAttribute(affectedSymbol.GetAttributes());
+            if (importAttribute is null || ImportingMemberSuppressorUtilities.GetAllowDefaultValue(importAttribute))
             {
                 continue;
             }
 
             context.ReportSuppression(Suppression.Create(Descriptor, diagnostic));
         }
-    }
-
-    private ISymbol? GetAffectedMemberSymbol(SuppressionAnalysisContext context, Diagnostic diagnostic)
-    {
-        foreach (Location location in diagnostic.AdditionalLocations)
-        {
-            ISymbol? symbol = GetDeclaredSymbol(context, location);
-            if (symbol is IFieldSymbol or IPropertySymbol)
-            {
-                return symbol;
-            }
-        }
-
-        return GetDeclaredSymbol(context, diagnostic.Location);
-    }
-
-    private static ISymbol? GetDeclaredSymbol(SuppressionAnalysisContext context, Location location)
-    {
-        SyntaxTree? syntaxTree = location.SourceTree;
-        if (syntaxTree is null)
-        {
-            return null;
-        }
-
-        SemanticModel semanticModel = context.GetSemanticModel(syntaxTree);
-        SyntaxNode root = syntaxTree.GetRoot(context.CancellationToken);
-        SyntaxNode? node = root.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
-
-        while (node is not null)
-        {
-            ISymbol? symbol = semanticModel.GetDeclaredSymbol(node, context.CancellationToken);
-            if (symbol is not null)
-            {
-                return symbol;
-            }
-
-            node = node.Parent;
-        }
-
-        return null;
     }
 }
