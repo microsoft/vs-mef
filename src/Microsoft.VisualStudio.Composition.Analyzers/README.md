@@ -26,3 +26,4 @@ Suppressor ID | Suppressed Diagnostic | Description
 --|--|--
 VSMEF013 | IDE0044 | Suppresses "Make field readonly" for fields decorated with MEF `[Import]` or `[ImportMany]` attributes, since such fields are assigned at runtime via reflection.
 VSMEF014 | CS8618 | Suppresses "Non-nullable member must contain a non-null value when exiting constructor" for MEF importing members that are initialized after construction unless `AllowDefault = true` is specified.
+VSMEF018 | CS0649 | Suppresses "Field is never assigned to, and will always have its default value" for MEF imported fields on exported parts, since composition assigns them at runtime.

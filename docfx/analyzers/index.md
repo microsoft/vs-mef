@@ -23,3 +23,4 @@ ID | Title
 [VSMEF015](VSMEF015.md) | Metadata view interface should be source-generated
 [VSMEF016](VSMEF016.md) | Referenced metadata view interface should be source-generated
 [VSMEF017](VSMEF017.md) | Invalid [MetadataView] usage
+[VSMEF018](VSMEF018.md) | Suppress CS0649 for MEF imported fields on exported parts
