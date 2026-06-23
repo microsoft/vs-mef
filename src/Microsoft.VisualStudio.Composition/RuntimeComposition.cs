@@ -321,13 +321,8 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(ImportingSiteElementType) + "}")]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
-            private NullableBool isLazy;
-            private Type? importingSiteElementType;
-            private Func<AssemblyName, Func<object?>, object, object>? lazyFactory;
             private ParameterInfo? importingParameter;
             private MemberInfo? importingMember;
-            private volatile bool isMetadataTypeInitialized;
-            private Type? metadataType;
 
             private RuntimeImport(TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
@@ -399,18 +394,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public ParameterInfo? ImportingParameter => this.importingParameter ?? (this.importingParameter = this.ImportingParameterRef?.ParameterInfo);
 
-            public bool IsLazy
-            {
-                get
-                {
-                    if (!this.isLazy.HasValue)
-                    {
-                        this.isLazy = this.ImportingSiteTypeWithoutCollectionRef.IsAnyLazyType();
-                    }
-
-                    return this.isLazy.Value;
-                }
-            }
+            public bool IsLazy => this.ImportingSiteTypeWithoutCollectionRef.IsAnyLazyType();
 
             public Type ImportingSiteType => this.ImportingSiteTypeRef.ResolvedType;
 
@@ -421,32 +405,15 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
             /// </summary>
-            public Type ImportingSiteElementType
-            {
-                get
-                {
-                    if (this.importingSiteElementType == null)
-                    {
-                        this.importingSiteElementType = PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
-                    }
-
-                    return this.importingSiteElementType;
-                }
-            }
+            public Type ImportingSiteElementType => PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
 
             public Type? MetadataType
             {
                 get
                 {
-                    if (!this.isMetadataTypeInitialized)
-                    {
-                        this.metadataType = this.IsLazy && this.ImportingSiteTypeWithoutCollection.GenericTypeArguments.Length == 2
-                            ? this.ImportingSiteTypeWithoutCollection.GenericTypeArguments[1]
-                            : null;
-                        this.isMetadataTypeInitialized = true;
-                    }
-
-                    return this.metadataType;
+                    return this.IsLazy && this.ImportingSiteTypeWithoutCollection.GenericTypeArguments.Length == 2
+                        ? this.ImportingSiteTypeWithoutCollection.GenericTypeArguments[1]
+                        : null;
                 }
             }
 
@@ -462,13 +429,13 @@ namespace Microsoft.VisualStudio.Composition
             {
                 get
                 {
-                    if (this.lazyFactory == null && this.IsLazy)
+                    if (!this.IsLazy)
                     {
-                        Type[] lazyTypeArgs = this.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
-                        this.lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(this.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
+                        return null;
                     }
 
-                    return this.lazyFactory;
+                    Type[] lazyTypeArgs = this.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
+                    return LazyServices.CreateStronglyTypedLazyFactory(this.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
                 }
             }
 
