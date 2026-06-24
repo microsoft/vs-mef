@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
                 this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
                 this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
-                    ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
+                    ? arrayElementType.GenericTypeArguments.Where(t => !t.IsGenericParameter).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
                     : ImmutableArray<TypeRef>.Empty;
 
                 if (!shallow)

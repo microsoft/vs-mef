@@ -645,7 +645,40 @@ namespace Microsoft.VisualStudio.Composition
 
             if (method is ConstructorInfo)
             {
-                return closedGeneric.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
+                // Fast path: if none of the parameter types contain generic parameters, the existing lookup works.
+                if (!parameterTypes.Any(t => t.ContainsGenericParameters))
+                {
+                    return closedGeneric.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
+                }
+
+                // Slow path: the open generic constructor has parameters whose types contain generic type
+                // parameters (e.g. IFoo<TOptions> on OptionsManager<TOptions>).  Type.GetConstructor cannot
+                // match those against the closed form (IFoo<MyOptions>), so locate the constructor by
+                // matching the open-generic declaring type's constructor list positionally using metadata token.
+                var openGenericType = method.DeclaringType!.IsGenericType && !method.DeclaringType.IsGenericTypeDefinition
+                    ? method.DeclaringType.GetGenericTypeDefinition().GetTypeInfo()
+                    : method.DeclaringType.GetTypeInfo();
+                var openCtors = openGenericType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                int ctorIndex = -1;
+                for (int i = 0; i < openCtors.Length; i++)
+                {
+                    if (openCtors[i].MetadataToken == method.MetadataToken)
+                    {
+                        ctorIndex = i;
+                        break;
+                    }
+                }
+
+                if (ctorIndex >= 0)
+                {
+                    var closedCtors = closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (ctorIndex < closedCtors.Length)
+                    {
+                        return closedCtors[ctorIndex];
+                    }
+                }
+
+                return null;
             }
             else if (method is MethodInfo)
             {
