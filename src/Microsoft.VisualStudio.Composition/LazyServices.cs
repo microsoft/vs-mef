@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.Composition
     {
         private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static)!;
         private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static)!;
+        private static readonly ConcurrentDictionary<(Type ExportType, Type? MetadataViewType), Func<AssemblyName, Func<object?>, object, object>> LazyFactoryCache = new();
         private static readonly string Lazy1FullName = typeof(Lazy<>).FullName!;
         private static readonly string Lazy2FullName = typeof(Lazy<,>).FullName!;
 
@@ -79,17 +81,15 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns>A function that takes a Func{object} value factory and metadata, and produces a Lazy{T, TMetadata} instance.</returns>
         internal static Func<AssemblyName, Func<object?>, object, object> CreateStronglyTypedLazyFactory(Type? exportType, Type? metadataViewType)
         {
-            MethodInfo genericMethod;
-            if (metadataViewType != null)
+            var key = (exportType ?? DefaultExportedValueType, metadataViewType);
+            return LazyFactoryCache.GetOrAdd(key, static k =>
             {
-                genericMethod = CreateStronglyTypedLazyOfTMValue.MakeGenericMethod(exportType ?? DefaultExportedValueType, metadataViewType);
-            }
-            else
-            {
-                genericMethod = CreateStronglyTypedLazyOfTValue.MakeGenericMethod(exportType ?? DefaultExportedValueType);
-            }
+                MethodInfo genericMethod = k.MetadataViewType != null
+                    ? CreateStronglyTypedLazyOfTMValue.MakeGenericMethod(k.ExportType, k.MetadataViewType)
+                    : CreateStronglyTypedLazyOfTValue.MakeGenericMethod(k.ExportType);
 
-            return (Func<AssemblyName, Func<object?>, object, object>)genericMethod.CreateDelegate(typeof(Func<AssemblyName, Func<object?>, object, object>));
+                return (Func<AssemblyName, Func<object?>, object, object>)genericMethod.CreateDelegate(typeof(Func<AssemblyName, Func<object?>, object, object>));
+            });
         }
 
         internal static Func<T> AsFunc<T>(this Lazy<T> lazy)

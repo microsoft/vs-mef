@@ -32,9 +32,9 @@ namespace Microsoft.VisualStudio.Composition
         /// The underlying metadata, which may be partially translated since value translation may choose
         /// to persist the translated result.
         /// </summary>
-        protected ImmutableDictionary<string, object?> underlyingMetadata;
+        protected Dictionary<string, object?> underlyingMetadata;
 
-        internal LazyMetadataWrapper(ImmutableDictionary<string, object?> metadata, Direction direction, Resolver resolver)
+        internal LazyMetadataWrapper(Dictionary<string, object?> metadata, Direction direction, Resolver resolver)
         {
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(resolver, nameof(resolver));
@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object?> newMetadata)
         {
-            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction, this.resolver);
+            return new LazyMetadataWrapper(newMetadata.ToDictionary(), oldVersion.direction, this.resolver);
         }
 
         protected object? SubstituteValueIfRequired(string key, object? value)
@@ -265,13 +265,13 @@ namespace Microsoft.VisualStudio.Composition
                 return null;
             }
 
-            value = this.SubstituteValueIfRequired(value);
-
-            // Update our metadata dictionary with the substitution to avoid
-            // the translation costs next time.
-            this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
-
-            return value;
+            // Note: we intentionally do NOT write the substituted value back into the dictionary.
+            // The old ImmutableDictionary-backed implementation called SetItem here, which was
+            // structurally thread-safe (it returned a new dictionary and assigned the reference
+            // atomically). With Dictionary, concurrent writes would corrupt the internal state.
+            // The substitution cost without caching is negligible: TypeRef.Resolve() caches its
+            // result in a field, and Enum.ToObject is trivial.
+            return this.SubstituteValueIfRequired(value);
         }
 
         protected virtual object SubstituteValueIfRequired(object value)
