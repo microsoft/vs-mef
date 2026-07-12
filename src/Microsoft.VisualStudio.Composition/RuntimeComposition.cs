@@ -52,15 +52,7 @@ namespace Microsoft.VisualStudio.Composition
             this.Resolver = resolver;
 
             this.partsByType = this.parts.ToDictionary(p => p.TypeRef, this.parts.Count);
-
-            var exports =
-                from part in this.parts
-                from export in part.Exports
-                group export by export.ContractName into exportsByContract
-                select exportsByContract;
-            this.exportsByContractName = exports.ToDictionary(
-                e => e.Key,
-                e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
+            this.exportsByContractName = CreateExportsByContractName(this.parts);
         }
 
         public IReadOnlyCollection<RuntimePart> Parts
@@ -74,6 +66,33 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         internal Resolver Resolver { get; }
+
+        private static IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> CreateExportsByContractName(ImmutableHashSet<RuntimePart> parts)
+        {
+            var exportsByContractName = new Dictionary<string, List<RuntimeExport>>(StringComparer.Ordinal);
+            foreach (RuntimePart part in parts)
+            {
+                for (int i = 0; i < part.Exports.Count; i++)
+                {
+                    RuntimeExport export = part.Exports[i];
+                    if (!exportsByContractName.TryGetValue(export.ContractName, out List<RuntimeExport>? exports))
+                    {
+                        exports = new List<RuntimeExport>(capacity: 1);
+                        exportsByContractName.Add(export.ContractName, exports);
+                    }
+
+                    exports.Add(export);
+                }
+            }
+
+            var immutableExportsByContractName = new Dictionary<string, IReadOnlyCollection<RuntimeExport>>(exportsByContractName.Count, StringComparer.Ordinal);
+            foreach (KeyValuePair<string, List<RuntimeExport>> entry in exportsByContractName)
+            {
+                immutableExportsByContractName.Add(entry.Key, entry.Value.ToImmutableArray());
+            }
+
+            return immutableExportsByContractName;
+        }
 
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
