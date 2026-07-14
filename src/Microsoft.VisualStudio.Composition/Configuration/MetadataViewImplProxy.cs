@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.Composition
 
     internal class MetadataViewImplProxy : IMetadataViewProvider
     {
-        private static readonly ConcurrentDictionary<Type, ImplementationActivation> ImplementationActivations = new ConcurrentDictionary<Type, ImplementationActivation>();
-        private static readonly ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivation> ExplicitImplementationActivations = new ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivation>();
+        private static readonly ConcurrentDictionary<Type, ImplementationActivationCacheEntry> ImplementationActivations = new();
+        private static readonly ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivation> ExplicitImplementationActivations = new();
         private static readonly MethodInfo CreateMetadataViewMethod = typeof(MetadataViewImplProxy).GetMethod(nameof(CreateMetadataView), BindingFlags.NonPublic | BindingFlags.Static)!;
 
         internal static readonly ComposablePartDefinition PartDefinition =
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
-            var activation = TryGetImplementationActivation(metadataViewType, throwOnInvalidConfiguration: true);
+            ImplementationActivation? activation = TryGetImplementationActivation(metadataViewType, throwOnInvalidConfiguration: true);
             Assumes.NotNull(activation);
             return activation.Value.CreateProxy(metadata, defaultValues, metadataViewType);
         }
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType, Type implementationType)
         {
-            var activation = TryGetImplementationActivation(metadataViewType, implementationType, throwOnInvalidConfiguration: true);
+            ImplementationActivation? activation = TryGetImplementationActivation(metadataViewType, implementationType, throwOnInvalidConfiguration: true);
             Assumes.NotNull(activation);
             return activation.Value.CreateProxy(metadata, defaultValues, metadataViewType);
         }
@@ -66,21 +66,23 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(metadataType, nameof(metadataType));
 
-            if (ImplementationActivations.TryGetValue(metadataType, out ImplementationActivation cachedActivation))
+            if (ImplementationActivations.TryGetValue(metadataType, out ImplementationActivationCacheEntry cachedActivation))
             {
-                return cachedActivation;
+                return cachedActivation.Activation;
             }
 
             Type? implementationType = GetMetadataViewImplementationType(metadataType);
             if (implementationType is null)
             {
-                return null;
+                ImplementationActivationCacheEntry cacheEntry = default;
+                return ImplementationActivations.GetOrAdd(metadataType, cacheEntry).Activation;
             }
 
             ImplementationActivation? activation = TryGetImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
             if (activation.HasValue)
             {
-                return ImplementationActivations.GetOrAdd(metadataType, activation.Value);
+                ImplementationActivationCacheEntry cacheEntry = new(activation.Value);
+                return ImplementationActivations.GetOrAdd(metadataType, cacheEntry).Activation;
             }
 
             return null;
@@ -131,13 +133,13 @@ namespace Microsoft.VisualStudio.Composition
             ConstructorInfo? ctor = FindDefaultConstructor(implementationTypeInfo);
             if (ctor != null && typeof(MetadataView).GetTypeInfo().IsAssignableFrom(implementationTypeInfo))
             {
-                return new ImplementationActivation(ImplementationKind.MetadataViewBase, ctor);
+                return new ImplementationActivation(CreateMetadataViewFactory(implementationType));
             }
 
             ctor = FindDictionaryConstructor(implementationTypeInfo);
             if (ctor != null)
             {
-                return new ImplementationActivation(ImplementationKind.LegacyDictionary, ctor);
+                return new ImplementationActivation(ctor);
             }
 
             if (throwOnInvalidConfiguration)
@@ -195,18 +197,33 @@ namespace Microsoft.VisualStudio.Composition
 
         private delegate MetadataView MetadataViewFactory();
 
+        private readonly struct ImplementationActivationCacheEntry
+        {
+            internal ImplementationActivationCacheEntry(ImplementationActivation activation)
+            {
+                this.Activation = activation;
+            }
+
+            internal ImplementationActivation? Activation { get; }
+        }
+
         private readonly struct ImplementationActivation
         {
-            private readonly ConstructorInfo? constructor;
-            private readonly Type? constructorParameterType;
+            private readonly (ConstructorInfo Constructor, Type ParameterType)? dictionaryConstructor;
             private readonly MetadataViewFactory? metadataViewFactory;
 
-            internal ImplementationActivation(ImplementationKind kind, ConstructorInfo constructor)
+            internal ImplementationActivation(ConstructorInfo constructor)
             {
-                this.Kind = kind;
-                this.constructor = kind == ImplementationKind.LegacyDictionary ? constructor : null;
-                this.constructorParameterType = kind == ImplementationKind.LegacyDictionary ? constructor.GetParameters()[0].ParameterType : null;
-                this.metadataViewFactory = kind == ImplementationKind.MetadataViewBase ? CreateMetadataViewFactory(constructor.DeclaringType!) : null;
+                this.Kind = ImplementationKind.LegacyDictionary;
+                this.dictionaryConstructor = (constructor, constructor.GetParameters()[0].ParameterType);
+                this.metadataViewFactory = null;
+            }
+
+            internal ImplementationActivation(MetadataViewFactory metadataViewFactory)
+            {
+                this.Kind = ImplementationKind.MetadataViewBase;
+                this.dictionaryConstructor = null;
+                this.metadataViewFactory = metadataViewFactory;
             }
 
             internal ImplementationKind Kind { get; }
@@ -217,10 +234,10 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(defaultValues, nameof(defaultValues));
                 Requires.NotNull(metadataViewType, nameof(metadataViewType));
 
-                return this.Kind switch
+                return (this.metadataViewFactory, this.dictionaryConstructor) switch
                 {
-                    ImplementationKind.MetadataViewBase => InitializeMetadataView(metadata, defaultValues, this.metadataViewFactory!),
-                    ImplementationKind.LegacyDictionary => InvokeDictionaryConstructor(metadata, this.constructor!, this.constructorParameterType!),
+                    (MetadataViewFactory factory, null) => InitializeMetadataView(metadata, defaultValues, factory),
+                    (null, (ConstructorInfo constructor, Type parameterType)) => InvokeDictionaryConstructor(metadata, constructor, parameterType),
                     _ => throw Assumes.NotReachable(),
                 };
             }

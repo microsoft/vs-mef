@@ -141,12 +141,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
-        public void MetadataViewImplementationActivationFactoryIsCached()
+        public void MetadataViewImplementationAbsenceIsCached()
         {
-            object firstFactory = GetMetadataViewImplementationFactory(typeof(ExportMetadataTests.INamedMetadata));
-            object secondFactory = GetMetadataViewImplementationFactory(typeof(ExportMetadataTests.INamedMetadata));
+            var metadataType = new AttributeCountingTypeDelegator(typeof(string));
 
-            Assert.Same(firstFactory, secondFactory);
+            Assert.False(IsMetadataViewSupported(metadataType));
+            Assert.False(IsMetadataViewSupported(metadataType));
+            Assert.Equal(1, metadataType.GetCustomAttributesCallCount);
+        }
+
+        [Fact]
+        public void MetadataViewImplementationActivationIsCached()
+        {
+            var metadataType = new AttributeCountingTypeDelegator(typeof(IMetadataView));
+
+            Assert.True(IsMetadataViewSupported(metadataType));
+            Assert.True(IsMetadataViewSupported(metadataType));
+            Assert.Equal(1, metadataType.GetCustomAttributesCallCount);
         }
 
         [Fact]
@@ -384,20 +395,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 metadataViewType)!;
         }
 
-        private static object GetMetadataViewImplementationFactory(Type metadataViewType)
-        {
-            Type metadataViewImplProxyType = typeof(CompositionConfiguration).Assembly.GetType("Microsoft.VisualStudio.Composition.MetadataViewImplProxy", throwOnError: true)!;
-            MethodInfo getActivationMethod = metadataViewImplProxyType.GetMethod(
-                "TryGetImplementationActivation",
-                BindingFlags.Static | BindingFlags.NonPublic,
-                binder: null,
-                new[] { typeof(Type), typeof(bool) },
-                modifiers: null)!;
-            object activation = getActivationMethod.Invoke(null, new object[] { metadataViewType, true })!;
-            FieldInfo factoryField = activation.GetType().GetField("metadataViewFactory", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            return factoryField.GetValue(activation)!;
-        }
-
         private static object? InvokeMetadataViewImplProxy(string methodName, params object[] args)
         {
             Type metadataViewImplProxyType = typeof(CompositionConfiguration).Assembly.GetType("Microsoft.VisualStudio.Composition.MetadataViewImplProxy", throwOnError: true)!;
@@ -412,6 +409,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                 throw;
+            }
+        }
+
+        private sealed class AttributeCountingTypeDelegator : TypeDelegator
+        {
+            internal AttributeCountingTypeDelegator(Type delegatingType)
+                : base(delegatingType)
+            {
+            }
+
+            internal int GetCustomAttributesCallCount { get; private set; }
+
+            public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+            {
+                this.GetCustomAttributesCallCount++;
+                return base.GetCustomAttributes(attributeType, inherit);
             }
         }
 
