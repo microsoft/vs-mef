@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.Composition
     {
         private const string InvalidConfigurationKindDataKey = "Microsoft.VisualStudio.Composition.MetadataViewImplProxy.InvalidConfigurationKind";
 
-        private static readonly ConcurrentDictionary<Type, ImplementationActivationCacheEntry> ImplementationActivations = new();
-        private static readonly ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivationCacheEntry> ExplicitImplementationActivations = new();
+        private static readonly ConcurrentDictionary<Type, ImplementationActivation?> ImplementationActivations = new();
+        private static readonly ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivation?> ExplicitImplementationActivations = new();
         private static readonly MethodInfo CreateMetadataViewMethod = typeof(MetadataViewImplProxy).GetMethod(nameof(CreateMetadataView), BindingFlags.NonPublic | BindingFlags.Static)!;
 
         internal static readonly ComposablePartDefinition PartDefinition =
@@ -68,23 +68,22 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(metadataType, nameof(metadataType));
 
-            if (ImplementationActivations.TryGetValue(metadataType, out ImplementationActivationCacheEntry cachedActivation))
+            if (ImplementationActivations.TryGetValue(metadataType, out ImplementationActivation? cachedActivation))
             {
-                return cachedActivation.Activation;
+                return cachedActivation;
             }
 
             Type? implementationType = GetMetadataViewImplementationType(metadataType);
             if (implementationType is null)
             {
-                ImplementationActivationCacheEntry cacheEntry = default;
-                return ImplementationActivations.GetOrAdd(metadataType, cacheEntry).Activation;
+                ImplementationActivation? noActivation = null;
+                return ImplementationActivations.GetOrAdd(metadataType, noActivation);
             }
 
             ImplementationActivation? activation = TryGetImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
             if (activation.HasValue)
             {
-                ImplementationActivationCacheEntry cacheEntry = new(activation.Value);
-                return ImplementationActivations.GetOrAdd(metadataType, cacheEntry).Activation;
+                return ImplementationActivations.GetOrAdd(metadataType, activation);
             }
 
             return null;
@@ -104,26 +103,25 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(implementationType, nameof(implementationType));
 
             var key = (MetadataType: metadataType, ImplementationType: implementationType);
-            if (ExplicitImplementationActivations.TryGetValue(key, out ImplementationActivationCacheEntry cachedActivation))
+            if (ExplicitImplementationActivations.TryGetValue(key, out ImplementationActivation? cachedActivation))
             {
-                if (!cachedActivation.Activation.HasValue && throwOnInvalidConfiguration)
+                if (!cachedActivation.HasValue && throwOnInvalidConfiguration)
                 {
                     return CreateImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
                 }
 
-                return cachedActivation.Activation;
+                return cachedActivation;
             }
 
             try
             {
                 ImplementationActivation? activation = CreateImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
-                ImplementationActivationCacheEntry cacheEntry = new(activation);
-                return ExplicitImplementationActivations.GetOrAdd(key, cacheEntry).Activation;
+                return ExplicitImplementationActivations.GetOrAdd(key, activation);
             }
             catch (InvalidOperationException ex) when (IsMetadataViewImplementationConfigurationException(ex))
             {
-                ImplementationActivationCacheEntry cacheEntry = default;
-                ExplicitImplementationActivations.GetOrAdd(key, cacheEntry);
+                ImplementationActivation? noActivation = null;
+                ExplicitImplementationActivations.GetOrAdd(key, noActivation);
 
                 if (throwOnInvalidConfiguration)
                 {
@@ -235,16 +233,6 @@ namespace Microsoft.VisualStudio.Composition
         {
             NoMetadataViewImplementation,
             NoSupportedConstructor,
-        }
-
-        private readonly struct ImplementationActivationCacheEntry
-        {
-            internal ImplementationActivationCacheEntry(ImplementationActivation? activation)
-            {
-                this.Activation = activation;
-            }
-
-            internal ImplementationActivation? Activation { get; }
         }
 
         private readonly struct ImplementationActivation
