@@ -126,6 +126,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public void MetadataViewImplementationDoesNotCatchUnrelatedInvalidOperationException()
+        {
+            var expectedException = new InvalidOperationException();
+            var metadataType = new AssignabilityThrowingTypeDelegator(typeof(IUnrelatedExceptionMetadataView), expectedException);
+
+            InvalidOperationException actualException = Assert.Throws<InvalidOperationException>(() => IsMetadataViewSupported(metadataType));
+
+            Assert.Same(expectedException, actualException);
+        }
+
+        [Fact]
         public void MetadataViewImplementationWrapsReadOnlyMetadataForDictionaryConstructor()
         {
             var metadata = new ReadOnlyMetadataDictionary(new Dictionary<string, object?> { ["A"] = "1" });
@@ -365,6 +376,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        [MefV1.MetadataViewImplementation(typeof(UnrelatedExceptionMetadataView))]
+        public interface IUnrelatedExceptionMetadataView
+        {
+        }
+
+        public class UnrelatedExceptionMetadataView : MetadataView, IUnrelatedExceptionMetadataView
+        {
+        }
+
         public interface IInterfaceDefaultValueMetadataView
         {
             [DefaultValue("default")]
@@ -425,6 +445,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 this.GetCustomAttributesCallCount++;
                 return base.GetCustomAttributes(attributeType, inherit);
+            }
+        }
+
+        private sealed class AssignabilityThrowingTypeDelegator : TypeDelegator
+        {
+            private readonly InvalidOperationException exception;
+
+            internal AssignabilityThrowingTypeDelegator(Type delegatingType, InvalidOperationException exception)
+                : base(delegatingType)
+            {
+                this.exception = exception;
+            }
+
+            public override bool IsAssignableFrom(Type? c)
+            {
+                throw this.exception;
             }
         }
 

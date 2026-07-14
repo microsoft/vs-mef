@@ -14,8 +14,10 @@ namespace Microsoft.VisualStudio.Composition
 
     internal class MetadataViewImplProxy : IMetadataViewProvider
     {
+        private const string InvalidConfigurationKindDataKey = "Microsoft.VisualStudio.Composition.MetadataViewImplProxy.InvalidConfigurationKind";
+
         private static readonly ConcurrentDictionary<Type, ImplementationActivationCacheEntry> ImplementationActivations = new();
-        private static readonly ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivation> ExplicitImplementationActivations = new();
+        private static readonly ConcurrentDictionary<(Type MetadataType, Type ImplementationType), ImplementationActivationCacheEntry> ExplicitImplementationActivations = new();
         private static readonly MethodInfo CreateMetadataViewMethod = typeof(MetadataViewImplProxy).GetMethod(nameof(CreateMetadataView), BindingFlags.NonPublic | BindingFlags.Static)!;
 
         internal static readonly ComposablePartDefinition PartDefinition =
@@ -102,18 +104,34 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(implementationType, nameof(implementationType));
 
             var key = (MetadataType: metadataType, ImplementationType: implementationType);
-            if (ExplicitImplementationActivations.TryGetValue(key, out ImplementationActivation cachedActivation))
+            if (ExplicitImplementationActivations.TryGetValue(key, out ImplementationActivationCacheEntry cachedActivation))
             {
-                return cachedActivation;
+                if (!cachedActivation.Activation.HasValue && throwOnInvalidConfiguration)
+                {
+                    return CreateImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
+                }
+
+                return cachedActivation.Activation;
             }
 
-            ImplementationActivation? activation = CreateImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
-            if (activation.HasValue)
+            try
             {
-                return ExplicitImplementationActivations.GetOrAdd(key, activation.Value);
+                ImplementationActivation? activation = CreateImplementationActivation(metadataType, implementationType, throwOnInvalidConfiguration);
+                ImplementationActivationCacheEntry cacheEntry = new(activation);
+                return ExplicitImplementationActivations.GetOrAdd(key, cacheEntry).Activation;
             }
+            catch (InvalidOperationException ex) when (IsMetadataViewImplementationConfigurationException(ex))
+            {
+                ImplementationActivationCacheEntry cacheEntry = default;
+                ExplicitImplementationActivations.GetOrAdd(key, cacheEntry);
 
-            return null;
+                if (throwOnInvalidConfiguration)
+                {
+                    throw;
+                }
+
+                return null;
+            }
         }
 
         private static ImplementationActivation? CreateImplementationActivation(Type metadataType, Type implementationType, bool throwOnInvalidConfiguration)
@@ -122,7 +140,9 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (throwOnInvalidConfiguration)
                 {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationTypeMustImplementMetadataView, implementationType.FullName, metadataType.FullName));
+                    throw CreateInvalidConfigurationException(
+                        string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationTypeMustImplementMetadataView, implementationType.FullName, metadataType.FullName),
+                        InvalidConfigurationKind.NoMetadataViewImplementation);
                 }
 
                 return null;
@@ -144,10 +164,24 @@ namespace Microsoft.VisualStudio.Composition
 
             if (throwOnInvalidConfiguration)
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationConstructorUnsupported, implementationType.FullName, metadataType.FullName));
+                throw CreateInvalidConfigurationException(
+                    string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationConstructorUnsupported, implementationType.FullName, metadataType.FullName),
+                    InvalidConfigurationKind.NoSupportedConstructor);
             }
 
             return null;
+        }
+
+        private static InvalidOperationException CreateInvalidConfigurationException(string message, InvalidConfigurationKind kind)
+        {
+            var exception = new InvalidOperationException(message);
+            exception.Data[InvalidConfigurationKindDataKey] = kind;
+            return exception;
+        }
+
+        private static bool IsMetadataViewImplementationConfigurationException(InvalidOperationException exception)
+        {
+            return exception.Data[InvalidConfigurationKindDataKey] is InvalidConfigurationKind;
         }
 
         private static MetadataViewFactory CreateMetadataViewFactory(Type implementationType)
@@ -197,9 +231,15 @@ namespace Microsoft.VisualStudio.Composition
 
         private delegate MetadataView MetadataViewFactory();
 
+        private enum InvalidConfigurationKind
+        {
+            NoMetadataViewImplementation,
+            NoSupportedConstructor,
+        }
+
         private readonly struct ImplementationActivationCacheEntry
         {
-            internal ImplementationActivationCacheEntry(ImplementationActivation activation)
+            internal ImplementationActivationCacheEntry(ImplementationActivation? activation)
             {
                 this.Activation = activation;
             }
