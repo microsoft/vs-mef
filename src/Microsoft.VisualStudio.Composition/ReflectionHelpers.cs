@@ -655,26 +655,29 @@ namespace Microsoft.VisualStudio.Composition
                 // parameters (e.g. IFoo<TOptions> on OptionsManager<TOptions>).  Type.GetConstructor cannot
                 // match those against the closed form (IFoo<MyOptions>), so locate the constructor by
                 // matching the open-generic declaring type's constructor list positionally using metadata token.
-                var openGenericType = method.DeclaringType!.IsGenericType && !method.DeclaringType.IsGenericTypeDefinition
-                    ? method.DeclaringType.GetGenericTypeDefinition().GetTypeInfo()
-                    : method.DeclaringType.GetTypeInfo();
-                var openCtors = openGenericType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                int ctorIndex = -1;
-                for (int i = 0; i < openCtors.Length; i++)
+                if (method.DeclaringType is { } declaringType)
                 {
-                    if (openCtors[i].MetadataToken == method.MetadataToken)
+                    var openGenericType = declaringType.IsGenericType && !declaringType.IsGenericTypeDefinition
+                        ? declaringType.GetGenericTypeDefinition().GetTypeInfo()
+                        : declaringType.GetTypeInfo();
+                    var openCtors = openGenericType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    int ctorIndex = -1;
+                    for (int i = 0; i < openCtors.Length; i++)
                     {
-                        ctorIndex = i;
-                        break;
+                        if (openCtors[i].MetadataToken == method.MetadataToken)
+                        {
+                            ctorIndex = i;
+                            break;
+                        }
                     }
-                }
 
-                if (ctorIndex >= 0)
-                {
-                    var closedCtors = closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                    if (ctorIndex < closedCtors.Length)
+                    if (ctorIndex >= 0)
                     {
-                        return closedCtors[ctorIndex];
+                        var closedCtors = closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (ctorIndex < closedCtors.Length)
+                        {
+                            return closedCtors[ctorIndex];
+                        }
                     }
                 }
 
