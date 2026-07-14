@@ -140,6 +140,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("default", metadataView.B);
         }
 
+        [Fact]
+        public void MetadataViewImplementationActivationFactoryIsCached()
+        {
+            object firstFactory = GetMetadataViewImplementationFactory(typeof(ExportMetadataTests.INamedMetadata));
+            object secondFactory = GetMetadataViewImplementationFactory(typeof(ExportMetadataTests.INamedMetadata));
+
+            Assert.Same(firstFactory, secondFactory);
+        }
+
+        [Fact]
+        public void MetadataViewImplementationWrapsConstructorException()
+        {
+            TargetInvocationException exception = Assert.Throws<TargetInvocationException>(() => CreateProxy(new Dictionary<string, object?>(), typeof(IThrowingMetadataView)));
+            Assert.IsType<InvalidOperationException>(exception.InnerException);
+        }
+
         [MefV1.Export]
         public class ImportingPartWithoutMismatchingMetadata
         {
@@ -325,6 +341,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public string? A { get; }
         }
 
+        [MefV1.MetadataViewImplementation(typeof(ThrowingMetadataView))]
+        public interface IThrowingMetadataView
+        {
+        }
+
+        public class ThrowingMetadataView : MetadataView, IThrowingMetadataView
+        {
+            public ThrowingMetadataView()
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
         public interface IInterfaceDefaultValueMetadataView
         {
             [DefaultValue("default")]
@@ -353,6 +382,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 metadata,
                 new ReadOnlyMetadataDictionary(new Dictionary<string, object?>()),
                 metadataViewType)!;
+        }
+
+        private static object GetMetadataViewImplementationFactory(Type metadataViewType)
+        {
+            Type metadataViewImplProxyType = typeof(CompositionConfiguration).Assembly.GetType("Microsoft.VisualStudio.Composition.MetadataViewImplProxy", throwOnError: true)!;
+            MethodInfo getActivationMethod = metadataViewImplProxyType.GetMethod(
+                "TryGetImplementationActivation",
+                BindingFlags.Static | BindingFlags.NonPublic,
+                binder: null,
+                new[] { typeof(Type), typeof(bool) },
+                modifiers: null)!;
+            object activation = getActivationMethod.Invoke(null, new object[] { metadataViewType, true })!;
+            FieldInfo factoryField = activation.GetType().GetField("metadataViewFactory", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            return factoryField.GetValue(activation)!;
         }
 
         private static object? InvokeMetadataViewImplProxy(string methodName, params object[] args)
