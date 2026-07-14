@@ -126,6 +126,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public void MetadataViewImplementationRejectsAbstractType()
+        {
+            AssertAbstractMetadataViewImplementationRejected(typeof(IAbstractMetadataView), typeof(AbstractMetadataView));
+        }
+
+        [Fact]
+        public void MetadataViewImplementationRejectsAbstractDictionaryType()
+        {
+            AssertAbstractMetadataViewImplementationRejected(typeof(IAbstractDictionaryMetadataView), typeof(AbstractDictionaryMetadataView));
+        }
+
+        [Fact]
         public void MetadataViewImplementationDoesNotCatchUnrelatedInvalidOperationException()
         {
             var expectedException = new InvalidOperationException();
@@ -347,6 +359,30 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public string? A { get; }
         }
 
+        [MefV1.MetadataViewImplementation(typeof(AbstractMetadataView))]
+        public interface IAbstractMetadataView
+        {
+        }
+
+        public abstract class AbstractMetadataView : MetadataView, IAbstractMetadataView
+        {
+            public AbstractMetadataView()
+            {
+            }
+        }
+
+        [MefV1.MetadataViewImplementation(typeof(AbstractDictionaryMetadataView))]
+        public interface IAbstractDictionaryMetadataView
+        {
+        }
+
+        public abstract class AbstractDictionaryMetadataView : IAbstractDictionaryMetadataView
+        {
+            public AbstractDictionaryMetadataView(IDictionary<string, object?> metadata)
+            {
+            }
+        }
+
         [MefV1.MetadataViewImplementation(typeof(DictionaryCtorMetadataView))]
         public interface IDictionaryCtorMetadataView
         {
@@ -404,6 +440,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private static bool IsMetadataViewSupported(Type metadataViewType)
         {
             return (bool)InvokeMetadataViewImplProxy("IsMetadataViewSupported", metadataViewType)!;
+        }
+
+        private static void AssertAbstractMetadataViewImplementationRejected(Type metadataViewType, Type implementationType)
+        {
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => IsMetadataViewSupported(metadataViewType));
+            Assert.Contains("abstract", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(implementationType.Name, exception.Message);
+            Assert.Contains(metadataViewType.Name, exception.Message);
         }
 
         private static object CreateProxy(IReadOnlyDictionary<string, object?> metadata, Type metadataViewType)

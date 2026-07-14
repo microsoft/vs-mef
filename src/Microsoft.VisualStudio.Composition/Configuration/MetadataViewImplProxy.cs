@@ -147,6 +147,17 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             TypeInfo implementationTypeInfo = implementationType.GetTypeInfo();
+            if (implementationTypeInfo.IsAbstract)
+            {
+                if (throwOnInvalidConfiguration)
+                {
+                    throw CreateInvalidConfigurationException(
+                        string.Format(CultureInfo.CurrentCulture, Strings.MetadataViewImplementationTypeAbstract, implementationType.FullName, metadataType.FullName),
+                        InvalidConfigurationKind.AbstractImplementationType);
+                }
+
+                return null;
+            }
 
             ConstructorInfo? ctor = FindDefaultConstructor(implementationTypeInfo);
             if (ctor != null && typeof(MetadataView).GetTypeInfo().IsAssignableFrom(implementationTypeInfo))
@@ -232,6 +243,7 @@ namespace Microsoft.VisualStudio.Composition
         private enum InvalidConfigurationKind
         {
             NoMetadataViewImplementation,
+            AbstractImplementationType,
             NoSupportedConstructor,
         }
 
