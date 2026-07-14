@@ -126,6 +126,29 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public void MetadataViewImplementationRejectsAbstractType()
+        {
+            AssertAbstractMetadataViewImplementationRejected(typeof(IAbstractMetadataView), typeof(AbstractMetadataView));
+        }
+
+        [Fact]
+        public void MetadataViewImplementationRejectsAbstractDictionaryType()
+        {
+            AssertAbstractMetadataViewImplementationRejected(typeof(IAbstractDictionaryMetadataView), typeof(AbstractDictionaryMetadataView));
+        }
+
+        [Fact]
+        public void MetadataViewImplementationDoesNotCatchUnrelatedInvalidOperationException()
+        {
+            var expectedException = new InvalidOperationException();
+            var metadataType = new AssignabilityThrowingTypeDelegator(typeof(IUnrelatedExceptionMetadataView), expectedException);
+
+            InvalidOperationException actualException = Assert.Throws<InvalidOperationException>(() => IsMetadataViewSupported(metadataType));
+
+            Assert.Same(expectedException, actualException);
+        }
+
+        [Fact]
         public void MetadataViewImplementationWrapsReadOnlyMetadataForDictionaryConstructor()
         {
             var metadata = new ReadOnlyMetadataDictionary(new Dictionary<string, object?> { ["A"] = "1" });
@@ -138,6 +161,33 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var metadataView = new InterfaceDefaultValueMetadataView(new Dictionary<string, object>());
             Assert.Equal("default", metadataView.B);
+        }
+
+        [Fact]
+        public void MetadataViewImplementationAbsenceIsCached()
+        {
+            var metadataType = new AttributeCountingTypeDelegator(typeof(string));
+
+            Assert.False(IsMetadataViewSupported(metadataType));
+            Assert.False(IsMetadataViewSupported(metadataType));
+            Assert.Equal(1, metadataType.GetCustomAttributesCallCount);
+        }
+
+        [Fact]
+        public void MetadataViewImplementationActivationIsCached()
+        {
+            var metadataType = new AttributeCountingTypeDelegator(typeof(IMetadataView));
+
+            Assert.True(IsMetadataViewSupported(metadataType));
+            Assert.True(IsMetadataViewSupported(metadataType));
+            Assert.Equal(1, metadataType.GetCustomAttributesCallCount);
+        }
+
+        [Fact]
+        public void MetadataViewImplementationWrapsConstructorException()
+        {
+            TargetInvocationException exception = Assert.Throws<TargetInvocationException>(() => CreateProxy(new Dictionary<string, object?>(), typeof(IThrowingMetadataView)));
+            Assert.IsType<InvalidOperationException>(exception.InnerException);
         }
 
         [MefV1.Export]
@@ -309,6 +359,30 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public string? A { get; }
         }
 
+        [MefV1.MetadataViewImplementation(typeof(AbstractMetadataView))]
+        public interface IAbstractMetadataView
+        {
+        }
+
+        public abstract class AbstractMetadataView : MetadataView, IAbstractMetadataView
+        {
+            public AbstractMetadataView()
+            {
+            }
+        }
+
+        [MefV1.MetadataViewImplementation(typeof(AbstractDictionaryMetadataView))]
+        public interface IAbstractDictionaryMetadataView
+        {
+        }
+
+        public abstract class AbstractDictionaryMetadataView : IAbstractDictionaryMetadataView
+        {
+            public AbstractDictionaryMetadataView(IDictionary<string, object?> metadata)
+            {
+            }
+        }
+
         [MefV1.MetadataViewImplementation(typeof(DictionaryCtorMetadataView))]
         public interface IDictionaryCtorMetadataView
         {
@@ -323,6 +397,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             public string? A { get; }
+        }
+
+        [MefV1.MetadataViewImplementation(typeof(ThrowingMetadataView))]
+        public interface IThrowingMetadataView
+        {
+        }
+
+        public class ThrowingMetadataView : MetadataView, IThrowingMetadataView
+        {
+            public ThrowingMetadataView()
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        [MefV1.MetadataViewImplementation(typeof(UnrelatedExceptionMetadataView))]
+        public interface IUnrelatedExceptionMetadataView
+        {
+        }
+
+        public class UnrelatedExceptionMetadataView : MetadataView, IUnrelatedExceptionMetadataView
+        {
         }
 
         public interface IInterfaceDefaultValueMetadataView
@@ -344,6 +440,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private static bool IsMetadataViewSupported(Type metadataViewType)
         {
             return (bool)InvokeMetadataViewImplProxy("IsMetadataViewSupported", metadataViewType)!;
+        }
+
+        private static void AssertAbstractMetadataViewImplementationRejected(Type metadataViewType, Type implementationType)
+        {
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => IsMetadataViewSupported(metadataViewType));
+            Assert.Contains("abstract", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(implementationType.Name, exception.Message);
+            Assert.Contains(metadataViewType.Name, exception.Message);
         }
 
         private static object CreateProxy(IReadOnlyDictionary<string, object?> metadata, Type metadataViewType)
@@ -369,6 +473,38 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                 throw;
+            }
+        }
+
+        private sealed class AttributeCountingTypeDelegator : TypeDelegator
+        {
+            internal AttributeCountingTypeDelegator(Type delegatingType)
+                : base(delegatingType)
+            {
+            }
+
+            internal int GetCustomAttributesCallCount { get; private set; }
+
+            public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+            {
+                this.GetCustomAttributesCallCount++;
+                return base.GetCustomAttributes(attributeType, inherit);
+            }
+        }
+
+        private sealed class AssignabilityThrowingTypeDelegator : TypeDelegator
+        {
+            private readonly InvalidOperationException exception;
+
+            internal AssignabilityThrowingTypeDelegator(Type delegatingType, InvalidOperationException exception)
+                : base(delegatingType)
+            {
+                this.exception = exception;
+            }
+
+            public override bool IsAssignableFrom(Type? c)
+            {
+                throw this.exception;
             }
         }
 
