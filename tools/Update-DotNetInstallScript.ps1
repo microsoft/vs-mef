@@ -15,6 +15,7 @@ $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $DownloadBaseUri = "https://raw.githubusercontent.com/dotnet/install-scripts/main/src"
 
 $scripts = @('dotnet-install.ps1', 'dotnet-install.sh')
+$updatedScripts = $false
 
 foreach ($script in $scripts) {
     $Uri = "$DownloadBaseUri/$script"
@@ -31,6 +32,7 @@ foreach ($script in $scripts) {
                 }
             }
 
+            $updatedScripts = $true
             Write-Host "✓ Successfully updated $script" -ForegroundColor Green
         }
     }
@@ -40,4 +42,8 @@ foreach ($script in $scripts) {
     }
 }
 
-Write-Host "All cached scripts have been updated." -ForegroundColor Green
+if ($updatedScripts) {
+    Write-Host "All cached scripts have been updated." -ForegroundColor Green
+} else {
+    Write-Host "No cached scripts were updated."
+}
