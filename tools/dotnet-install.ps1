@@ -1207,7 +1207,7 @@ $feeds = Get-Feeds-To-Use
 $DownloadLinks = @()
 
 if ($Version.ToLowerInvariant() -ne "latest" -and -not [string]::IsNullOrEmpty($Quality)) {
-    throw "Quality and Version options are not allowed to be specified simultaneously. See https:// learn.microsoft.com/dotnet/core/tools/dotnet-install-script#options for details."
+    throw "Quality and Version options are not allowed to be specified simultaneously. See https://learn.microsoft.com/dotnet/core/tools/dotnet-install-script#options for details."
 }
 
 # aka.ms links can only be used if the user did not request a specific version via the command line or a global.json file.
@@ -1313,7 +1313,7 @@ foreach ($link in $DownloadLinks) {
 
 if (-not $DownloadSucceeded) {
     foreach ($ErrorMessage in $ErrorMessages) {
-        Say-Error $ErrorMessages
+        Say-Error $ErrorMessage
     }
 
     throw "Could not find `"$assetName`" with version = $($DownloadLinks[0].effectiveVersion)`nRefer to: https://aka.ms/dotnet-os-lifecycle for information on .NET support"

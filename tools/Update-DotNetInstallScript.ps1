@@ -23,7 +23,7 @@ foreach ($script in $scripts) {
     Write-Host "Updating $script from GitHub..."
     try {
         if ($PSCmdlet.ShouldProcess($OutFile, "Update from $Uri")) {
-            Invoke-WebRequest -Uri $Uri -OutFile $OutFile -UseBasicParsing
+            Invoke-WebRequest -Uri $Uri -OutFile $OutFile
             Write-Host "✓ Successfully updated $script" -ForegroundColor Green
         }
     }
