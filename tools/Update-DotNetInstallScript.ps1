@@ -23,7 +23,14 @@ foreach ($script in $scripts) {
     Write-Host "Updating $script from GitHub..."
     try {
         if ($PSCmdlet.ShouldProcess($OutFile, "Update from $Uri")) {
-            Invoke-WebRequest -Uri $Uri -OutFile $OutFile
+            Invoke-WebRequest -Uri $Uri -OutFile $OutFile -ErrorAction Stop
+            if ($script -eq 'dotnet-install.sh' -and ($IsMacOS -or $IsLinux)) {
+                & chmod +x $OutFile
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to mark $OutFile as executable."
+                }
+            }
+
             Write-Host "✓ Successfully updated $script" -ForegroundColor Green
         }
     }

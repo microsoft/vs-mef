@@ -295,6 +295,14 @@ if (-not (Test-Path $DotNetInstallScriptPath)) {
     exit 1
 }
 
+if ($IsMacOS -or $IsLinux) {
+    & chmod +x $DotNetInstallScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to mark $DotNetInstallScriptPath as executable."
+        exit $LASTEXITCODE
+    }
+}
+
 # In case the script we invoke is in a directory with spaces, wrap it with single quotes.
 # In case the path includes single quotes, escape them.
 $DotNetInstallScriptPathExpression = $DotNetInstallScriptPath.Replace("'", "''")
