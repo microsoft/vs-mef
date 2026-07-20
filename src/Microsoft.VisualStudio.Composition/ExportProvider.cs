@@ -568,8 +568,17 @@ namespace Microsoft.VisualStudio.Composition
                 memberValueFactory = () =>
                 {
                     Verify.NotDisposed(this);
-                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired, nonSharedPartOwner: null);
-                    return (GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo), nonSharedInstanceRequired ? maybeSharedValueFactory : null);
+
+                    // For static members, we don't need to instantiate the declaring type
+                    if (exportingMemberRef.IsStatic())
+                    {
+                        return (GetValueFromMember(null, exportingMemberRef.MemberInfo), null);
+                    }
+                    else
+                    {
+                        PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired, nonSharedPartOwner: null);
+                        return (GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo), nonSharedInstanceRequired ? maybeSharedValueFactory : null);
+                    }
                 };
             }
 
