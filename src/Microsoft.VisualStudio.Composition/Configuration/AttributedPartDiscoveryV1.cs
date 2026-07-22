@@ -306,34 +306,13 @@ namespace Microsoft.VisualStudio.Composition
                     : (CreationPolicy)importAttribute.RequiredCreationPolicy;
 
                 Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
-
-                int[]? genericParamIndexes = null;
-                if (contractType.IsConstructedGenericType)
-                {
-                    var typeArgs = contractType.GetGenericArguments();
-                    if (typeArgs.All(a => a.IsGenericParameter))
-                    {
-                        genericParamIndexes = typeArgs.Select(a => a.GenericParameterPosition).ToArray();
-                        contractType = contractType.GetGenericTypeDefinition();
-                    }
-                }
-
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
-                    .Union(this.GetMetadataViewConstraints(importingType, importMany: false));
-                if (genericParamIndexes is null)
-                {
-                    constraints = constraints.Union(GetExportTypeIdentityConstraints(contractType));
-                }
-
-                var importMetadata = genericParamIndexes is not null
-                    ? ImmutableDictionary.Create<string, object?>()
-                        .Add(CompositionConstants.GenericParameterIndexesMetadataName, genericParamIndexes)
-                    : GetImportMetadataForGenericTypeImport(contractType);
-
+                    .Union(this.GetMetadataViewConstraints(importingType, importMany: false))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName!,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                    importMetadata,
+                    GetImportMetadataForGenericTypeImport(contractType),
                     constraints);
                 return true;
             }
