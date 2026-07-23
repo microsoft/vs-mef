@@ -239,11 +239,44 @@ namespace Microsoft.VisualStudio.Composition
                     select export.CloseGenericExport(genericTypeArguments));
             }
 
-            var filteredExports = from export in exports
-                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
-                                  select export;
+            var filteredExports = new List<ExportDefinitionBinding>();
+            IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints = importDefinition.ExportConstraints;
+            foreach (ExportDefinitionBinding export in exports)
+            {
+                if (IsExportSatisfiedByAllConstraints(constraints, export.ExportDefinition))
+                {
+                    filteredExports.Add(export);
+                }
+            }
 
-            return ImmutableList.CreateRange(filteredExports);
+            // Return an array, not an ImmutableList, to avoid its per-element tree-node allocations.
+            return filteredExports.ToArray();
+        }
+
+        private static bool IsExportSatisfiedByAllConstraints(IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints, ExportDefinition exportDefinition)
+        {
+            if (constraints is ImmutableList<IImportSatisfiabilityConstraint> list)
+            {
+                foreach (IImportSatisfiabilityConstraint constraint in list)
+                {
+                    if (!constraint.IsSatisfiedBy(exportDefinition))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            foreach (IImportSatisfiabilityConstraint constraint in constraints)
+            {
+                if (!constraint.IsSatisfiedBy(exportDefinition))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, [NotNullWhen(true)] out string? contractName, [NotNullWhen(true)] out Type[]? typeArguments)
