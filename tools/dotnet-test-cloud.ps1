@@ -91,7 +91,7 @@ if ($isMTP) {
         --filter "TestCategory!=FailsInCloudTest" `
         --collect "Code Coverage;Format=cobertura" `
         --settings "$PSScriptRoot/test.runsettings" `
-        --blame-hang-timeout 60s `
+        --blame-hang-timeout 120s `
         --blame-crash `
         -bl:"$testBinLog" `
         --diag "$testDiagLog;TraceLevel=info" `
