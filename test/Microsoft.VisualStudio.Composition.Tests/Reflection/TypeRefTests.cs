@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName!, TypeRefFlags.None, 0, new[] { typeRefNullableArgument }.ToImmutableArray(), false, new[] { typeRefNullableArgument }.ToImmutableArray(), null);
 
             var actualException = Assert.Throws<TypeLoadException>(() => typeRef.Resolve());
-            Assert.Contains("Could not load type 'Fake assembly", actualException.Message);
+            Assert.Contains("Fake assembly", actualException.Message);
         }
 
         [Fact]

@@ -27,6 +27,20 @@ VS MEF follows NuGet MEF's model and supports sub-scopes through NuGet MEF attri
 To define a MEF part that can create new sub-scope instances, that MEF part must use
 NuGet MEF attributes as only they can describe sharing boundaries.
 
+## Generic imports
+
+An open generic part may use its own type parameter as a *generic type argument* within an import,
+e.g. `OptionsManager<TOptions>` importing `IOptionsFactory<TOptions>`, satisfied by an open generic
+export such as `[Export(typeof(IOptionsFactory<>))]`. VS MEF supports this for the direct import and
+for the `Lazy<T>`, `ExportFactory<T>`, and `ImportMany` (`IEnumerable<T>` / `T[]`) forms.
+
+Importing a type parameter *directly* — where the import type is the bare parameter itself, e.g.
+`[Import] T` — is honored by .NET MEF and NuGet MEF but **not** by VS MEF. Those runtimes resolve
+every import reflectively at composition time, whereas VS MEF builds an immutable composition plan
+ahead of time, and a bare type parameter has no fixed contract to bind against (the satisfying
+export would depend entirely on the concrete type argument). VS MEF rejects such a part during
+configuration.
+
 ## Caveats
 
 * A given MEF part must use a single variety of MEF attributes. Mixing a .NET MEF <xref:System.ComponentModel.Composition.ExportAttribute>
