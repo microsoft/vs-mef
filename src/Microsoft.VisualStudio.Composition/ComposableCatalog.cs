@@ -239,8 +239,14 @@ namespace Microsoft.VisualStudio.Composition
                     select export.CloseGenericExport(genericTypeArguments));
             }
 
-            var filteredExports = new List<ExportDefinitionBinding>();
             IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints = importDefinition.ExportConstraints;
+            if (constraints.Count == 0)
+            {
+                // No constraints: every matching export qualifies.
+                return exports;
+            }
+
+            var filteredExports = new List<ExportDefinitionBinding>(exports.Count);
             foreach (ExportDefinitionBinding export in exports)
             {
                 if (IsExportSatisfiedByAllConstraints(constraints, export.ExportDefinition))
