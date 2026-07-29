@@ -248,6 +248,10 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (!IsExportSatisfiedByAllConstraints(constraints, export.ExportDefinition))
                 {
+                    // Remove the non-qualifying export.
+                    // We're enumerating an ImmutableList<T> and mutating it is a copy-on-write operation,
+                    // so it's safe to create a new collection with the export removed and continue enumerating the old collection.
+                    // In doing so, we do NOT increment exportIndex, since exportIndex will point at the next one implicitly after removal.
                     exports = exports.RemoveAt(exportIndex);
                 }
                 else
