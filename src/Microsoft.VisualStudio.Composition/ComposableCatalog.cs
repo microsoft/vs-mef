@@ -6,13 +6,10 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class ComposableCatalog : IEquatable<ComposableCatalog>
@@ -246,17 +243,20 @@ namespace Microsoft.VisualStudio.Composition
                 return exports;
             }
 
-            var filteredExports = new List<ExportDefinitionBinding>(exports.Count);
+            int exportIndex = 0;
             foreach (ExportDefinitionBinding export in exports)
             {
-                if (IsExportSatisfiedByAllConstraints(constraints, export.ExportDefinition))
+                if (!IsExportSatisfiedByAllConstraints(constraints, export.ExportDefinition))
                 {
-                    filteredExports.Add(export);
+                    exports = exports.RemoveAt(exportIndex);
+                }
+                else
+                {
+                    exportIndex++;
                 }
             }
 
-            // Return an array, not an ImmutableList, to avoid its per-element tree-node allocations.
-            return filteredExports.ToArray();
+            return exports;
         }
 
         private static bool IsExportSatisfiedByAllConstraints(IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints, ExportDefinition exportDefinition)
