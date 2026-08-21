@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(import, nameof(import));
 
-            var memberName = import.ImportingParameterRef is object ? $"ctor(parameter #{import.ImportingParameterRef.ParameterIndex})" :
+            var memberName = import.ImportingParameterRef is object ? $"ctor(parameter #{import.ImportingParameterRef.ParameterIndex + 1})" :
                              import.ImportingMemberRef is object ? import.ImportingMemberRef.Name :
                              "(unknown)";
             return string.Format(
