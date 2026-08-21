@@ -185,6 +185,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         /// <summary>
+        /// Verifies that reporting composition errors does not load the assemblies that define the affected parts.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesLazyLoadedWhenCompositionHasErrors()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatImportsExportedMemberThroughConstructor)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.ComposeExpectingErrors(catalogCache);
+                driver.AssertAssembliesNotLoaded(typeof(PartThatImportsExportedMemberThroughConstructor).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when
         /// their metadata is actually retrieved.
         /// </summary>
@@ -476,6 +501,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                 var containerFactory = cacheManager.LoadExportProviderFactoryAsync(ms, TestUtilities.Resolver).GetAwaiter().GetResult();
                 this.container = containerFactory.CreateExportProvider();
+            }
+
+            internal void ComposeExpectingErrors(Stream cachedCatalog)
+            {
+                Requires.NotNull(cachedCatalog, nameof(cachedCatalog));
+
+                Stream cachedCatalogLocal = CopyStream(cachedCatalog);
+                var catalogManager = new CachedCatalog();
+                this.catalog = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Result;
+
+                var configuration = CompositionConfiguration.Create(this.catalog);
+                AssertEx.False(configuration.CompositionErrors.IsEmpty);
             }
 
             internal void TestGetInputAssembliesDoesNotLoadLazyExport(string lazyLoadedAssemblyPath)
