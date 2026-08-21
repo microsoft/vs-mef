@@ -701,6 +701,71 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        /// <summary>
+        /// Creates a delegate that invokes a constructor or static factory method.
+        /// </summary>
+        /// <param name="ctorOrFactoryMethod">The constructor or static factory method to invoke.</param>
+        /// <returns>A delegate that accepts the invocation arguments and returns the constructed value.</returns>
+        internal static Func<object?[], object?> CreateInstanceFactory(this MethodBase ctorOrFactoryMethod)
+        {
+            Requires.NotNull(ctorOrFactoryMethod, nameof(ctorOrFactoryMethod));
+
+            var arguments = Expression.Parameter(typeof(object[]), "arguments");
+            ParameterInfo[] parameters = ctorOrFactoryMethod.GetParameters();
+            var convertedArguments = new Expression[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                Expression argument = Expression.ArrayIndex(arguments, Expression.Constant(i));
+                convertedArguments[i] = ConvertInvocationValue(argument, parameters[i].ParameterType);
+            }
+
+            Expression invocation = ctorOrFactoryMethod switch
+            {
+                ConstructorInfo constructor => Expression.New(constructor, convertedArguments),
+                MethodInfo method when method.IsStatic => Expression.Call(method, convertedArguments),
+                _ => throw ThrowUnsupportedImportingConstructor(ctorOrFactoryMethod),
+            };
+
+            return Expression.Lambda<Func<object?[], object?>>(
+                Expression.Convert(invocation, typeof(object)),
+                arguments).Compile();
+        }
+
+        /// <summary>
+        /// Creates a delegate that assigns a value to an importing field or property.
+        /// </summary>
+        /// <param name="member">The importing field or property.</param>
+        /// <returns>A delegate that assigns an imported value to a part instance.</returns>
+        internal static Action<object, object?> CreateImportingMemberSetter(this MemberInfo member)
+        {
+            Requires.NotNull(member, nameof(member));
+
+            var instance = Expression.Parameter(typeof(object), "instance");
+            var value = Expression.Parameter(typeof(object), "value");
+            Expression assignment = member switch
+            {
+                PropertyInfo property => Expression.Assign(
+                    Expression.Property(Expression.Convert(instance, property.DeclaringType!), property),
+                    ConvertInvocationValue(value, property.PropertyType)),
+                FieldInfo field => Expression.Assign(
+                    Expression.Field(Expression.Convert(instance, field.DeclaringType!), field),
+                    ConvertInvocationValue(value, field.FieldType)),
+                _ => throw new NotSupportedException(),
+            };
+
+            return Expression.Lambda<Action<object, object?>>(assignment, instance, value).Compile();
+        }
+
+        private static Expression ConvertInvocationValue(Expression value, Type destinationType)
+        {
+            return destinationType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(destinationType) is null
+                ? Expression.Condition(
+                    Expression.ReferenceEqual(value, Expression.Constant(null)),
+                    Expression.Default(destinationType),
+                    Expression.Convert(value, destinationType))
+                : Expression.Convert(value, destinationType);
+        }
+
         [DoesNotReturn]
         internal static Exception ThrowUnsupportedImportingConstructor(MethodBase ctorOrFactoryMethod)
         {

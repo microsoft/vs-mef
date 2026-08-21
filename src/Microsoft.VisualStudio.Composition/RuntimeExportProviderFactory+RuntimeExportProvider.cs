@@ -4,9 +4,11 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
@@ -34,6 +36,9 @@ namespace Microsoft.VisualStudio.Composition
 
             private readonly RuntimeComposition composition;
             private readonly ReportFaultCallback? faultCallback;
+            private readonly ConcurrentDictionary<MemberInfo, Action<object, object?>> importingMemberSetterCache = new();
+            private readonly ConcurrentDictionary<MethodBase, Func<object?[], object?>> instanceFactoryCache = new();
+            private readonly ConcurrentDictionary<(Type Type, string? ContractName), RuntimeExportLookup> runtimeExportLookupCache = new();
 
             internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback)
                 : this(composition)
@@ -72,11 +77,318 @@ namespace Microsoft.VisualStudio.Composition
                         export.MemberRef);
             }
 
+            private protected override bool TryGetExportedValue(Type type, string? contractName, out object? value)
+            {
+                Verify.NotDisposed(this);
+
+                contractName = string.IsNullOrEmpty(contractName) ? null : contractName;
+                if (!this.runtimeExportLookupCache.TryGetValue((type, contractName), out RuntimeExportLookup? lookup))
+                {
+                    lookup = this.CreateRuntimeExportLookup(type, contractName ?? ContractNameServices.GetTypeIdentity(type));
+                    lookup = this.runtimeExportLookupCache.GetOrAdd((type, contractName), lookup);
+                }
+
+                Assumes.NotNull(lookup);
+                if (!lookup.CanUseFastPath)
+                {
+                    value = null;
+                    return false;
+                }
+
+                if (lookup.TryGetSharedValue(out value))
+                {
+                    return true;
+                }
+
+                value = this.GetRuntimeExportedValue(lookup, type);
+                lookup.SetSharedValue(value);
+                return true;
+            }
+
+            private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type)
+            {
+                if (lookup.DirectValueFactory is object)
+                {
+                    return lookup.DirectValueFactory();
+                }
+
+                MemberInfo? exportingMember = lookup.Export!.Member;
+                if (exportingMember?.IsStatic() == true)
+                {
+                    return GetValueFromMember(null, exportingMember, type, lookup.Export.ExportedValueTypeRef.Resolve());
+                }
+
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
+                    lookup.Part!.TypeRef,
+                    lookup.Part.TypeRef,
+                    lookup.Part.SharingBoundary,
+                    EmptyMetadata,
+                    !lookup.Part.IsShared,
+                    nonSharedPartOwner: null);
+                object? part = partLifecycle.GetValueReadyToExpose();
+                return lookup.Export.MemberRef is null
+                    ? part
+                    : GetValueFromMember(part, exportingMember!, type, lookup.Export.ExportedValueTypeRef.Resolve());
+            }
+
             internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
             {
                 return nonSharedPartOwner is object
                     ? new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata, nonSharedPartOwner)
                     : new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
+            }
+
+            private RuntimeExportLookup CreateRuntimeExportLookup(Type type, string contractName)
+            {
+                IReadOnlyCollection<RuntimeComposition.RuntimeExport> exports = this.composition.GetExports(contractName);
+                string typeIdentity = ContractNameServices.GetTypeIdentity(type);
+                RuntimeComposition.RuntimeExport? matchingExport = null;
+                int matchingExportCount = 0;
+                foreach (RuntimeComposition.RuntimeExport export in exports)
+                {
+                    if (export.Metadata.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out object? exportedTypeIdentity)
+                        && string.Equals(typeIdentity, exportedTypeIdentity as string, StringComparison.Ordinal))
+                    {
+                        matchingExport = export;
+                        matchingExportCount++;
+                    }
+                }
+
+                if (matchingExportCount != 1)
+                {
+                    return RuntimeExportLookup.Unsupported;
+                }
+
+                RuntimeComposition.RuntimePart part = this.composition.GetPart(matchingExport!);
+                return part.TypeRef.IsGenericTypeDefinition
+                    ? RuntimeExportLookup.Unsupported
+                    : new RuntimeExportLookup(this, part, matchingExport!);
+            }
+
+            private bool TryCreateDirectValueFactory(
+                RuntimeComposition.RuntimePart part,
+                RuntimeComposition.RuntimeExport export,
+                HashSet<TypeRef> partsBeingBuilt,
+                [NotNullWhen(true)] out Func<object?>? valueFactory)
+            {
+                valueFactory = null;
+                if (part.IsShared
+                    || export.MemberRef is object
+                    || !part.IsInstantiable
+                    || part.TypeRef.IsGenericTypeDefinition
+                    || part.OnImportsSatisfiedMethodRefs.Count > 0
+                    || typeof(IDisposable).GetTypeInfo().IsAssignableFrom(part.TypeRef.Resolve().GetTypeInfo())
+                    || !partsBeingBuilt.Add(part.TypeRef))
+                {
+                    return false;
+                }
+
+                try
+                {
+                    MethodBase importingConstructorOrFactoryMethod = part.ImportingConstructorOrFactoryMethod!;
+                    if (importingConstructorOrFactoryMethod is not ConstructorInfo
+                        || importingConstructorOrFactoryMethod.ContainsGenericParameters)
+                    {
+                        return false;
+                    }
+
+                    IReadOnlyList<RuntimeComposition.RuntimeImport> constructorImports = part.ImportingConstructorArguments;
+                    var argumentFactories = new Func<object?>[constructorImports.Count];
+                    for (int i = 0; i < constructorImports.Count; i++)
+                    {
+                        RuntimeComposition.RuntimeImport import = constructorImports[i];
+                        if (import.IsLazy
+                            || import.IsExportFactory
+                            || import.IsNonSharedInstanceRequired)
+                        {
+                            return false;
+                        }
+
+                        if (import.Cardinality == ImportCardinality.ZeroOrMore)
+                        {
+                            Type importingSiteType = import.ImportingSiteType;
+                            if (!importingSiteType.IsArray
+                                && (!importingSiteType.GetTypeInfo().IsGenericType
+                                    || !importingSiteType.GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>))))
+                            {
+                                return false;
+                            }
+
+                            Func<object?>[] elementFactories = new Func<object?>[import.SatisfyingExports.Count];
+                            int elementIndex = 0;
+                            foreach (RuntimeComposition.RuntimeExport importedExport in import.SatisfyingExports)
+                            {
+                                if (!this.TryCreateDirectImportFactory(import, importedExport, partsBeingBuilt, out Func<object?>? elementFactory))
+                                {
+                                    return false;
+                                }
+
+                                elementFactories[elementIndex++] = elementFactory;
+                            }
+
+                            Type elementType = import.ImportingSiteTypeWithoutCollection;
+                            argumentFactories[i] = () =>
+                            {
+                                Array values = Array.CreateInstance(elementType, elementFactories.Length);
+                                for (int j = 0; j < elementFactories.Length; j++)
+                                {
+                                    values.SetValue(elementFactories[j](), j);
+                                }
+
+                                return values;
+                            };
+                        }
+                        else
+                        {
+                            if (import.SatisfyingExports.Count != 1
+                                || !this.TryCreateDirectImportFactory(import, import.SatisfyingExports.First(), partsBeingBuilt, out Func<object?>? argumentFactory))
+                            {
+                                return false;
+                            }
+
+                            argumentFactories[i] = argumentFactory;
+                        }
+                    }
+
+                    IReadOnlyList<RuntimeComposition.RuntimeImport> memberImports = part.ImportingMembers;
+                    var memberAssignments = new DirectMemberImport[memberImports.Count];
+                    for (int i = 0; i < memberImports.Count; i++)
+                    {
+                        RuntimeComposition.RuntimeImport import = memberImports[i];
+                        if (import.Cardinality != ImportCardinality.ExactlyOne
+                            || import.IsLazy
+                            || import.IsExportFactory
+                            || import.IsNonSharedInstanceRequired
+                            || import.SatisfyingExports.Count != 1
+                            || !this.TryCreateDirectImportFactory(import, import.SatisfyingExports.First(), partsBeingBuilt, out Func<object?>? importValueFactory))
+                        {
+                            return false;
+                        }
+
+                        memberAssignments[i] = new DirectMemberImport(
+                            import,
+                            importValueFactory,
+                            this.GetOrCreateImportingMemberSetter(import.ImportingMember!));
+                    }
+
+                    Func<object?[], object?> instanceFactory = this.GetOrCreateInstanceFactory(importingConstructorOrFactoryMethod);
+                    valueFactory = () =>
+                    {
+                        object?[] arguments = argumentFactories.Length == 0 ? EmptyObjectArray : new object?[argumentFactories.Length];
+                        for (int i = 0; i < argumentFactories.Length; i++)
+                        {
+                            arguments[i] = argumentFactories[i]();
+                        }
+
+                        object instance;
+                        try
+                        {
+                            instance = instanceFactory(arguments)!;
+                            Assumes.NotNull(instance);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new CompositionFailedException(
+                                Strings.FormatExceptionThrownByPartUnderInitialization(part.TypeRef.Resolve().FullName),
+                                ex);
+                        }
+
+                        for (int i = 0; i < memberAssignments.Length; i++)
+                        {
+                            DirectMemberImport assignment = memberAssignments[i];
+                            object? importedValue;
+                            try
+                            {
+                                importedValue = assignment.ValueFactory();
+                            }
+                            catch (CompositionFailedException ex)
+                            {
+                                throw new CompositionFailedException(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        Strings.ErrorWhileSettingImport,
+                                        RuntimeComposition.GetDiagnosticLocation(assignment.Import)),
+                                    ex);
+                            }
+
+                            try
+                            {
+                                assignment.Setter(instance, importedValue);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new CompositionFailedException(
+                                    Strings.FormatExceptionThrownByPartUnderInitialization(part.TypeRef.Resolve().FullName),
+                                    ex);
+                            }
+                        }
+
+                        return instance;
+                    };
+                    return true;
+                }
+                finally
+                {
+                    partsBeingBuilt.Remove(part.TypeRef);
+                }
+            }
+
+            private bool TryCreateDirectImportFactory(
+                RuntimeComposition.RuntimeImport import,
+                RuntimeComposition.RuntimeExport importedExport,
+                HashSet<TypeRef> partsBeingBuilt,
+                [NotNullWhen(true)] out Func<object?>? valueFactory)
+            {
+                valueFactory = null;
+                if (importedExport.MemberRef is object)
+                {
+                    return false;
+                }
+
+                RuntimeComposition.RuntimePart importedPart = this.composition.GetPart(importedExport);
+                if (importedPart.TypeRef.IsGenericTypeDefinition)
+                {
+                    return false;
+                }
+
+                if (importedPart.IsShared)
+                {
+                    var sharedLookup = new RuntimeExportLookup(this, importedPart, importedExport);
+                    valueFactory = () =>
+                    {
+                        if (sharedLookup.TryGetSharedValue(out object? sharedValue))
+                        {
+                            return sharedValue;
+                        }
+
+                        sharedValue = this.GetRuntimeExportedValue(sharedLookup, import.ImportingSiteTypeWithoutCollection);
+                        sharedLookup.SetSharedValue(sharedValue);
+                        return sharedValue;
+                    };
+                    return true;
+                }
+
+                return this.TryCreateDirectValueFactory(importedPart, importedExport, partsBeingBuilt, out valueFactory);
+            }
+
+            private Action<object, object?> GetOrCreateImportingMemberSetter(MemberInfo member)
+            {
+                if (!this.importingMemberSetterCache.TryGetValue(member, out Action<object, object?>? setter))
+                {
+                    setter = this.importingMemberSetterCache.GetOrAdd(member, static member => member.CreateImportingMemberSetter());
+                }
+
+                return setter;
+            }
+
+            private Func<object?[], object?> GetOrCreateInstanceFactory(MethodBase method)
+            {
+                if (!this.instanceFactoryCache.TryGetValue(method, out Func<object?[], object?>? factory))
+                {
+                    factory = this.instanceFactoryCache.GetOrAdd(method, static method => method.CreateInstanceFactory());
+                }
+
+                return factory;
             }
 
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
@@ -478,6 +790,70 @@ namespace Microsoft.VisualStudio.Composition
                 public object? Value { get; private set; }
             }
 
+            private readonly struct DirectMemberImport
+            {
+                internal DirectMemberImport(RuntimeComposition.RuntimeImport import, Func<object?> valueFactory, Action<object, object?> setter)
+                {
+                    this.Import = import;
+                    this.ValueFactory = valueFactory;
+                    this.Setter = setter;
+                }
+
+                internal RuntimeComposition.RuntimeImport Import { get; }
+
+                internal Action<object, object?> Setter { get; }
+
+                internal Func<object?> ValueFactory { get; }
+            }
+
+            private sealed class RuntimeExportLookup
+            {
+                internal static readonly RuntimeExportLookup Unsupported = new RuntimeExportLookup();
+                private volatile bool hasSharedValue;
+                private object? sharedValue;
+
+                private RuntimeExportLookup()
+                {
+                }
+
+                internal RuntimeExportLookup(RuntimeExportProvider exportProvider, RuntimeComposition.RuntimePart part, RuntimeComposition.RuntimeExport export)
+                {
+                    this.Part = part;
+                    this.Export = export;
+                    exportProvider.TryCreateDirectValueFactory(part, export, new HashSet<TypeRef>(), out Func<object?>? directValueFactory);
+                    this.DirectValueFactory = directValueFactory;
+                }
+
+                internal bool CanUseFastPath => this.Part is object;
+
+                internal RuntimeComposition.RuntimePart? Part { get; }
+
+                internal RuntimeComposition.RuntimeExport? Export { get; }
+
+                internal Func<object?>? DirectValueFactory { get; }
+
+                internal bool TryGetSharedValue(out object? value)
+                {
+                    if (this.hasSharedValue)
+                    {
+                        value = this.sharedValue;
+                        return true;
+                    }
+
+                    value = null;
+                    return false;
+                }
+
+                internal void SetSharedValue(object? value)
+                {
+                    if (this.Part!.IsShared && this.Export!.MemberRef is null)
+                    {
+                        this.sharedValue = value;
+                        this.hasSharedValue = true;
+                    }
+                }
+            }
+
             [DebuggerDisplay("{" + nameof(partDefinition) + "." + nameof(RuntimeComposition.RuntimePart.TypeRef) + "." + nameof(TypeRef.ResolvedType) + ".FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
@@ -519,6 +895,12 @@ namespace Microsoft.VisualStudio.Composition
                     get { return this.partDefinition.TypeRef.Resolve(); }
                 }
 
+                protected override bool CanInitializeNonSharedValueDirectly =>
+                    this.partDefinition.IsInstantiable
+                    && this.partDefinition.ImportingConstructorArguments.Count == 0
+                    && this.partDefinition.ImportingMembers.Count == 0
+                    && this.partDefinition.OnImportsSatisfiedMethodRefs.Count == 0;
+
                 internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
                 {
                     base.ReportPartiallyInitializedImport(part);
@@ -538,8 +920,13 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     var constructedPartTypeRef = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
-                    var ctorArgs = this.partDefinition.ImportingConstructorArguments
-                        .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
+                    IReadOnlyList<RuntimeComposition.RuntimeImport> constructorImports = this.partDefinition.ImportingConstructorArguments;
+                    object?[] ctorArgs = constructorImports.Count == 0 ? EmptyObjectArray : new object?[constructorImports.Count];
+                    for (int i = 0; i < constructorImports.Count; i++)
+                    {
+                        ctorArgs[i] = this.OwningExportProvider.GetValueForImportSite(this, constructorImports[i]).Value;
+                    }
+
                     MethodBase? importingConstructorOrFactoryMethod = this.partDefinition.ImportingConstructorOrFactoryMethod!;
                     if (importingConstructorOrFactoryMethod.ContainsGenericParameters)
                     {
@@ -551,12 +938,14 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        object? part = importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
+                        object? part = this.IsNonShared
+                            ? this.OwningExportProvider.GetOrCreateInstanceFactory(importingConstructorOrFactoryMethod)(ctorArgs)
+                            : importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
                         return part;
                     }
-                    catch (TargetInvocationException ex)
+                    catch (Exception ex)
                     {
-                        throw this.PrepareExceptionForFaultedPart(ex);
+                        throw this.PrepareExceptionForFaultedPart(ex as TargetInvocationException ?? new TargetInvocationException(ex));
                     }
                 }
 

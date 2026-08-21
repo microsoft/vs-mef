@@ -265,11 +265,21 @@ namespace Microsoft.VisualStudio.Composition
 
         public T GetExportedValue<T>()
         {
+            if (this.TryGetExportedValue(typeof(T), contractName: null, out object? value))
+            {
+                return CastValueTo<T>(value)!;
+            }
+
             return this.GetExport<T>().Value;
         }
 
         public T GetExportedValue<T>(string? contractName)
         {
+            if (this.TryGetExportedValue(typeof(T), contractName, out object? value))
+            {
+                return CastValueTo<T>(value)!;
+            }
+
             return this.GetExport<T>(contractName).Value;
         }
 
@@ -545,6 +555,19 @@ namespace Microsoft.VisualStudio.Composition
         /// The derived type is *not* expected to filter the exports based on the import definition constraints.
         /// </remarks>
         private protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
+
+        /// <summary>
+        /// Attempts to retrieve an exported value through a provider-specific optimized path.
+        /// </summary>
+        /// <param name="type">The exported value type.</param>
+        /// <param name="contractName">The optional contract name.</param>
+        /// <param name="value">Receives the exported value when the optimized path is available.</param>
+        /// <returns><see langword="true"/> when <paramref name="value"/> was produced; otherwise, <see langword="false"/>.</returns>
+        private protected virtual bool TryGetExportedValue(Type type, string? contractName, out object? value)
+        {
+            value = null;
+            return false;
+        }
 
         private protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object?> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string? partSharingBoundary, bool nonSharedInstanceRequired, MemberRef? exportingMemberRef)
         {
@@ -1216,6 +1239,11 @@ namespace Microsoft.VisualStudio.Composition
             protected abstract Type PartType { get; }
 
             /// <summary>
+            /// Gets a value indicating whether this non-shared part has no lifecycle work beyond construction.
+            /// </summary>
+            protected virtual bool CanInitializeNonSharedValueDirectly => false;
+
+            /// <summary>
             /// Gets the instance of the part after fully initializing it.
             /// </summary>
             /// <remarks>
@@ -1226,6 +1254,11 @@ namespace Microsoft.VisualStudio.Composition
             /// </remarks>
             public object? GetValueReadyToExpose()
             {
+                if (this.IsNonShared && this.State == PartLifecycleState.NotCreated && this.CanInitializeNonSharedValueDirectly)
+                {
+                    return this.InitializeNonSharedValueDirectly();
+                }
+
                 // If this very thread is already executing a step on this part, then we have some
                 // form of reentrancy going on. In which case, the general policy seems to be that
                 // we return an incompletely initialized part.
@@ -1242,6 +1275,41 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 return this.Value;
+            }
+
+            private object? InitializeNonSharedValueDirectly()
+            {
+                try
+                {
+                    this.executingStepThreadId = Environment.CurrentManagedThreadId;
+                    object? value = this.CreateValue();
+                    this.Value = value;
+
+                    if (value is IDisposable)
+                    {
+                        if (this.nonSharedPartOwner is null)
+                        {
+                            this.OwningExportProvider.TrackDisposableValue(this, sharingBoundary: null);
+                        }
+                        else
+                        {
+                            this.nonSharedPartOwner.AddNonSharedDescendant(this);
+                        }
+                    }
+
+                    Assumes.True(this.UpdateState(PartLifecycleState.Final));
+                    if (value is null)
+                    {
+                        this.ThrowPartNotInstantiableException();
+                    }
+
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
+                }
             }
 
             /// <summary>
