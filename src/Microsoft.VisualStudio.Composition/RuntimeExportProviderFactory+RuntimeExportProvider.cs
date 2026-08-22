@@ -150,10 +150,14 @@ namespace Microsoft.VisualStudio.Composition
                             if (import.IsLazy || import.IsExportFactory)
                             {
                                 // ImportingSiteTypeWithoutCollection is the wrapper type: Lazy<IFoo<TOptions>> or ExportFactory<IFoo<TOptions>>
-                                // Reconstruct it as Lazy<IFoo<MyOptions>> or ExportFactory<IFoo<MyOptions>>
+                                // Reconstruct it as Lazy<IFoo<MyOptions>> or ExportFactory<IFoo<MyOptions>>, substituting only
+                                // the contract type argument so that a metadata type argument (as in Lazy<IFoo<TOptions>, TMetadata>)
+                                // is carried over.
+                                Type[] wrapperTypeArguments = import.ImportingSiteTypeWithoutCollection.GetGenericArguments();
+                                wrapperTypeArguments[0] = effectiveElementType;
                                 effectiveImportSiteWithoutCollection = import.ImportingSiteTypeWithoutCollection
                                     .GetGenericTypeDefinition()
-                                    .MakeGenericType(effectiveElementType);
+                                    .MakeGenericType(wrapperTypeArguments);
                             }
                             else
                             {
@@ -161,18 +165,25 @@ namespace Microsoft.VisualStudio.Composition
                                 effectiveImportSiteWithoutCollection = effectiveElementType;
                             }
 
+                            // The collection is built around the element type as it appears in the collection
+                            // (e.g. Lazy<IFoo<MyOptions>> for IEnumerable<Lazy<IFoo<TOptions>>>), not around the
+                            // unwrapped contract type.
                             Type outerType = import.ImportingSiteType;
-                            if (outerType.IsArray)
+                            if (import.Cardinality != ImportCardinality.ZeroOrMore)
                             {
-                                effectiveImportSiteType = effectiveElementType.MakeArrayType();
+                                effectiveImportSiteType = effectiveImportSiteWithoutCollection;
+                            }
+                            else if (outerType.IsArray)
+                            {
+                                effectiveImportSiteType = effectiveImportSiteWithoutCollection.MakeArrayType();
                             }
                             else if (outerType.IsGenericType)
                             {
-                                effectiveImportSiteType = outerType.GetGenericTypeDefinition().MakeGenericType(effectiveElementType);
+                                effectiveImportSiteType = outerType.GetGenericTypeDefinition().MakeGenericType(effectiveImportSiteWithoutCollection);
                             }
                             else
                             {
-                                effectiveImportSiteType = effectiveElementType;
+                                effectiveImportSiteType = effectiveImportSiteWithoutCollection;
                             }
 
                             if (import.IsLazy)
@@ -542,6 +553,14 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(member, nameof(member));
+
+                if (member.DeclaringType is { } declaringType && declaringType.GetTypeInfo().ContainsGenericParameters)
+                {
+                    // The member is declared on an open generic part, so it cannot be read directly.
+                    // Look it up on the closed generic type that the part was instantiated as.
+                    member = ReflectionHelpers.CloseGenericType(declaringType, part.GetType()).GetTypeInfo()
+                        .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
+                }
 
                 try
                 {

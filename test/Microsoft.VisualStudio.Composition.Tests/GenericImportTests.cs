@@ -286,5 +286,165 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Import]
             public ParameterizedGenericImport_OptionsManager_ImportManyArray<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
         }
+
+        /// <summary>
+        /// Verifies that the importing constructor of a generic part is located on the closed generic type
+        /// even when the part declares more than one constructor, since the order of the constructors
+        /// returned by reflection is not guaranteed to match between the open generic type and its closed form.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_OptionsFactory5<>), typeof(ParameterizedGenericImport_OptionsManager_MultipleConstructors<>), typeof(ParameterizedGenericImport_App_MultipleConstructors))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_MultipleConstructors(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_MultipleConstructors>();
+            Assert.NotNull(app);
+            Assert.NotNull(app.Manager);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory5<ParameterizedGenericImport_MyOptions>>(app.Manager.Factory);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory5<T> { }
+
+        [Export(typeof(IParameterizedGenericImport_OptionsFactory5<>)), Shared]
+        [MefV1.Export(typeof(IParameterizedGenericImport_OptionsFactory5<>))]
+        public class ParameterizedGenericImport_OptionsFactory5<T> : IParameterizedGenericImport_OptionsFactory5<T> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_OptionsManager_MultipleConstructors<TOptions>
+        {
+            public ParameterizedGenericImport_OptionsManager_MultipleConstructors()
+            {
+            }
+
+            public ParameterizedGenericImport_OptionsManager_MultipleConstructors(string unused)
+            {
+            }
+
+            [ImportingConstructor]
+            [MefV1.ImportingConstructor]
+            public ParameterizedGenericImport_OptionsManager_MultipleConstructors(IParameterizedGenericImport_OptionsFactory5<TOptions> factory)
+            {
+                this.Factory = factory;
+            }
+
+            public IParameterizedGenericImport_OptionsFactory5<TOptions>? Factory { get; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_MultipleConstructors
+        {
+            [Import]
+            [MefV1.Import]
+            public ParameterizedGenericImport_OptionsManager_MultipleConstructors<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import wrapped in <see cref="Lazy{T, TMetadata}"/> (i.e. a
+        /// <em>Lazy</em> with a metadata type argument) resolves, since the effective closed wrapper type must
+        /// preserve the metadata type argument.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_OptionsFactory6<>), typeof(ParameterizedGenericImport_OptionsManager_LazyWithMetadata<>), typeof(ParameterizedGenericImport_App_LazyWithMetadata))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_LazyWithMetadata(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_LazyWithMetadata>();
+            Assert.NotNull(app.Manager);
+            Assert.Equal("Factory6", app.Manager.Factory.Metadata["Name"]);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory6<ParameterizedGenericImport_MyOptions>>(app.Manager.Factory.Value);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory6<T> { }
+
+        [Export(typeof(IParameterizedGenericImport_OptionsFactory6<>)), ExportMetadata("Name", "Factory6"), Shared]
+        [MefV1.Export(typeof(IParameterizedGenericImport_OptionsFactory6<>)), MefV1.ExportMetadata("Name", "Factory6")]
+        public class ParameterizedGenericImport_OptionsFactory6<T> : IParameterizedGenericImport_OptionsFactory6<T> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_OptionsManager_LazyWithMetadata<TOptions>
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<IParameterizedGenericImport_OptionsFactory6<TOptions>, IDictionary<string, object>> Factory { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_LazyWithMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public ParameterizedGenericImport_OptionsManager_LazyWithMetadata<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import wrapped in <see cref="ExportFactory{T, TMetadata}"/>
+        /// resolves, since the effective closed wrapper type must preserve the metadata type argument.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_OptionsFactory7<>), typeof(ParameterizedGenericImport_OptionsManager_ExportFactoryWithMetadata<>), typeof(ParameterizedGenericImport_App_ExportFactoryWithMetadata))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_ExportFactoryWithMetadata(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_ExportFactoryWithMetadata>();
+            Assert.NotNull(app.Manager);
+            Assert.Equal("Factory7", app.Manager.Factory.Metadata["Name"]);
+            using var export = app.Manager.Factory.CreateExport();
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory7<ParameterizedGenericImport_MyOptions>>(export.Value);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory7<T> { }
+
+        [Export(typeof(IParameterizedGenericImport_OptionsFactory7<>)), ExportMetadata("Name", "Factory7")]
+        public class ParameterizedGenericImport_OptionsFactory7<T> : IParameterizedGenericImport_OptionsFactory7<T> { }
+
+        [Export, Shared]
+        public class ParameterizedGenericImport_OptionsManager_ExportFactoryWithMetadata<TOptions>
+        {
+            [Import]
+            public ExportFactory<IParameterizedGenericImport_OptionsFactory7<TOptions>, IDictionary<string, object>> Factory { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        public class ParameterizedGenericImport_App_ExportFactoryWithMetadata
+        {
+            [Import]
+            public ParameterizedGenericImport_OptionsManager_ExportFactoryWithMetadata<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import collected by <see cref="MefV1.ImportManyAttribute"/> into a
+        /// custom collection of <see cref="Lazy{T}"/> resolves, since the effective collection type must be built
+        /// around the wrapped element type rather than the unwrapped contract type.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_OptionsFactory8<>), typeof(ParameterizedGenericImport_OptionsManager_ImportManyLazyList<>), typeof(ParameterizedGenericImport_App_ImportManyLazyList))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_ImportManyLazyList(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_ImportManyLazyList>();
+            Assert.NotNull(app.Manager);
+            var factory = Assert.Single(app.Manager.Factories);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory8<ParameterizedGenericImport_MyOptions>>(factory.Value);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory8<T> { }
+
+        [Export(typeof(IParameterizedGenericImport_OptionsFactory8<>)), Shared]
+        [MefV1.Export(typeof(IParameterizedGenericImport_OptionsFactory8<>))]
+        public class ParameterizedGenericImport_OptionsFactory8<T> : IParameterizedGenericImport_OptionsFactory8<T> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_OptionsManager_ImportManyLazyList<TOptions>
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public List<Lazy<IParameterizedGenericImport_OptionsFactory8<TOptions>>> Factories { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_ImportManyLazyList
+        {
+            [Import]
+            [MefV1.Import]
+            public ParameterizedGenericImport_OptionsManager_ImportManyLazyList<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
     }
 }
