@@ -653,31 +653,12 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Slow path: the open generic constructor has parameters whose types contain generic type
                 // parameters (e.g. IFoo<TOptions> on OptionsManager<TOptions>).  Type.GetConstructor cannot
-                // match those against the closed form (IFoo<MyOptions>), so locate the constructor by
-                // matching the open-generic declaring type's constructor list positionally using metadata token.
-                if (method.DeclaringType is { } declaringType)
+                // match those against the closed form (IFoo<MyOptions>), so find it by metadata token.
+                foreach (ConstructorInfo closedConstructor in closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    var openGenericType = declaringType.IsGenericType && !declaringType.IsGenericTypeDefinition
-                        ? declaringType.GetGenericTypeDefinition().GetTypeInfo()
-                        : declaringType.GetTypeInfo();
-                    var openCtors = openGenericType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                    int ctorIndex = -1;
-                    for (int i = 0; i < openCtors.Length; i++)
+                    if (closedConstructor.MetadataToken == method.MetadataToken)
                     {
-                        if (openCtors[i].MetadataToken == method.MetadataToken)
-                        {
-                            ctorIndex = i;
-                            break;
-                        }
-                    }
-
-                    if (ctorIndex >= 0)
-                    {
-                        var closedCtors = closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                        if (ctorIndex < closedCtors.Length)
-                        {
-                            return closedCtors[ctorIndex];
-                        }
+                        return closedConstructor;
                     }
                 }
 
