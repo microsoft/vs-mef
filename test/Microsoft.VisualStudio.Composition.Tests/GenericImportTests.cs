@@ -446,5 +446,55 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Import]
             public ParameterizedGenericImport_OptionsManager_ImportManyLazyList<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
         }
+
+        /// <summary>
+        /// Verifies that a *partially* open generic import (only some type arguments are the part's own type
+        /// parameters, e.g. <c>IFactory&lt;TOptions, int&gt;</c>) is rejected while scanning the part, rather than
+        /// producing a part that fails with a confusing error later while the composition is computed.
+        /// </summary>
+        /// <param name="attributesDiscovery">The discovery engine to test.</param>
+        [Theory]
+        [InlineData(CompositionEngines.V1)]
+        [InlineData(CompositionEngines.V2)]
+        public async Task PartiallyOpenGenericImportFailsGracefully(CompositionEngines attributesDiscovery)
+        {
+            PartDiscovery discovery = attributesDiscovery == CompositionEngines.V1 ? TestUtilities.V1Discovery : TestUtilities.V2Discovery;
+            DiscoveredParts parts = await discovery.CreatePartsAsync(
+                typeof(PartiallyOpenGenericImport_Factory<,>),
+                typeof(PartiallyOpenGenericImport_Manager<>),
+                typeof(PartiallyOpenGenericImport_App));
+
+            PartDiscoveryException error = Assert.Single(parts.DiscoveryErrors);
+            Assert.Same(typeof(PartiallyOpenGenericImport_Manager<>), error.ScannedType);
+
+            // The part that imports the rejected one cannot be satisfied, but that is reported as a
+            // composition error rather than thrown while the configuration is computed.
+            CompositionConfiguration configuration = CompositionConfiguration.Create(TestUtilities.EmptyCatalog.AddParts(parts));
+            Assert.NotEmpty(configuration.CompositionErrors);
+        }
+
+        public interface IPartiallyOpenGenericImport_Factory<T1, T2> { }
+
+        [Export(typeof(IPartiallyOpenGenericImport_Factory<,>)), Shared]
+        [MefV1.Export(typeof(IPartiallyOpenGenericImport_Factory<,>))]
+        public class PartiallyOpenGenericImport_Factory<T1, T2> : IPartiallyOpenGenericImport_Factory<T1, T2> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartiallyOpenGenericImport_Manager<TOptions>
+        {
+            [Import]
+            [MefV1.Import]
+            public IPartiallyOpenGenericImport_Factory<TOptions, int> Factory { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartiallyOpenGenericImport_App
+        {
+            [Import]
+            [MefV1.Import]
+            public PartiallyOpenGenericImport_Manager<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
     }
 }
