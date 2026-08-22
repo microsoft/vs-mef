@@ -31,8 +31,7 @@ NuGet MEF attributes as only they can describe sharing boundaries.
 
 An open generic part may use its own type parameter as a *generic type argument* within an import,
 e.g. `OptionsManager<TOptions>` importing `IOptionsFactory<TOptions>`, satisfied by an open generic
-export such as `[Export(typeof(IOptionsFactory<>))]`. VS MEF supports this for the direct import and
-for the `Lazy<T>`, `ExportFactory<T>`, and `ImportMany` (`IEnumerable<T>` / `T[]`) forms.
+export such as `[Export(typeof(IOptionsFactory<>))]`.
 
 Importing a type parameter *directly* — where the import type is the bare parameter itself, e.g.
 `[Import] T` — is honored by .NET MEF and NuGet MEF but **not** by VS MEF. Those runtimes resolve
