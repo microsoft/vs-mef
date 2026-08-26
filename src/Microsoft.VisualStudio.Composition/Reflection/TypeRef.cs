@@ -113,8 +113,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
                 this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
                 this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
-                this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
-                    ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
+
+                // A type whose every generic type argument is a generic parameter (e.g. IFoo<TOptions> as
+                // declared on an open generic part) is represented by its generic type definition, with the
+                // type arguments supplied when the declaring part is closed. A *partially* open type
+                // (e.g. IFoo<TOptions, int>) cannot be represented that way, since dropping only the generic
+                // parameters would leave this instance with fewer type arguments than the definition's arity.
+                // Such a type is rejected below, when the generic parameter argument is turned into a TypeRef.
+                Type[] genericTypeArguments = arrayElementType.GenericTypeArguments ?? Type.EmptyTypes;
+                bool allGenericTypeArgumentsAreGenericParameters = genericTypeArguments.Length > 0 && genericTypeArguments.All(t => t.IsGenericParameter);
+                this.GenericTypeArguments = genericTypeArguments.Length > 0
+                    ? genericTypeArguments.Where(t => !((shallow || allGenericTypeArgumentsAreGenericParameters) && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
                     : ImmutableArray<TypeRef>.Empty;
 
                 if (!shallow)

@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.Composition
 
         internal const string IsOpenGenericExport = MefV3CompositionNamespace + ".IsOpenGenericExport";
 
+        // Stores int[] of type-parameter positions (within the declaring open-generic type) for each
+        // type argument of a parameterized generic import (e.g. IOptionsFactory<TOptions> → [0]).
+        // Present when the import is a generic type parameterized by the declaring type's own parameters.
+        internal const string GenericParameterIndexesMetadataName = MefV3CompositionNamespace + ".GenericParameterIndexes";
+
         // ExportFactory<T> support (V3-specific)
         internal const string ExportFactoryProductImportDefinition = MefV3CompositionNamespace + ".ProductImportDefinition";
         internal const string ExportFactoryTypeMetadataName = MefV3CompositionNamespace + ".ExportFactoryType";
