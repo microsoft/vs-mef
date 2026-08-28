@@ -4,7 +4,7 @@ This document records performance investigations, implemented optimizations, and
 
 ## Activation benchmarks
 
-`test/Microsoft.VisualStudio.Composition.Benchmarks/ActivationBenchmarks.cs` covers six steady-state activation shapes:
+`test/Microsoft.VisualStudio.Composition.Benchmarks/ActivationBenchmarks.cs` covers six steady-state activation shapes with expression compilation both disabled and enabled:
 
 - Retrieval of a shared part.
 - Activation of a non-shared part without imports.
@@ -36,7 +36,10 @@ These changes primarily improve shared export retrieval and simple non-shared ac
 
 The `perf/compiled-activation-plans` branch preserves the expression-compilation work separately. It adds:
 
-- Compiled constructor delegates for repeatedly activated non-shared parts.
+- An explicit `EnableActivationExpressionCompilation` export provider factory option. Compilation is disabled by default.
+- Compiled constructor delegates only for repeatedly activated non-shared parts and parts shared within named sharing boundaries.
+- Factory-scoped activation counts and delegate caches so repeated sharing-boundary instances can amortize compilation.
+- Tiering that keeps the first activation on the reflection path and compiles a constructor only when it is activated again.
 - Compiled property and field setters.
 - Recursive direct activation plans for supported acyclic non-shared graphs.
 - Direct construction of constructor imports, property imports, and array or `IEnumerable<T>` imports.
@@ -45,18 +48,18 @@ Unsupported cases fall back to the normal lifecycle engine. These include cycles
 
 The compiled approach substantially improves throughput and allocations, but it also creates many additional generated methods that must be JIT-compiled. A short BenchmarkDotNet run on one machine produced the following indicative results:
 
-| Scenario | Without compiled activation | With compiled activation |
+| Scenario | Compilation disabled | Compilation enabled |
 | --- | ---: | ---: |
-| Shared | 15.62 ns, 0 B | 17.57 ns, 0 B |
-| Simple non-shared | 477.01 ns, 160 B | 30.86 ns, 24 B |
-| Constructor imports | 1,732.26 ns, 712 B | 61.97 ns, 88 B |
-| Complex constructor graph | 7,605.75 ns, 3,176 B | 246.24 ns, 408 B |
-| Property imports | 5,661.30 ns, 2,440 B | 115.68 ns, 136 B |
-| `ImportMany` | 3,772.01 ns, 1,440 B | 227.34 ns, 240 B |
+| Shared | 15.30 ns, 0 B | 16.10 ns, 0 B |
+| Simple non-shared | 414.60 ns, 160 B | 31.81 ns, 24 B |
+| Constructor imports | 1,542.92 ns, 712 B | 58.01 ns, 88 B |
+| Complex constructor graph | 7,273.72 ns, 3,176 B | 219.41 ns, 408 B |
+| Property imports | 5,655.45 ns, 2,440 B | 122.89 ns, 136 B |
+| `ImportMany` | 3,756.29 ns, 1,440 B | 235.00 ns, 240 B |
 
 These numbers came from separate BenchmarkDotNet short runs and are intended to show the magnitude of the tradeoff, not to establish release-quality baselines.
 
-Compiling activation for an application-wide shared part is generally unattractive because it increases startup and JIT cost for an operation that normally runs only once. Compilation is more likely to pay for:
+Application-wide shared parts are excluded from compilation because they normally activate only once. Compilation is limited to:
 
 - Non-shared parts that may be activated repeatedly.
 - Parts shared within a sharing boundary that is instantiated repeatedly.

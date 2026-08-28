@@ -71,8 +71,21 @@ namespace Microsoft.VisualStudio.Composition
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
+            return await this.LoadExportProviderFactoryAsync(cacheStream, resolver, ExportProviderFactoryOptions.None, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Loads an export provider factory with optional runtime behavior enabled.
+        /// </summary>
+        /// <param name="cacheStream">The stream containing the cached composition.</param>
+        /// <param name="resolver">The resolver to use when loading the composition.</param>
+        /// <param name="options">Options that control export provider behavior.</param>
+        /// <param name="cancellationToken">A token that may cancel the operation.</param>
+        /// <returns>The loaded export provider factory.</returns>
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, ExportProviderFactoryOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        {
             var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
-            return runtimeComposition.CreateExportProviderFactory();
+            return runtimeComposition.CreateExportProviderFactory(options);
         }
 
         private class SerializationContext : SerializationContextBase

@@ -243,9 +243,17 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         public IExportProviderFactory CreateExportProviderFactory()
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None);
+
+        /// <summary>
+        /// Creates an export provider factory with runtime behavior configured by the specified options.
+        /// </summary>
+        /// <param name="options">Options that control export provider runtime behavior.</param>
+        /// <returns>The export provider factory.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options)
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
-            return composition.CreateExportProviderFactory();
+            return composition.CreateExportProviderFactory(options);
         }
 
         public string? GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)

@@ -115,7 +115,21 @@ namespace Microsoft.VisualStudio.Composition
 
         public IExportProviderFactory CreateExportProviderFactory()
         {
-            return new RuntimeExportProviderFactory(this);
+            return this.CreateExportProviderFactory(ExportProviderFactoryOptions.None);
+        }
+
+        /// <summary>
+        /// Creates an export provider factory with optional runtime behavior enabled.
+        /// </summary>
+        /// <param name="options">Options that control export provider behavior.</param>
+        /// <returns>The export provider factory.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options)
+        {
+            Requires.Argument(
+                (options & ~ExportProviderFactoryOptions.EnableActivationExpressionCompilation) == 0,
+                nameof(options),
+                "Unsupported export provider factory options.");
+            return new RuntimeExportProviderFactory(this, options);
         }
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)

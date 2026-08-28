@@ -17,6 +17,12 @@ public class ActivationBenchmarks
     private ExportProvider exportProvider = null!;
 
     /// <summary>
+    /// Gets or sets a value indicating whether expression compilation is enabled.
+    /// </summary>
+    [Params(false, true)]
+    public bool EnableExpressionCompilation { get; set; }
+
+    /// <summary>
     /// Creates and warms the export provider used by the activation benchmarks.
     /// </summary>
     [GlobalSetup]
@@ -52,8 +58,11 @@ public class ActivationBenchmarks
             typeof(AdapterE)).GetAwaiter().GetResult();
 
         var catalog = ComposableCatalog.Create(resolver).AddParts(discoveredParts);
+        ExportProviderFactoryOptions options = this.EnableExpressionCompilation
+            ? ExportProviderFactoryOptions.EnableActivationExpressionCompilation
+            : ExportProviderFactoryOptions.None;
         this.exportProvider = CompositionConfiguration.Create(catalog)
-            .CreateExportProviderFactory()
+            .CreateExportProviderFactory(options)
             .CreateExportProvider();
 
         this.Singleton();

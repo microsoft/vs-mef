@@ -34,30 +34,34 @@ namespace Microsoft.VisualStudio.Composition
                 metadata: ImmutableDictionary<string, object?>.Empty,
                 exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
 
+            private readonly ActivationPlanRegistry activationPlanRegistry;
             private readonly RuntimeComposition composition;
             private readonly ReportFaultCallback? faultCallback;
-            private readonly ConcurrentDictionary<MemberInfo, Action<object, object?>> importingMemberSetterCache = new();
-            private readonly ConcurrentDictionary<MethodBase, Func<object?[], object?>> instanceFactoryCache = new();
             private readonly ConcurrentDictionary<(Type Type, string? ContractName), RuntimeExportLookup> runtimeExportLookupCache = new();
 
-            internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback)
-                : this(composition)
+            internal RuntimeExportProvider(RuntimeComposition composition, ActivationPlanRegistry activationPlanRegistry, ReportFaultCallback faultCallback)
+                : this(composition, activationPlanRegistry)
             {
                 this.faultCallback = faultCallback;
             }
 
-            internal RuntimeExportProvider(RuntimeComposition composition)
+            internal RuntimeExportProvider(RuntimeComposition composition, ActivationPlanRegistry activationPlanRegistry)
                 : base(Requires.NotNull(composition, nameof(composition)).Resolver)
             {
+                Requires.NotNull(activationPlanRegistry, nameof(activationPlanRegistry));
+
                 this.composition = composition;
+                this.activationPlanRegistry = activationPlanRegistry;
             }
 
-            internal RuntimeExportProvider(RuntimeComposition composition, ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
+            internal RuntimeExportProvider(RuntimeComposition composition, ActivationPlanRegistry activationPlanRegistry, ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
                 : base(parent, freshSharingBoundaries)
             {
                 Requires.NotNull(composition, nameof(composition));
+                Requires.NotNull(activationPlanRegistry, nameof(activationPlanRegistry));
 
                 this.composition = composition;
+                this.activationPlanRegistry = activationPlanRegistry;
             }
 
             private protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
@@ -111,10 +115,18 @@ namespace Microsoft.VisualStudio.Composition
 
             private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type, out bool isFullyInitialized)
             {
-                if (lookup.DirectValueFactory is object)
+                if (lookup.TryGetDirectValueFactory(out Func<object?>? directValueFactory))
                 {
                     isFullyInitialized = true;
-                    return lookup.DirectValueFactory();
+                    return directValueFactory();
+                }
+
+                if (lookup.ShouldAttemptDirectValueFactory(this.activationPlanRegistry.IsExpressionCompilationEnabled)
+                    && this.TryCreateDirectValueFactory(lookup.Part!, lookup.Export!, new HashSet<TypeRef>(), out directValueFactory))
+                {
+                    lookup.SetDirectValueFactory(directValueFactory);
+                    isFullyInitialized = true;
+                    return directValueFactory();
                 }
 
                 isFullyInitialized = false;
@@ -169,7 +181,7 @@ namespace Microsoft.VisualStudio.Composition
                 RuntimeComposition.RuntimePart part = this.composition.GetPart(matchingExport!);
                 return part.TypeRef.IsGenericTypeDefinition
                     ? RuntimeExportLookup.Unsupported
-                    : new RuntimeExportLookup(this, part, matchingExport!);
+                    : new RuntimeExportLookup(part, matchingExport!);
             }
 
             private bool TryCreateDirectValueFactory(
@@ -360,7 +372,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (importedPart.IsShared)
                 {
-                    var sharedLookup = new RuntimeExportLookup(this, importedPart, importedExport);
+                    var sharedLookup = new RuntimeExportLookup(importedPart, importedExport);
                     valueFactory = () =>
                     {
                         if (sharedLookup.TryGetSharedValue(out object? sharedValue))
@@ -380,22 +392,12 @@ namespace Microsoft.VisualStudio.Composition
 
             private Action<object, object?> GetOrCreateImportingMemberSetter(MemberInfo member)
             {
-                if (!this.importingMemberSetterCache.TryGetValue(member, out Action<object, object?>? setter))
-                {
-                    setter = this.importingMemberSetterCache.GetOrAdd(member, static member => member.CreateImportingMemberSetter());
-                }
-
-                return setter;
+                return this.activationPlanRegistry.GetOrCreateImportingMemberSetter(member);
             }
 
             private Func<object?[], object?> GetOrCreateInstanceFactory(MethodBase method)
             {
-                if (!this.instanceFactoryCache.TryGetValue(method, out Func<object?[], object?>? factory))
-                {
-                    factory = this.instanceFactoryCache.GetOrAdd(method, static method => method.CreateInstanceFactory());
-                }
-
-                return factory;
+                return this.activationPlanRegistry.GetOrCreateInstanceFactory(method);
             }
 
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
@@ -573,7 +575,7 @@ namespace Microsoft.VisualStudio.Composition
                 Func<KeyValuePair<object?, IDisposable?>> valueFactory = () =>
                 {
                     RuntimeExportProvider scope = newSharingScope
-                        ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
+                        ? new RuntimeExportProvider(this.composition, this.activationPlanRegistry, this, sharingBoundaries)
                         : this;
                     object? constructedValue = scope.GetExportedValue(import, export, importingPartTracker, out PartLifecycleTracker? partLifecycle);
                     partLifecycle!.GetValueReadyToExpose();
@@ -816,6 +818,9 @@ namespace Microsoft.VisualStudio.Composition
             private sealed class RuntimeExportLookup
             {
                 internal static readonly RuntimeExportLookup Unsupported = new RuntimeExportLookup();
+                private int directValueFactoryActivationCount;
+                private int directValueFactoryAttempted;
+                private volatile Func<object?>? directValueFactory;
                 private volatile bool hasSharedValue;
                 private object? sharedValue;
 
@@ -823,12 +828,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                 }
 
-                internal RuntimeExportLookup(RuntimeExportProvider exportProvider, RuntimeComposition.RuntimePart part, RuntimeComposition.RuntimeExport export)
+                internal RuntimeExportLookup(RuntimeComposition.RuntimePart part, RuntimeComposition.RuntimeExport export)
                 {
                     this.Part = part;
                     this.Export = export;
-                    exportProvider.TryCreateDirectValueFactory(part, export, new HashSet<TypeRef>(), out Func<object?>? directValueFactory);
-                    this.DirectValueFactory = directValueFactory;
                 }
 
                 internal bool CanUseFastPath => this.Part is object;
@@ -836,8 +839,6 @@ namespace Microsoft.VisualStudio.Composition
                 internal RuntimeComposition.RuntimePart? Part { get; }
 
                 internal RuntimeComposition.RuntimeExport? Export { get; }
-
-                internal Func<object?>? DirectValueFactory { get; }
 
                 internal bool TryGetSharedValue(out object? value)
                 {
@@ -858,6 +859,29 @@ namespace Microsoft.VisualStudio.Composition
                         this.sharedValue = value;
                         this.hasSharedValue = true;
                     }
+                }
+
+                internal bool ShouldAttemptDirectValueFactory(bool expressionCompilationEnabled)
+                {
+                    if (!expressionCompilationEnabled || this.Part!.IsShared)
+                    {
+                        return false;
+                    }
+
+                    int activationCount = Interlocked.Increment(ref this.directValueFactoryActivationCount);
+                    return activationCount >= ActivationExpressionCompilationThreshold
+                        && Interlocked.CompareExchange(ref this.directValueFactoryAttempted, 1, 0) == 0;
+                }
+
+                internal void SetDirectValueFactory(Func<object?> valueFactory)
+                {
+                    this.directValueFactory = valueFactory;
+                }
+
+                internal bool TryGetDirectValueFactory([NotNullWhen(true)] out Func<object?>? valueFactory)
+                {
+                    valueFactory = this.directValueFactory;
+                    return valueFactory is object;
                 }
             }
 
@@ -945,8 +969,11 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        object? part = this.IsNonShared
-                            ? this.OwningExportProvider.GetOrCreateInstanceFactory(importingConstructorOrFactoryMethod)(ctorArgs)
+                        object? part = this.OwningExportProvider.activationPlanRegistry.TryGetInstanceFactory(
+                            this.partDefinition,
+                            importingConstructorOrFactoryMethod,
+                            out Func<object?[], object?>? instanceFactory)
+                            ? instanceFactory!(ctorArgs)
                             : importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
                         return part;
                     }
