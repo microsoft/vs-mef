@@ -12,6 +12,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
@@ -115,18 +117,15 @@ namespace Microsoft.VisualStudio.Composition
 
             private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type, out bool isFullyInitialized)
             {
-                if (lookup.TryGetDirectValueFactory(out Func<object?>? directValueFactory))
+                if (!lookup.Part!.IsShared
+                    && (lookup.TryGetDirectActivationPlan(out DirectActivationPlan? directActivationPlan)
+                        || (lookup.Export!.MemberRef is null
+                            && this.activationPlanRegistry.IsExpressionCompilationEnabled
+                            && this.activationPlanRegistry.TryGetExistingDirectActivationPlan(lookup.Part, out directActivationPlan)
+                            && lookup.SetDirectActivationPlan(directActivationPlan))))
                 {
                     isFullyInitialized = true;
-                    return directValueFactory();
-                }
-
-                if (lookup.ShouldAttemptDirectValueFactory(this.activationPlanRegistry.IsExpressionCompilationEnabled)
-                    && this.TryCreateDirectValueFactory(lookup.Part!, lookup.Export!, new HashSet<TypeRef>(), out directValueFactory))
-                {
-                    lookup.SetDirectValueFactory(directValueFactory);
-                    isFullyInitialized = true;
-                    return directValueFactory();
+                    return directActivationPlan.Activate(this, importingPartTracker: null);
                 }
 
                 isFullyInitialized = false;
@@ -152,9 +151,18 @@ namespace Microsoft.VisualStudio.Composition
 
             internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
             {
+                RuntimeComposition.RuntimePart part = this.composition.GetPart(partType);
+                if (this.activationPlanRegistry.IsExpressionCompilationEnabled
+                    && this.activationPlanRegistry.TryGetDirectActivationPlan(this, part, out DirectActivationPlan? activationPlan))
+                {
+                    return nonSharedPartOwner is object
+                        ? new DirectActivationRuntimePartLifecycleTracker(this, part, importMetadata, nonSharedPartOwner, activationPlan)
+                        : new DirectActivationRuntimePartLifecycleTracker(this, part, importMetadata, activationPlan);
+                }
+
                 return nonSharedPartOwner is object
-                    ? new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata, nonSharedPartOwner)
-                    : new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
+                    ? new RuntimePartLifecycleTracker(this, part, importMetadata, nonSharedPartOwner)
+                    : new RuntimePartLifecycleTracker(this, part, importMetadata);
             }
 
             private RuntimeExportLookup CreateRuntimeExportLookup(Type type, string contractName)
@@ -184,15 +192,13 @@ namespace Microsoft.VisualStudio.Composition
                     : new RuntimeExportLookup(part, matchingExport!);
             }
 
-            private bool TryCreateDirectValueFactory(
+            internal bool TryCreateDirectActivationPlan(
                 RuntimeComposition.RuntimePart part,
-                RuntimeComposition.RuntimeExport export,
                 HashSet<TypeRef> partsBeingBuilt,
-                [NotNullWhen(true)] out Func<object?>? valueFactory)
+                [NotNullWhen(true)] out DirectActivationPlan? activationPlan)
             {
-                valueFactory = null;
-                if (part.IsShared
-                    || export.MemberRef is object
+                activationPlan = null;
+                if (part.SharingBoundary?.Length == 0
                     || !part.IsInstantiable
                     || part.TypeRef.IsGenericTypeDefinition
                     || part.OnImportsSatisfiedMethodRefs.Count > 0
@@ -212,7 +218,8 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     IReadOnlyList<RuntimeComposition.RuntimeImport> constructorImports = part.ImportingConstructorArguments;
-                    var argumentFactories = new Func<object?>[constructorImports.Count];
+                    var argumentFactories = new Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>[constructorImports.Count];
+                    int operationCount = 1;
                     for (int i = 0; i < constructorImports.Count; i++)
                     {
                         RuntimeComposition.RuntimeImport import = constructorImports[i];
@@ -233,25 +240,32 @@ namespace Microsoft.VisualStudio.Composition
                                 return false;
                             }
 
-                            Func<object?>[] elementFactories = new Func<object?>[import.SatisfyingExports.Count];
+                            Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>[] elementFactories =
+                                new Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>[import.SatisfyingExports.Count];
                             int elementIndex = 0;
                             foreach (RuntimeComposition.RuntimeExport importedExport in import.SatisfyingExports)
                             {
-                                if (!this.TryCreateDirectImportFactory(import, importedExport, partsBeingBuilt, out Func<object?>? elementFactory))
+                                if (!this.TryCreateDirectImportFactory(
+                                    import,
+                                    importedExport,
+                                    partsBeingBuilt,
+                                    out Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>? elementFactory,
+                                    out int elementOperationCount))
                                 {
                                     return false;
                                 }
 
                                 elementFactories[elementIndex++] = elementFactory;
+                                operationCount += elementOperationCount;
                             }
 
                             Type elementType = import.ImportingSiteTypeWithoutCollection;
-                            argumentFactories[i] = () =>
+                            argumentFactories[i] = (exportProvider, importingPartTracker) =>
                             {
                                 Array values = Array.CreateInstance(elementType, elementFactories.Length);
                                 for (int j = 0; j < elementFactories.Length; j++)
                                 {
-                                    values.SetValue(elementFactories[j](), j);
+                                    values.SetValue(elementFactories[j](exportProvider, importingPartTracker), j);
                                 }
 
                                 return values;
@@ -260,12 +274,18 @@ namespace Microsoft.VisualStudio.Composition
                         else
                         {
                             if (import.SatisfyingExports.Count != 1
-                                || !this.TryCreateDirectImportFactory(import, import.SatisfyingExports.First(), partsBeingBuilt, out Func<object?>? argumentFactory))
+                                || !this.TryCreateDirectImportFactory(
+                                    import,
+                                    import.SatisfyingExports.First(),
+                                    partsBeingBuilt,
+                                    out Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>? argumentFactory,
+                                    out int argumentOperationCount))
                             {
                                 return false;
                             }
 
                             argumentFactories[i] = argumentFactory;
+                            operationCount += argumentOperationCount;
                         }
                     }
 
@@ -279,71 +299,29 @@ namespace Microsoft.VisualStudio.Composition
                             || import.IsExportFactory
                             || import.IsNonSharedInstanceRequired
                             || import.SatisfyingExports.Count != 1
-                            || !this.TryCreateDirectImportFactory(import, import.SatisfyingExports.First(), partsBeingBuilt, out Func<object?>? importValueFactory))
+                            || !this.TryCreateDirectImportFactory(
+                                import,
+                                import.SatisfyingExports.First(),
+                                partsBeingBuilt,
+                                out Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>? importValueFactory,
+                                out int importOperationCount))
                         {
                             return false;
                         }
 
+                        operationCount += importOperationCount + 1;
                         memberAssignments[i] = new DirectMemberImport(
                             import,
                             importValueFactory,
                             this.GetOrCreateImportingMemberSetter(import.ImportingMember!));
                     }
 
-                    Func<object?[], object?> instanceFactory = this.GetOrCreateInstanceFactory(importingConstructorOrFactoryMethod);
-                    valueFactory = () =>
-                    {
-                        object?[] arguments = argumentFactories.Length == 0 ? EmptyObjectArray : new object?[argumentFactories.Length];
-                        for (int i = 0; i < argumentFactories.Length; i++)
-                        {
-                            arguments[i] = argumentFactories[i]();
-                        }
-
-                        object instance;
-                        try
-                        {
-                            instance = instanceFactory(arguments)!;
-                            Assumes.NotNull(instance);
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new CompositionFailedException(
-                                Strings.FormatExceptionThrownByPartUnderInitialization(part.TypeRef.Resolve().FullName),
-                                ex);
-                        }
-
-                        for (int i = 0; i < memberAssignments.Length; i++)
-                        {
-                            DirectMemberImport assignment = memberAssignments[i];
-                            object? importedValue;
-                            try
-                            {
-                                importedValue = assignment.ValueFactory();
-                            }
-                            catch (CompositionFailedException ex)
-                            {
-                                throw new CompositionFailedException(
-                                    string.Format(
-                                        CultureInfo.CurrentCulture,
-                                        Strings.ErrorWhileSettingImport,
-                                        RuntimeComposition.GetDiagnosticLocation(assignment.Import)),
-                                    ex);
-                            }
-
-                            try
-                            {
-                                assignment.Setter(instance, importedValue);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new CompositionFailedException(
-                                    Strings.FormatExceptionThrownByPartUnderInitialization(part.TypeRef.Resolve().FullName),
-                                    ex);
-                            }
-                        }
-
-                        return instance;
-                    };
+                    activationPlan = new DirectActivationPlan(
+                        part,
+                        argumentFactories,
+                        memberAssignments,
+                        this.GetOrCreateInstanceFactory(importingConstructorOrFactoryMethod),
+                        operationCount);
                     return true;
                 }
                 finally
@@ -356,9 +334,11 @@ namespace Microsoft.VisualStudio.Composition
                 RuntimeComposition.RuntimeImport import,
                 RuntimeComposition.RuntimeExport importedExport,
                 HashSet<TypeRef> partsBeingBuilt,
-                [NotNullWhen(true)] out Func<object?>? valueFactory)
+                [NotNullWhen(true)] out Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>? valueFactory,
+                out int operationCount)
             {
                 valueFactory = null;
+                operationCount = 0;
                 if (importedExport.MemberRef is object)
                 {
                     return false;
@@ -372,32 +352,44 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (importedPart.IsShared)
                 {
-                    var sharedLookup = new RuntimeExportLookup(importedPart, importedExport);
-                    valueFactory = () =>
+                    var providerLookups = new ProviderScopedRuntimeExportLookup(importedPart, importedExport);
+                    valueFactory = (exportProvider, importingPartTracker) =>
                     {
-                        if (sharedLookup.TryGetSharedValue(out object? sharedValue))
+                        RuntimeExportLookup lookup = providerLookups.GetLookup(exportProvider);
+                        if (lookup.TryGetSharedValue(out object? sharedValue))
                         {
                             return sharedValue;
                         }
 
-                        sharedValue = this.GetRuntimeExportedValue(sharedLookup, import.ImportingSiteTypeWithoutCollection, out _);
-                        sharedLookup.SetSharedValue(sharedValue);
+                        sharedValue = exportProvider.GetExportedValue(import, importedExport, importingPartTracker, out PartLifecycleTracker? partLifecycle);
+                        if (partLifecycle?.State == PartLifecycleState.Final)
+                        {
+                            lookup.SetSharedValue(sharedValue);
+                        }
+
                         return sharedValue;
                     };
                     return true;
                 }
 
-                return this.TryCreateDirectValueFactory(importedPart, importedExport, partsBeingBuilt, out valueFactory);
+                if (this.TryCreateDirectActivationPlan(importedPart, partsBeingBuilt, out DirectActivationPlan? activationPlan))
+                {
+                    valueFactory = activationPlan.Activate;
+                    operationCount = activationPlan.OperationCount;
+                    return true;
+                }
+
+                return false;
             }
 
-            private Action<object, object?> GetOrCreateImportingMemberSetter(MemberInfo member)
+            private Lazy<Action<object, object?>> GetOrCreateImportingMemberSetter(MemberInfo member)
             {
-                return this.activationPlanRegistry.GetOrCreateImportingMemberSetter(member);
+                return this.activationPlanRegistry.GetOrCreateLazyImportingMemberSetter(member);
             }
 
-            private Func<object?[], object?> GetOrCreateInstanceFactory(MethodBase method)
+            private Lazy<Func<object?[], object?>> GetOrCreateInstanceFactory(MethodBase method)
             {
-                return this.activationPlanRegistry.GetOrCreateInstanceFactory(method);
+                return this.activationPlanRegistry.GetOrCreateLazyInstanceFactory(method);
             }
 
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
@@ -799,9 +791,98 @@ namespace Microsoft.VisualStudio.Composition
                 public object? Value { get; private set; }
             }
 
-            private readonly struct DirectMemberImport
+            internal sealed class DirectActivationPlan
             {
-                internal DirectMemberImport(RuntimeComposition.RuntimeImport import, Func<object?> valueFactory, Action<object, object?> setter)
+                private readonly Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>[] argumentFactories;
+                private readonly Lazy<Func<object?[], object?>> instanceFactory;
+                private readonly DirectMemberImport[] memberAssignments;
+                private readonly RuntimeComposition.RuntimePart part;
+
+                internal DirectActivationPlan(
+                    RuntimeComposition.RuntimePart part,
+                    Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?>[] argumentFactories,
+                    DirectMemberImport[] memberAssignments,
+                    Lazy<Func<object?[], object?>> instanceFactory,
+                    int operationCount)
+                {
+                    this.part = part;
+                    this.argumentFactories = argumentFactories;
+                    this.memberAssignments = memberAssignments;
+                    this.instanceFactory = instanceFactory;
+                    this.OperationCount = operationCount;
+                }
+
+                internal int OperationCount { get; }
+
+                internal object Activate(RuntimeExportProvider exportProvider, RuntimePartLifecycleTracker? importingPartTracker)
+                {
+                    object instance = this.CreateValue(exportProvider, importingPartTracker);
+                    this.SatisfyImports(exportProvider, importingPartTracker, instance);
+                    return instance;
+                }
+
+                internal object CreateValue(RuntimeExportProvider exportProvider, RuntimePartLifecycleTracker? importingPartTracker)
+                {
+                    object?[] arguments = this.argumentFactories.Length == 0 ? EmptyObjectArray : new object?[this.argumentFactories.Length];
+                    for (int i = 0; i < this.argumentFactories.Length; i++)
+                    {
+                        arguments[i] = this.argumentFactories[i](exportProvider, importingPartTracker);
+                    }
+
+                    try
+                    {
+                        object? instance = this.instanceFactory.Value(arguments);
+                        Assumes.NotNull(instance);
+                        return instance;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new CompositionFailedException(
+                            Strings.FormatExceptionThrownByPartUnderInitialization(this.part.TypeRef.Resolve().FullName),
+                            ex);
+                    }
+                }
+
+                internal void SatisfyImports(RuntimeExportProvider exportProvider, RuntimePartLifecycleTracker? importingPartTracker, object instance)
+                {
+                    for (int i = 0; i < this.memberAssignments.Length; i++)
+                    {
+                        DirectMemberImport assignment = this.memberAssignments[i];
+                        object? importedValue;
+                        try
+                        {
+                            importedValue = assignment.ValueFactory(exportProvider, importingPartTracker);
+                        }
+                        catch (CompositionFailedException ex)
+                        {
+                            throw new CompositionFailedException(
+                                string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.ErrorWhileSettingImport,
+                                    RuntimeComposition.GetDiagnosticLocation(assignment.Import)),
+                                ex);
+                        }
+
+                        try
+                        {
+                            assignment.Setter.Value(instance, importedValue);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new CompositionFailedException(
+                                Strings.FormatExceptionThrownByPartUnderInitialization(this.part.TypeRef.Resolve().FullName),
+                                ex);
+                        }
+                    }
+                }
+            }
+
+            internal readonly struct DirectMemberImport
+            {
+                internal DirectMemberImport(
+                    RuntimeComposition.RuntimeImport import,
+                    Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?> valueFactory,
+                    Lazy<Action<object, object?>> setter)
                 {
                     this.Import = import;
                     this.ValueFactory = valueFactory;
@@ -810,17 +891,66 @@ namespace Microsoft.VisualStudio.Composition
 
                 internal RuntimeComposition.RuntimeImport Import { get; }
 
-                internal Action<object, object?> Setter { get; }
+                internal Lazy<Action<object, object?>> Setter { get; }
 
-                internal Func<object?> ValueFactory { get; }
+                internal Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object?> ValueFactory { get; }
+            }
+
+            private sealed class ProviderScopedRuntimeExportLookup
+            {
+                private readonly ConditionalWeakTable<RuntimeExportProvider, RuntimeExportLookup> providerLookups = new();
+                private readonly RuntimeComposition.RuntimeExport export;
+                private readonly RuntimeComposition.RuntimePart part;
+                private FirstProviderLookup? firstProviderLookup;
+
+                internal ProviderScopedRuntimeExportLookup(RuntimeComposition.RuntimePart part, RuntimeComposition.RuntimeExport export)
+                {
+                    this.part = part;
+                    this.export = export;
+                }
+
+                internal RuntimeExportLookup GetLookup(RuntimeExportProvider exportProvider)
+                {
+                    FirstProviderLookup? firstLookup = Volatile.Read(ref this.firstProviderLookup);
+                    if (firstLookup is null)
+                    {
+                        RuntimeExportLookup lookup = this.providerLookups.GetValue(
+                            exportProvider,
+                            _ => new RuntimeExportLookup(this.part, this.export));
+                        var newFirstLookup = new FirstProviderLookup(exportProvider, lookup);
+                        firstLookup = Interlocked.CompareExchange(ref this.firstProviderLookup, newFirstLookup, null) ?? newFirstLookup;
+                    }
+
+                    if (firstLookup.ExportProvider.TryGetTarget(out RuntimeExportProvider? firstProvider)
+                        && ReferenceEquals(firstProvider, exportProvider)
+                        && firstLookup.Lookup.TryGetTarget(out RuntimeExportLookup? firstProviderRuntimeLookup))
+                    {
+                        return firstProviderRuntimeLookup;
+                    }
+
+                    return this.providerLookups.GetValue(
+                        exportProvider,
+                        _ => new RuntimeExportLookup(this.part, this.export));
+                }
+
+                private sealed class FirstProviderLookup
+                {
+                    internal FirstProviderLookup(RuntimeExportProvider exportProvider, RuntimeExportLookup lookup)
+                    {
+                        this.ExportProvider = new WeakReference<RuntimeExportProvider>(exportProvider);
+                        this.Lookup = new WeakReference<RuntimeExportLookup>(lookup);
+                    }
+
+                    internal WeakReference<RuntimeExportProvider> ExportProvider { get; }
+
+                    internal WeakReference<RuntimeExportLookup> Lookup { get; }
+                }
             }
 
             private sealed class RuntimeExportLookup
             {
                 internal static readonly RuntimeExportLookup Unsupported = new RuntimeExportLookup();
-                private int directValueFactoryActivationCount;
-                private int directValueFactoryAttempted;
-                private volatile Func<object?>? directValueFactory;
+                private volatile DirectActivationPlan? directActivationPlan;
                 private volatile bool hasSharedValue;
                 private object? sharedValue;
 
@@ -861,32 +991,21 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                internal bool ShouldAttemptDirectValueFactory(bool expressionCompilationEnabled)
+                internal bool SetDirectActivationPlan(DirectActivationPlan activationPlan)
                 {
-                    if (!expressionCompilationEnabled || this.Part!.IsShared)
-                    {
-                        return false;
-                    }
-
-                    int activationCount = Interlocked.Increment(ref this.directValueFactoryActivationCount);
-                    return activationCount >= ActivationExpressionCompilationThreshold
-                        && Interlocked.CompareExchange(ref this.directValueFactoryAttempted, 1, 0) == 0;
+                    this.directActivationPlan = activationPlan;
+                    return true;
                 }
 
-                internal void SetDirectValueFactory(Func<object?> valueFactory)
+                internal bool TryGetDirectActivationPlan([NotNullWhen(true)] out DirectActivationPlan? activationPlan)
                 {
-                    this.directValueFactory = valueFactory;
-                }
-
-                internal bool TryGetDirectValueFactory([NotNullWhen(true)] out Func<object?>? valueFactory)
-                {
-                    valueFactory = this.directValueFactory;
-                    return valueFactory is object;
+                    activationPlan = this.directActivationPlan;
+                    return activationPlan is object;
                 }
             }
 
             [DebuggerDisplay("{" + nameof(partDefinition) + "." + nameof(RuntimeComposition.RuntimePart.TypeRef) + "." + nameof(TypeRef.ResolvedType) + ".FullName,nq} ({State})")]
-            private class RuntimePartLifecycleTracker : PartLifecycleTracker
+            internal class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
                 private readonly RuntimeComposition.RuntimePart partDefinition;
                 private readonly IReadOnlyDictionary<string, object?> importMetadata;
@@ -1045,6 +1164,42 @@ namespace Microsoft.VisualStudio.Composition
                     return new CompositionFailedException(
                         Strings.FormatExceptionThrownByPartUnderInitialization(this.PartType.FullName),
                         ex.InnerException);
+                }
+            }
+
+            private sealed class DirectActivationRuntimePartLifecycleTracker : RuntimePartLifecycleTracker
+            {
+                private readonly DirectActivationPlan activationPlan;
+
+                internal DirectActivationRuntimePartLifecycleTracker(
+                    RuntimeExportProvider owningExportProvider,
+                    RuntimeComposition.RuntimePart partDefinition,
+                    IReadOnlyDictionary<string, object?> importMetadata,
+                    DirectActivationPlan activationPlan)
+                    : base(owningExportProvider, partDefinition, importMetadata)
+                {
+                    this.activationPlan = activationPlan;
+                }
+
+                internal DirectActivationRuntimePartLifecycleTracker(
+                    RuntimeExportProvider owningExportProvider,
+                    RuntimeComposition.RuntimePart partDefinition,
+                    IReadOnlyDictionary<string, object?> importMetadata,
+                    PartLifecycleTracker nonSharedPartOwner,
+                    DirectActivationPlan activationPlan)
+                    : base(owningExportProvider, partDefinition, importMetadata, nonSharedPartOwner)
+                {
+                    this.activationPlan = activationPlan;
+                }
+
+                protected override object CreateValue()
+                {
+                    return this.activationPlan.CreateValue(this.OwningExportProvider, this);
+                }
+
+                protected override void SatisfyImports()
+                {
+                    this.activationPlan.SatisfyImports(this.OwningExportProvider, this, this.Value!);
                 }
             }
         }

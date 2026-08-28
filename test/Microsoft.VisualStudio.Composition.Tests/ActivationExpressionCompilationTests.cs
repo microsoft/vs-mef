@@ -7,7 +7,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Generic;
     using System.Composition;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -78,7 +80,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             IExportProviderFactory factory = CreateFactory(
                 ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
                 typeof(SharingBoundaryOwner),
-                typeof(SharingBoundaryPart));
+                typeof(SharingBoundaryPart),
+                typeof(SharingBoundarySimpleDependency));
             using ExportProvider provider = factory.CreateExportProvider();
             SharingBoundaryOwner owner = provider.GetExportedValue<SharingBoundaryOwner>();
 
@@ -90,9 +93,155 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             using (Export<SharingBoundaryPart> second = owner.Factory.CreateExport())
             {
-                _ = second.Value;
+                Assert.NotNull(second.Value.Dependency);
                 Assert.Equal(1, GetExpressionCompilationCount(factory));
+                Assert.Equal(0, GetDirectActivationPlanCount(factory));
             }
+        }
+
+        /// <summary>
+        /// Verifies that a direct activation plan resolves shared dependencies from the current boundary.
+        /// </summary>
+        [Fact]
+        public void DirectActivationPlanPreservesBoundaryAndDisposalOwnership()
+        {
+            IExportProviderFactory factory = CreateBoundaryPlanFactory();
+            ExportProvider provider = factory.CreateExportProvider();
+            BoundaryPlanOwner owner = provider.GetExportedValue<BoundaryPlanOwner>();
+
+            BoundaryScopedDependency firstScoped;
+            GlobalSharedDependency global;
+            using (Export<BoundaryGraphRoot> first = owner.GraphFactory.CreateExport())
+            {
+                BoundaryGraphRoot root = first.Value;
+                Assert.Equal(0, GetDirectActivationPlanCount(factory));
+                Assert.Same(root.Scoped, root.Leaf.Scoped);
+                firstScoped = root.Scoped;
+                global = root.Global;
+                Assert.False(firstScoped.IsDisposed);
+                Assert.False(global.IsDisposed);
+            }
+
+            Assert.True(firstScoped.IsDisposed);
+            Assert.False(global.IsDisposed);
+
+            BoundaryScopedDependency secondScoped;
+            using (Export<BoundaryGraphRoot> second = owner.GraphFactory.CreateExport())
+            {
+                BoundaryGraphRoot root = second.Value;
+                Assert.Equal(1, GetDirectActivationPlanCount(factory));
+                Assert.Same(root.Scoped, root.Leaf.Scoped);
+                Assert.NotSame(firstScoped, root.Scoped);
+                Assert.Same(global, root.Global);
+                secondScoped = root.Scoped;
+                Assert.False(secondScoped.IsDisposed);
+            }
+
+            Assert.True(secondScoped.IsDisposed);
+            Assert.False(global.IsDisposed);
+            provider.Dispose();
+            Assert.True(global.IsDisposed);
+        }
+
+        /// <summary>
+        /// Verifies that concurrent boundary activations share one plan without sharing scoped instances.
+        /// </summary>
+        [Fact]
+        public async Task DirectActivationPlanIsSafeAcrossConcurrentBoundaries()
+        {
+            IExportProviderFactory factory = CreateBoundaryPlanFactory();
+            using ExportProvider provider = factory.CreateExportProvider();
+            BoundaryPlanOwner owner = provider.GetExportedValue<BoundaryPlanOwner>();
+            using (Export<BoundaryGraphRoot> first = owner.GraphFactory.CreateExport())
+            {
+                _ = first.Value;
+            }
+
+            BoundaryScopedDependency[] scopedDependencies = await Task.WhenAll(
+                Enumerable.Range(0, 8).Select(
+                    _ => Task.Run(
+                        () =>
+                        {
+                            using Export<BoundaryGraphRoot> export = owner.GraphFactory.CreateExport();
+                            BoundaryGraphRoot root = export.Value;
+                            Assert.Same(root.Scoped, root.Leaf.Scoped);
+                            return root.Scoped;
+                        })));
+
+            Assert.Equal(scopedDependencies.Length, scopedDependencies.Distinct().Count());
+            Assert.All(scopedDependencies, scoped => Assert.True(scoped.IsDisposed));
+            Assert.Equal(1, GetDirectActivationPlanCount(factory));
+        }
+
+        /// <summary>
+        /// Verifies that a shared plan does not retain values from its first boundary provider.
+        /// </summary>
+        [Fact]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void DirectActivationPlanDoesNotRetainDisposedBoundary()
+        {
+            IExportProviderFactory factory = CreateBoundaryPlanFactory();
+            using ExportProvider provider = factory.CreateExportProvider();
+            BoundaryPlanOwner owner = provider.GetExportedValue<BoundaryPlanOwner>();
+
+            WeakReference scopedDependency = CreateAndDisposeCompiledBoundary(owner);
+            Assert.Equal(1, GetDirectActivationPlanCount(factory));
+
+            GC.Collect();
+            Assert.False(scopedDependency.IsAlive);
+        }
+
+        /// <summary>
+        /// Verifies that phased direct plans preserve property-import cycles within each boundary.
+        /// </summary>
+        [Fact]
+        public void DirectActivationPlanPreservesPropertyImportCycles()
+        {
+            IExportProviderFactory factory = CreateBoundaryPlanFactory();
+            using ExportProvider provider = factory.CreateExportProvider();
+            BoundaryPlanOwner owner = provider.GetExportedValue<BoundaryPlanOwner>();
+
+            using (Export<BoundaryCycleA> first = owner.CycleFactory.CreateExport())
+            {
+                Assert.Same(first.Value, first.Value.B.A);
+            }
+
+            using (Export<BoundaryCycleA> second = owner.CycleFactory.CreateExport())
+            {
+                Assert.Same(second.Value, second.Value.B.A);
+                Assert.True(GetDirectActivationPlanCount(factory) >= 1);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that disposable boundary roots remain on the lifecycle path.
+        /// </summary>
+        [Fact]
+        public void DisposableBoundaryRootDoesNotUseDirectActivationPlan()
+        {
+            IExportProviderFactory factory = CreateBoundaryPlanFactory();
+            using ExportProvider provider = factory.CreateExportProvider();
+            BoundaryPlanOwner owner = provider.GetExportedValue<BoundaryPlanOwner>();
+
+            DisposableBoundaryRoot firstValue;
+            using (Export<DisposableBoundaryRoot> first = owner.DisposableFactory.CreateExport())
+            {
+                firstValue = first.Value;
+                Assert.False(firstValue.IsDisposed);
+            }
+
+            Assert.True(firstValue.IsDisposed);
+
+            DisposableBoundaryRoot secondValue;
+            using (Export<DisposableBoundaryRoot> second = owner.DisposableFactory.CreateExport())
+            {
+                secondValue = second.Value;
+                Assert.False(secondValue.IsDisposed);
+            }
+
+            Assert.True(secondValue.IsDisposed);
+            Assert.Equal(0, GetDirectActivationPlanCount(factory));
         }
 
         /// <summary>
@@ -164,6 +313,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return composition.CreateExportProviderFactory(options);
         }
 
+        private static IExportProviderFactory CreateBoundaryPlanFactory()
+        {
+            return CreateFactory(
+                ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+                typeof(BoundaryPlanOwner),
+                typeof(BoundaryGraphRoot),
+                typeof(BoundaryGraphLeaf),
+                typeof(BoundaryScopedDependency),
+                typeof(GlobalSharedDependency),
+                typeof(BoundaryCycleA),
+                typeof(BoundaryCycleB),
+                typeof(BoundaryCycleHelperA),
+                typeof(BoundaryCycleHelperB),
+                typeof(DisposableBoundaryRoot));
+        }
+
         private static CompositionConfiguration CreateConfiguration(params Type[] partTypes)
         {
             var resolver = Resolver.DefaultInstance;
@@ -177,6 +342,26 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             PropertyInfo property = factory.GetType().GetProperty("ExpressionCompilationCount", BindingFlags.Instance | BindingFlags.NonPublic)!;
             return (int)property.GetValue(factory)!;
+        }
+
+        private static int GetDirectActivationPlanCount(IExportProviderFactory factory)
+        {
+            PropertyInfo property = factory.GetType().GetProperty("DirectActivationPlanCount", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            return (int)property.GetValue(factory)!;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference CreateAndDisposeCompiledBoundary(BoundaryPlanOwner owner)
+        {
+            using (Export<BoundaryGraphRoot> first = owner.GraphFactory.CreateExport())
+            {
+                _ = first.Value;
+            }
+
+            using (Export<BoundaryGraphRoot> second = owner.GraphFactory.CreateExport())
+            {
+                return new WeakReference(second.Value.Scoped);
+            }
         }
 
         [Export]
@@ -199,6 +384,110 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export, Shared("TestBoundary")]
         private sealed class SharingBoundaryPart
         {
+            [Import]
+            internal SharingBoundarySimpleDependency Dependency { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        private sealed class SharingBoundarySimpleDependency
+        {
+        }
+
+        [Export, Shared]
+        private sealed class BoundaryPlanOwner
+        {
+            [Import, SharingBoundary("SharedPlanBoundary")]
+            internal ExportFactory<BoundaryGraphRoot> GraphFactory { get; set; } = null!;
+
+            [Import, SharingBoundary("SharedPlanBoundary")]
+            internal ExportFactory<BoundaryCycleA> CycleFactory { get; set; } = null!;
+
+            [Import, SharingBoundary("SharedPlanBoundary")]
+            internal ExportFactory<DisposableBoundaryRoot> DisposableFactory { get; set; } = null!;
+        }
+
+        [Export, Shared("SharedPlanBoundary")]
+        private sealed class BoundaryGraphRoot
+        {
+            [ImportingConstructor]
+            internal BoundaryGraphRoot(BoundaryGraphLeaf leaf)
+            {
+                this.Leaf = leaf;
+            }
+
+            internal BoundaryGraphLeaf Leaf { get; }
+
+            [Import]
+            internal BoundaryScopedDependency Scoped { get; set; } = null!;
+
+            [Import]
+            internal GlobalSharedDependency Global { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class BoundaryGraphLeaf
+        {
+            [ImportingConstructor]
+            internal BoundaryGraphLeaf(BoundaryScopedDependency scoped)
+            {
+                this.Scoped = scoped;
+            }
+
+            internal BoundaryScopedDependency Scoped { get; }
+        }
+
+        [Export, Shared("SharedPlanBoundary")]
+        private sealed class BoundaryScopedDependency : IDisposable
+        {
+            internal bool IsDisposed { get; private set; }
+
+            public void Dispose() => this.IsDisposed = true;
+        }
+
+        [Export, Shared]
+        private sealed class GlobalSharedDependency : IDisposable
+        {
+            internal bool IsDisposed { get; private set; }
+
+            public void Dispose() => this.IsDisposed = true;
+        }
+
+        [Export, Shared("SharedPlanBoundary")]
+        private sealed class BoundaryCycleA
+        {
+            [Import]
+            internal BoundaryCycleB B { get; set; } = null!;
+
+            [Import]
+            internal BoundaryCycleHelperA HelperA { get; set; } = null!;
+
+            [Import]
+            internal BoundaryCycleHelperB HelperB { get; set; } = null!;
+        }
+
+        [Export, Shared("SharedPlanBoundary")]
+        private sealed class BoundaryCycleB
+        {
+            [Import]
+            internal BoundaryCycleA A { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class BoundaryCycleHelperA
+        {
+        }
+
+        [Export]
+        private sealed class BoundaryCycleHelperB
+        {
+        }
+
+        [Export, Shared("SharedPlanBoundary")]
+        private sealed class DisposableBoundaryRoot : IDisposable
+        {
+            internal bool IsDisposed { get; private set; }
+
+            public void Dispose() => this.IsDisposed = true;
         }
 
         [Export]

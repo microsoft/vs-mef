@@ -40,22 +40,27 @@ The `perf/compiled-activation-plans` branch preserves the expression-compilation
 - Compiled constructor delegates only for repeatedly activated non-shared parts and parts shared within named sharing boundaries.
 - Factory-scoped activation counts and delegate caches so repeated sharing-boundary instances can amortize compilation.
 - Tiering that keeps the first activation on the reflection path and compiles a constructor only when it is activated again.
+- Factory-scoped, provider-independent activation plans that are reused across repeated sharing-boundary instances.
+- Plan execution against the current provider and lifecycle tracker so boundary-local sharing, cycles, and disposal ownership remain isolated.
+- Weak provider-keyed shared-value lookups so reusable plans do not retain disposed boundary instances.
+- A minimum plan size for named-boundary parts so small graphs remain on the lower-cost constructor-delegate path.
 - Compiled property and field setters.
-- Recursive direct activation plans for supported acyclic non-shared graphs.
+- Recursive direct activation plans for supported non-shared subgraphs and named-boundary roots.
 - Direct construction of constructor imports, property imports, and array or `IEnumerable<T>` imports.
 
-Unsupported cases fall back to the normal lifecycle engine. These include cycles, disposable parts, open generic parts, lazy imports, export factories, exported members, custom collections, and `OnImportsSatisfied`.
+Unsupported cases fall back to the normal lifecycle engine. These include non-shared cycles, disposable parts, open generic parts, lazy imports, export factories, exported members, custom collections, and `OnImportsSatisfied`. Shared edges continue through the lifecycle engine, preserving boundary-local sharing and property-import cycles.
 
 The compiled approach substantially improves throughput and allocations, but it also creates many additional generated methods that must be JIT-compiled. A short BenchmarkDotNet run on one machine produced the following indicative results:
 
 | Scenario | Compilation disabled | Compilation enabled |
 | --- | ---: | ---: |
-| Shared | 15.30 ns, 0 B | 16.10 ns, 0 B |
-| Simple non-shared | 414.60 ns, 160 B | 31.81 ns, 24 B |
-| Constructor imports | 1,542.92 ns, 712 B | 58.01 ns, 88 B |
-| Complex constructor graph | 7,273.72 ns, 3,176 B | 219.41 ns, 408 B |
-| Property imports | 5,655.45 ns, 2,440 B | 122.89 ns, 136 B |
-| `ImportMany` | 3,756.29 ns, 1,440 B | 235.00 ns, 240 B |
+| Shared | 15.33 ns, 0 B | 15.69 ns, 0 B |
+| Simple non-shared | 472.66 ns, 160 B | 36.32 ns, 24 B |
+| Constructor imports | 1,772.14 ns, 712 B | 69.65 ns, 88 B |
+| Complex constructor graph | 8,022.69 ns, 3,176 B | 258.23 ns, 408 B |
+| Property imports | 5,846.28 ns, 2,440 B | 596.97 ns, 136 B |
+| `ImportMany` | 4,271.04 ns, 1,440 B | 231.00 ns, 240 B |
+| Repeated complex sharing boundary | 13.81 us, 8,992 B | 10.02 us, 7,126 B |
 
 These numbers came from separate BenchmarkDotNet short runs and are intended to show the magnitude of the tradeoff, not to establish release-quality baselines.
 

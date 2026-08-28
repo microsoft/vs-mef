@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.Composition
     internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
         private const int ActivationExpressionCompilationThreshold = 2;
+        private const int NamedBoundaryDirectActivationPlanMinimumOperationCount = 4;
 
         private readonly ActivationPlanRegistry activationPlanRegistry;
         private readonly RuntimeComposition composition;
@@ -35,6 +37,8 @@ namespace Microsoft.VisualStudio.Composition
 
         internal int ExpressionCompilationCount => this.activationPlanRegistry.ExpressionCompilationCount;
 
+        internal int DirectActivationPlanCount => this.activationPlanRegistry.DirectActivationPlanCount;
+
         public ExportProvider CreateExportProvider()
         {
             return new RuntimeExportProvider(this.composition, this.activationPlanRegistry);
@@ -51,6 +55,9 @@ namespace Microsoft.VisualStudio.Composition
             private readonly ConcurrentDictionary<MethodBase, Lazy<Func<object?[], object?>>> instanceFactories = new();
             private readonly ConcurrentDictionary<MethodBase, int> instanceFactoryActivationCounts = new();
             private readonly ConcurrentDictionary<MemberInfo, Lazy<Action<object, object?>>> importingMemberSetters = new();
+            private readonly ConcurrentDictionary<RuntimeComposition.RuntimePart, Lazy<RuntimeExportProvider.DirectActivationPlan?>> directActivationPlans = new();
+            private readonly ConcurrentDictionary<RuntimeComposition.RuntimePart, int> directActivationPlanCounts = new();
+            private int directActivationPlanCount;
             private int expressionCompilationCount;
 
             internal ActivationPlanRegistry(ExportProviderFactoryOptions options)
@@ -60,9 +67,77 @@ namespace Microsoft.VisualStudio.Composition
 
             internal int ExpressionCompilationCount => Volatile.Read(ref this.expressionCompilationCount);
 
+            internal int DirectActivationPlanCount => Volatile.Read(ref this.directActivationPlanCount);
+
             internal bool IsExpressionCompilationEnabled { get; }
 
+            internal bool TryGetDirectActivationPlan(
+                RuntimeExportProvider exportProvider,
+                RuntimeComposition.RuntimePart part,
+                [NotNullWhen(true)] out RuntimeExportProvider.DirectActivationPlan? activationPlan)
+            {
+                activationPlan = null;
+                if (!this.IsExpressionCompilationEnabled || !IsEligibleForRepeatedActivation(part))
+                {
+                    return false;
+                }
+
+                if (this.TryGetExistingDirectActivationPlan(part, out activationPlan))
+                {
+                    return true;
+                }
+
+                int activationCount = this.directActivationPlanCounts.AddOrUpdate(
+                    part,
+                    1,
+                    static (_, count) => count < ActivationExpressionCompilationThreshold ? count + 1 : count);
+                if (activationCount < ActivationExpressionCompilationThreshold)
+                {
+                    return false;
+                }
+
+                Lazy<RuntimeExportProvider.DirectActivationPlan?> lazyPlan = this.directActivationPlans.GetOrAdd(
+                    part,
+                    part => new Lazy<RuntimeExportProvider.DirectActivationPlan?>(
+                        () =>
+                        {
+                            if (exportProvider.TryCreateDirectActivationPlan(part, new HashSet<TypeRef>(), out RuntimeExportProvider.DirectActivationPlan? plan))
+                            {
+                                if (part.SharingBoundary?.Length > 0
+                                    && plan.OperationCount < NamedBoundaryDirectActivationPlanMinimumOperationCount)
+                                {
+                                    return null;
+                                }
+
+                                Interlocked.Increment(ref this.directActivationPlanCount);
+                                return plan;
+                            }
+
+                            return null;
+                        },
+                        LazyThreadSafetyMode.ExecutionAndPublication));
+                activationPlan = lazyPlan.Value;
+                return activationPlan is object;
+            }
+
+            internal bool TryGetExistingDirectActivationPlan(
+                RuntimeComposition.RuntimePart part,
+                [NotNullWhen(true)] out RuntimeExportProvider.DirectActivationPlan? activationPlan)
+            {
+                if (this.directActivationPlans.TryGetValue(part, out Lazy<RuntimeExportProvider.DirectActivationPlan?>? lazyPlan))
+                {
+                    activationPlan = lazyPlan.Value;
+                    return activationPlan is object;
+                }
+
+                activationPlan = null;
+                return false;
+            }
+
             internal Action<object, object?> GetOrCreateImportingMemberSetter(MemberInfo member)
+                => this.GetOrCreateLazyImportingMemberSetter(member).Value;
+
+            internal Lazy<Action<object, object?>> GetOrCreateLazyImportingMemberSetter(MemberInfo member)
             {
                 return this.importingMemberSetters.GetOrAdd(
                     member,
@@ -72,10 +147,13 @@ namespace Microsoft.VisualStudio.Composition
                             Interlocked.Increment(ref this.expressionCompilationCount);
                             return member.CreateImportingMemberSetter();
                         },
-                        LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+                        LazyThreadSafetyMode.ExecutionAndPublication));
             }
 
             internal Func<object?[], object?> GetOrCreateInstanceFactory(MethodBase method)
+                => this.GetOrCreateLazyInstanceFactory(method).Value;
+
+            internal Lazy<Func<object?[], object?>> GetOrCreateLazyInstanceFactory(MethodBase method)
             {
                 return this.instanceFactories.GetOrAdd(
                     method,
@@ -85,7 +163,7 @@ namespace Microsoft.VisualStudio.Composition
                             Interlocked.Increment(ref this.expressionCompilationCount);
                             return method.CreateInstanceFactory();
                         },
-                        LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+                        LazyThreadSafetyMode.ExecutionAndPublication));
             }
 
             internal bool TryGetInstanceFactory(RuntimeComposition.RuntimePart part, MethodBase method, out Func<object?[], object?>? factory)
