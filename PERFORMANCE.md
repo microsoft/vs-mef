@@ -23,7 +23,7 @@ Benchmark results should be considered together with startup time, allocation da
 
 ## Low-JIT-cost optimizations
 
-The `perf-optimizations` branch and its pull request deliberately avoid adding expression-compiled activation methods. They include:
+The low-JIT-cost optimizations deliberately avoid adding expression-compiled activation methods. They include:
 
 - Caching exact runtime export lookups for `GetExportedValue<T>()`.
 - Caching initialized shared root values without using `Lazy<T>`, which would break supported reentrant activation.

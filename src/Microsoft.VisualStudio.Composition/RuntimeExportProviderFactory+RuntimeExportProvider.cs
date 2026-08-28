@@ -97,13 +97,18 @@ namespace Microsoft.VisualStudio.Composition
                     return true;
                 }
 
-                value = this.GetRuntimeExportedValue(lookup, type);
-                lookup.SetSharedValue(value);
+                value = this.GetRuntimeExportedValue(lookup, type, out bool isFullyInitialized);
+                if (isFullyInitialized)
+                {
+                    lookup.SetSharedValue(value);
+                }
+
                 return true;
             }
 
-            private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type)
+            private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type, out bool isFullyInitialized)
             {
+                isFullyInitialized = false;
                 MemberInfo? exportingMember = lookup.Export!.Member;
                 if (exportingMember?.IsStatic() == true)
                 {
@@ -118,6 +123,7 @@ namespace Microsoft.VisualStudio.Composition
                     !lookup.Part.IsShared,
                     nonSharedPartOwner: null);
                 object? part = partLifecycle.GetValueReadyToExpose();
+                isFullyInitialized = partLifecycle.State == PartLifecycleState.Final;
                 return lookup.Export.MemberRef is null
                     ? part
                     : GetValueFromMember(part, exportingMember!, type, lookup.Export.ExportedValueTypeRef.Resolve());
