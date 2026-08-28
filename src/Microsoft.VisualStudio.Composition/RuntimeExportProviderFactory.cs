@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.Composition
     {
         private const int ActivationExpressionCompilationThreshold = 2;
         private const int NamedBoundaryDirectActivationPlanMinimumOperationCount = 4;
+        private const int FusedActivationPlanMaximumOperationCount = 64;
 
         private readonly ActivationPlanRegistry activationPlanRegistry;
         private readonly RuntimeComposition composition;
@@ -39,6 +40,10 @@ namespace Microsoft.VisualStudio.Composition
 
         internal int DirectActivationPlanCount => this.activationPlanRegistry.DirectActivationPlanCount;
 
+        internal int FusedActivationPlanCount => this.activationPlanRegistry.FusedActivationPlanCount;
+
+        internal int FusedExpressionCompilationCount => this.activationPlanRegistry.FusedExpressionCompilationCount;
+
         public ExportProvider CreateExportProvider()
         {
             return new RuntimeExportProvider(this.composition, this.activationPlanRegistry);
@@ -57,8 +62,12 @@ namespace Microsoft.VisualStudio.Composition
             private readonly ConcurrentDictionary<MemberInfo, Lazy<Action<object, object?>>> importingMemberSetters = new();
             private readonly ConcurrentDictionary<RuntimeComposition.RuntimePart, Lazy<RuntimeExportProvider.DirectActivationPlan?>> directActivationPlans = new();
             private readonly ConcurrentDictionary<RuntimeComposition.RuntimePart, int> directActivationPlanCounts = new();
+            private readonly ConcurrentDictionary<RuntimeComposition.RuntimePart, int> exportFactoryActivationCounts = new();
+            private readonly ConcurrentDictionary<RuntimeComposition.RuntimePart, Lazy<RuntimeExportProvider.DirectActivationPlan?>> fusedActivationPlans = new();
             private int directActivationPlanCount;
             private int expressionCompilationCount;
+            private int fusedActivationPlanCount;
+            private int fusedExpressionCompilationCount;
 
             internal ActivationPlanRegistry(ExportProviderFactoryOptions options)
             {
@@ -69,7 +78,22 @@ namespace Microsoft.VisualStudio.Composition
 
             internal int DirectActivationPlanCount => Volatile.Read(ref this.directActivationPlanCount);
 
+            internal int FusedActivationPlanCount => Volatile.Read(ref this.fusedActivationPlanCount);
+
+            internal int FusedExpressionCompilationCount => Volatile.Read(ref this.fusedExpressionCompilationCount);
+
             internal bool IsExpressionCompilationEnabled { get; }
+
+            internal void RecordExportFactoryActivation(RuntimeComposition.RuntimePart part)
+            {
+                if (this.IsExpressionCompilationEnabled && IsEligibleForRepeatedActivation(part))
+                {
+                    this.exportFactoryActivationCounts.AddOrUpdate(
+                        part,
+                        1,
+                        static (_, count) => count < ActivationExpressionCompilationThreshold ? count + 1 : count);
+                }
+            }
 
             internal bool TryGetDirectActivationPlan(
                 RuntimeExportProvider exportProvider,
@@ -80,6 +104,13 @@ namespace Microsoft.VisualStudio.Composition
                 if (!this.IsExpressionCompilationEnabled || !IsEligibleForRepeatedActivation(part))
                 {
                     return false;
+                }
+
+                if (this.exportFactoryActivationCounts.TryGetValue(part, out int factoryActivationCount)
+                    && factoryActivationCount >= ActivationExpressionCompilationThreshold
+                    && this.TryGetFusedActivationPlan(exportProvider, part, out activationPlan))
+                {
+                    return true;
                 }
 
                 if (this.TryGetExistingDirectActivationPlan(part, out activationPlan))
@@ -132,6 +163,40 @@ namespace Microsoft.VisualStudio.Composition
 
                 activationPlan = null;
                 return false;
+            }
+
+            private bool TryGetFusedActivationPlan(
+                RuntimeExportProvider exportProvider,
+                RuntimeComposition.RuntimePart part,
+                [NotNullWhen(true)] out RuntimeExportProvider.DirectActivationPlan? activationPlan)
+            {
+                Lazy<RuntimeExportProvider.DirectActivationPlan?> lazyPlan = this.fusedActivationPlans.GetOrAdd(
+                    part,
+                    part => new Lazy<RuntimeExportProvider.DirectActivationPlan?>(
+                        () =>
+                        {
+                            if (exportProvider.TryCreateFusedActivationPlan(
+                                part,
+                                NamedBoundaryDirectActivationPlanMinimumOperationCount,
+                                FusedActivationPlanMaximumOperationCount,
+                                out RuntimeExportProvider.DirectActivationPlan? plan))
+                            {
+                                Interlocked.Increment(ref this.directActivationPlanCount);
+                                Interlocked.Increment(ref this.fusedActivationPlanCount);
+                                return plan;
+                            }
+
+                            return null;
+                        },
+                        LazyThreadSafetyMode.ExecutionAndPublication));
+                activationPlan = lazyPlan.Value;
+                return activationPlan is object;
+            }
+
+            internal void RecordFusedExpressionCompilation()
+            {
+                Interlocked.Increment(ref this.expressionCompilationCount);
+                Interlocked.Increment(ref this.fusedExpressionCompilationCount);
             }
 
             internal Action<object, object?> GetOrCreateImportingMemberSetter(MemberInfo member)

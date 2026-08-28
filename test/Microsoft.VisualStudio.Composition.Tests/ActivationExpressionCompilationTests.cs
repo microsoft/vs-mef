@@ -115,6 +115,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 BoundaryGraphRoot root = first.Value;
                 Assert.Equal(0, GetDirectActivationPlanCount(factory));
+                Assert.Equal(0, GetFusedActivationPlanCount(factory));
                 Assert.Same(root.Scoped, root.Leaf.Scoped);
                 firstScoped = root.Scoped;
                 global = root.Global;
@@ -130,6 +131,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 BoundaryGraphRoot root = second.Value;
                 Assert.Equal(1, GetDirectActivationPlanCount(factory));
+                Assert.Equal(1, GetFusedActivationPlanCount(factory));
+                Assert.Equal(2, GetFusedExpressionCompilationCount(factory));
+                Assert.Equal(3, GetExpressionCompilationCount(factory));
                 Assert.Same(root.Scoped, root.Leaf.Scoped);
                 Assert.NotSame(firstScoped, root.Scoped);
                 Assert.Same(global, root.Global);
@@ -141,6 +145,110 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.False(global.IsDisposed);
             provider.Dispose();
             Assert.True(global.IsDisposed);
+        }
+
+        /// <summary>
+        /// Verifies that incidental activation does not trigger fusion before an export factory is exercised twice.
+        /// </summary>
+        [Fact]
+        public void FusedActivationRequiresRepeatedExportFactoryUse()
+        {
+            IExportProviderFactory factory = CreateFactory(
+                ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+                typeof(FactoryOnlyOwner),
+                typeof(FactoryOnlyRoot),
+                typeof(FactoryOnlyDependencyA),
+                typeof(FactoryOnlyDependencyB),
+                typeof(FactoryOnlyDependencyC),
+                typeof(FactoryOnlyDependencyD));
+            using ExportProvider provider = factory.CreateExportProvider();
+
+            _ = provider.GetExportedValue<FactoryOnlyRoot>();
+            _ = provider.GetExportedValue<FactoryOnlyRoot>();
+            Assert.Equal(0, GetFusedActivationPlanCount(factory));
+
+            FactoryOnlyOwner owner = provider.GetExportedValue<FactoryOnlyOwner>();
+            using (Export<FactoryOnlyRoot> first = owner.Factory.CreateExport())
+            {
+                _ = first.Value;
+                Assert.Equal(0, GetFusedActivationPlanCount(factory));
+            }
+
+            using (Export<FactoryOnlyRoot> second = owner.Factory.CreateExport())
+            {
+                _ = second.Value;
+                Assert.Equal(1, GetFusedActivationPlanCount(factory));
+                Assert.Equal(1, GetFusedExpressionCompilationCount(factory));
+            }
+        }
+
+        /// <summary>
+        /// Verifies that fused member imports preserve the lifecycle engine's failure diagnostics.
+        /// </summary>
+        [Fact]
+        public void FusedActivationPreservesImportFailureDiagnostics()
+        {
+            IExportProviderFactory factory = CreateFactory(
+                ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+                typeof(FailingFactoryOwner),
+                typeof(FailingFactoryRoot),
+                typeof(ThrowingDependency),
+                typeof(FactoryOnlyDependencyA),
+                typeof(FactoryOnlyDependencyB));
+            using ExportProvider provider = factory.CreateExportProvider();
+            FailingFactoryOwner owner = provider.GetExportedValue<FailingFactoryOwner>();
+
+            CompositionFailedException firstException = Assert.Throws<CompositionFailedException>(
+                () =>
+                {
+                    using Export<FailingFactoryRoot> first = owner.Factory.CreateExport();
+                });
+
+            CompositionFailedException secondException = Assert.Throws<CompositionFailedException>(
+                () =>
+                {
+                    using Export<FailingFactoryRoot> second = owner.Factory.CreateExport();
+                });
+
+            Assert.Equal(1, GetFusedActivationPlanCount(factory));
+            Assert.Equal(firstException.Message, secondException.Message);
+            Assert.Equal(firstException.InnerException?.Message, secondException.InnerException?.Message);
+        }
+
+        /// <summary>
+        /// Verifies that a nested export factory remains deferred while the surrounding island is fused.
+        /// </summary>
+        [Fact]
+        public void FusedActivationStopsAtNestedExportFactory()
+        {
+            IExportProviderFactory factory = CreateFactory(
+                ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+                typeof(NestedFactoryOwner),
+                typeof(NestedFactoryRoot),
+                typeof(DeferredFactoryPart),
+                typeof(DeferredFactoryControl),
+                typeof(FactoryOnlyDependencyA),
+                typeof(FactoryOnlyDependencyB),
+                typeof(FactoryOnlyDependencyC),
+                typeof(FactoryOnlyDependencyD));
+            using ExportProvider provider = factory.CreateExportProvider();
+            NestedFactoryOwner owner = provider.GetExportedValue<NestedFactoryOwner>();
+            DeferredFactoryControl control = provider.GetExportedValue<DeferredFactoryControl>();
+
+            using (Export<NestedFactoryRoot> first = owner.Factory.CreateExport())
+            {
+                Assert.Equal(0, control.ActivationCount);
+            }
+
+            using (Export<NestedFactoryRoot> second = owner.Factory.CreateExport())
+            {
+                Assert.Equal(1, GetFusedActivationPlanCount(factory));
+                Assert.Equal(0, control.ActivationCount);
+
+                using Export<DeferredFactoryPart> nested = second.Value.NestedFactory.CreateExport();
+                Assert.NotNull(nested.Value);
+                Assert.Equal(1, control.ActivationCount);
+            }
         }
 
         /// <summary>
@@ -350,6 +458,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return (int)property.GetValue(factory)!;
         }
 
+        private static int GetFusedActivationPlanCount(IExportProviderFactory factory)
+        {
+            PropertyInfo property = factory.GetType().GetProperty("FusedActivationPlanCount", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            return (int)property.GetValue(factory)!;
+        }
+
+        private static int GetFusedExpressionCompilationCount(IExportProviderFactory factory)
+        {
+            PropertyInfo property = factory.GetType().GetProperty("FusedExpressionCompilationCount", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            return (int)property.GetValue(factory)!;
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static WeakReference CreateAndDisposeCompiledBoundary(BoundaryPlanOwner owner)
         {
@@ -488,6 +608,114 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal bool IsDisposed { get; private set; }
 
             public void Dispose() => this.IsDisposed = true;
+        }
+
+        [Export, Shared]
+        private sealed class FactoryOnlyOwner
+        {
+            [Import]
+            internal ExportFactory<FactoryOnlyRoot> Factory { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class FactoryOnlyRoot
+        {
+            [ImportingConstructor]
+            internal FactoryOnlyRoot(
+                FactoryOnlyDependencyA dependencyA,
+                FactoryOnlyDependencyB dependencyB,
+                FactoryOnlyDependencyC dependencyC,
+                FactoryOnlyDependencyD dependencyD)
+            {
+            }
+        }
+
+        [Export]
+        private sealed class FactoryOnlyDependencyA
+        {
+        }
+
+        [Export]
+        private sealed class FactoryOnlyDependencyB
+        {
+        }
+
+        [Export]
+        private sealed class FactoryOnlyDependencyC
+        {
+        }
+
+        [Export]
+        private sealed class FactoryOnlyDependencyD
+        {
+        }
+
+        [Export, Shared]
+        private sealed class FailingFactoryOwner
+        {
+            [Import]
+            internal ExportFactory<FailingFactoryRoot> Factory { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class FailingFactoryRoot
+        {
+            [Import]
+            internal ThrowingDependency FailingImport { get; set; } = null!;
+
+            [Import]
+            internal FactoryOnlyDependencyA DependencyA { get; set; } = null!;
+
+            [Import]
+            internal FactoryOnlyDependencyB DependencyB { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class ThrowingDependency
+        {
+            internal ThrowingDependency()
+            {
+                throw new InvalidOperationException("Expected activation failure.");
+            }
+        }
+
+        [Export, Shared]
+        private sealed class NestedFactoryOwner
+        {
+            [Import]
+            internal ExportFactory<NestedFactoryRoot> Factory { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class NestedFactoryRoot
+        {
+            [ImportingConstructor]
+            internal NestedFactoryRoot(
+                FactoryOnlyDependencyA dependencyA,
+                FactoryOnlyDependencyB dependencyB,
+                FactoryOnlyDependencyC dependencyC,
+                FactoryOnlyDependencyD dependencyD)
+            {
+            }
+
+            [Import]
+            internal ExportFactory<DeferredFactoryPart> NestedFactory { get; set; } = null!;
+        }
+
+        [Export]
+        private sealed class DeferredFactoryPart
+        {
+            [ImportingConstructor]
+            internal DeferredFactoryPart(DeferredFactoryControl control)
+            {
+                control.ActivationCount++;
+            }
+        }
+
+        [Export, Shared]
+        private sealed class DeferredFactoryControl
+        {
+            internal int ActivationCount { get; set; }
         }
 
         [Export]
