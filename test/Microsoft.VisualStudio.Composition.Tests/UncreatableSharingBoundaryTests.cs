@@ -112,15 +112,49 @@ public class UncreatableSharingBoundaryTests
     public void TransitivelyInvalidPartDoesNotMakeSharingBoundaryCreatable(IContainer container)
     {
         var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
-        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
-        Assert.Equal(typeof(InvalidDependency), Assert.Single(rootCause.Parts).Definition.Type);
-
-        var secondOrderRejectedPartTypes = v3Container.Configuration.CompositionErrors.Pop().Peek()
+        var rootRejectedPartTypes = v3Container.Configuration.CompositionErrors.Peek()
             .Select(error => Assert.Single(error.Parts).Definition.Type)
             .ToHashSet();
-        Assert.Equal(2, secondOrderRejectedPartTypes.Count);
-        Assert.Contains(typeof(FactoryOwnerWithInvalidDependency), secondOrderRejectedPartTypes);
-        Assert.Contains(typeof(ScopedFromTransitivelyInvalidFactory), secondOrderRejectedPartTypes);
+        Assert.Equal(2, rootRejectedPartTypes.Count);
+        Assert.Contains(typeof(InvalidDependency), rootRejectedPartTypes);
+        Assert.Contains(typeof(ScopedFromTransitivelyInvalidFactory), rootRejectedPartTypes);
+
+        var secondOrderRejections = v3Container.Configuration.CompositionErrors.Pop().Peek();
+        Assert.Equal(2, secondOrderRejections.Count);
+        Assert.All(secondOrderRejections, rejection => Assert.Equal(typeof(FactoryOwnerWithInvalidDependency), Assert.Single(rejection.Parts).Definition.Type));
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(UniqueMessageHandler),
+        typeof(ScopedMessageHandler),
+        typeof(RootWithImportManyAndValidFactory),
+        typeof(ValidScopedPart),
+        InvalidConfiguration = true)]
+    public void ImportManyPruningDoesNotInvalidateFactoryOwner(IContainer container)
+    {
+        var root = container.GetExportedValue<RootWithImportManyAndValidFactory>();
+        Assert.IsType<UniqueMessageHandler>(Assert.Single(root.Handlers));
+        Assert.IsType<ValidScopedPart>(root.Factory.CreateExport().Value);
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithSiblingFactories),
+        typeof(SiblingScopeA),
+        typeof(SiblingScopeB),
+        typeof(PartRequiringSiblingScopes),
+        typeof(UncreatableNestedScope),
+        InvalidConfiguration = true)]
+    public void SiblingSharingBoundariesDoNotCombineForReachability(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
+        Assert.Equal(typeof(UncreatableNestedScope), Assert.Single(rootCause.Parts).Definition.Type);
+
+        var root = container.GetExportedValue<RootWithSiblingFactories>();
+        Assert.IsType<SiblingScopeA>(root.FactoryA.CreateExport().Value);
+        Assert.IsType<SiblingScopeB>(root.FactoryB.CreateExport().Value);
     }
 
     public interface IMessageHandler { }
@@ -209,4 +243,49 @@ public class UncreatableSharingBoundaryTests
 
     [Export, Shared("madeByTransitivelyInvalid")]
     public class ScopedFromTransitivelyInvalidFactory { }
+
+    [Export, Shared]
+    public class RootWithImportManyAndValidFactory
+    {
+        [ImportMany]
+        public ICollection<IMessageHandler> Handlers { get; set; } = null!;
+
+        [Import, SharingBoundary("valid")]
+        public ExportFactory<ValidScopedPart> Factory { get; set; } = null!;
+    }
+
+    [Export, Shared("valid")]
+    public class ValidScopedPart { }
+
+    [Export, Shared]
+    public class RootWithSiblingFactories
+    {
+        [Import, SharingBoundary("A")]
+        public ExportFactory<SiblingScopeA> FactoryA { get; set; } = null!;
+
+        [Import, SharingBoundary("B")]
+        public ExportFactory<SiblingScopeB> FactoryB { get; set; } = null!;
+    }
+
+    [Export, Shared("A")]
+    public class SiblingScopeA { }
+
+    [Export, Shared("B")]
+    public class SiblingScopeB { }
+
+    [Export]
+    public class PartRequiringSiblingScopes
+    {
+        [Import]
+        public SiblingScopeA ScopeA { get; set; } = null!;
+
+        [Import]
+        public SiblingScopeB ScopeB { get; set; } = null!;
+
+        [Import, SharingBoundary("C")]
+        public ExportFactory<UncreatableNestedScope> FactoryC { get; set; } = null!;
+    }
+
+    [Export, Shared("C")]
+    public class UncreatableNestedScope { }
 }
