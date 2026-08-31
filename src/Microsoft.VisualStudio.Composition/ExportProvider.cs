@@ -513,7 +513,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns>A task that completes when disposal finishes.</returns>
         protected virtual async ValueTask DisposeAsyncCore()
         {
-            List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
+            IReadOnlyList<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
             await DisposeSnapshotAsync(disposableSnapshot, this.disposalStartedSynchronously).ConfigureAwait(false);
         }
 
@@ -621,7 +621,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot, bool disposeSynchronously)
+        private static async ValueTask DisposeSnapshotAsync(IReadOnlyList<IDisposable> disposableSnapshot, bool disposeSynchronously)
         {
             List<Exception>? exceptions = null;
             foreach (IDisposable item in disposableSnapshot)
@@ -650,7 +650,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private List<IDisposable> TakeDisposableSnapshot()
+        private IReadOnlyList<IDisposable> TakeDisposableSnapshot()
         {
             this.isDisposed = true;
 
