@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Xunit;
+using MefV1 = System.ComponentModel.Composition;
 
 /// <summary>
 /// Verifies that parts in sharing boundaries that cannot be created are rejected during composition.
@@ -68,6 +69,23 @@ public class UncreatableSharingBoundaryTests
         Assert.Null(container.GetExportedValue<RootWithUnsatisfiedBoundaryFactory>().Factory);
     }
 
+    [MefFact(
+        CompositionEngines.V3EmulatingV1AndV2AtOnce | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(InferredOrphanPart),
+        typeof(OrphanPart),
+        InvalidConfiguration = true)]
+    public void InferredUncreatableSharingBoundaryRejectsPart(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rejectedPartTypes = v3Container.Configuration.CompositionErrors.Peek()
+            .Select(error => Assert.Single(error.Parts).Definition.Type)
+            .ToHashSet();
+
+        Assert.Equal(2, rejectedPartTypes.Count);
+        Assert.Contains(typeof(InferredOrphanPart), rejectedPartTypes);
+        Assert.Contains(typeof(OrphanPart), rejectedPartTypes);
+    }
+
     public interface IMessageHandler { }
 
     [Export(typeof(IMessageHandler))]
@@ -114,4 +132,11 @@ public class UncreatableSharingBoundaryTests
 
     [Export, Shared("orphan")]
     public class OrphanPart { }
+
+    [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.Shared)]
+    public class InferredOrphanPart
+    {
+        [MefV1.ImportMany]
+        public ICollection<OrphanPart> Parts { get; set; } = null!;
+    }
 }

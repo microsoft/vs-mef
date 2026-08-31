@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition
                 errors.AddRange(part.Validate(metadataViewsAndProviders));
             }
 
-            errors.AddRange(FindPartsInUncreatableSharingBoundaries(parts));
+            errors.AddRange(FindPartsInUncreatableSharingBoundaries(parts, sharingBoundaryOverrides));
 
             // Detect loops of all non-shared parts.
             errors.AddRange(FindLoops(parts));
@@ -386,9 +386,12 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private static IEnumerable<ComposedPartDiagnostic> FindPartsInUncreatableSharingBoundaries(IEnumerable<ComposedPart> parts)
+        private static IEnumerable<ComposedPartDiagnostic> FindPartsInUncreatableSharingBoundaries(
+            IEnumerable<ComposedPart> parts,
+            ImmutableDictionary<ComposablePartDefinition, string> sharingBoundaryOverrides)
         {
             Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(sharingBoundaryOverrides, nameof(sharingBoundaryOverrides));
 
             var partsList = parts.ToList();
             var creatableSharingBoundaries = new HashSet<string>();
@@ -412,7 +415,9 @@ namespace Microsoft.VisualStudio.Composition
 
             foreach (var part in partsList)
             {
-                string? sharingBoundary = part.Definition.SharingBoundary;
+                string? sharingBoundary = sharingBoundaryOverrides.TryGetValue(part.Definition, out string? effectiveSharingBoundary)
+                    ? effectiveSharingBoundary
+                    : part.Definition.SharingBoundary;
                 if (!string.IsNullOrEmpty(sharingBoundary) && !creatableSharingBoundaries.Contains(sharingBoundary!))
                 {
                     yield return new ComposedPartDiagnostic(part, Strings.SharingBoundaryHasNoExportFactory, sharingBoundary);
