@@ -71,6 +71,26 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(part.IsDisposed);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(CachedSharedPart), typeof(ThrowingDisposableSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void DisposedProviderReleasesCachedSharedValueWhenPartDisposalThrows(IContainer container)
+        {
+            WeakReference cachedPart = DisposedProviderReleasesCachedSharedValueWhenPartDisposalThrowsHelper(container);
+            GC.Collect();
+            Assert.False(cachedPart.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference DisposedProviderReleasesCachedSharedValueWhenPartDisposalThrowsHelper(IContainer container)
+        {
+            var cachedPart = container.GetExportedValue<CachedSharedPart>();
+            _ = container.GetExportedValue<ThrowingDisposableSharedPart>();
+            var weakReference = new WeakReference(cachedPart);
+            Assert.Throws<AggregateException>(() => container.Dispose());
+            return weakReference;
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart), typeof(NonSharedPartThatImportsDisposableNonSharedPart))]
         public void DisposableNonSharedPartDisposedWithContainerAfterImportToANonSharedPart(IContainer container)
         {
@@ -138,6 +158,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public void Dispose()
             {
                 this.IsDisposed = true;
+            }
+        }
+
+        [Export, Shared]
+        public class CachedSharedPart : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+
+        [Export, Shared]
+        public class ThrowingDisposableSharedPart : IDisposable
+        {
+            public void Dispose()
+            {
+                throw new InvalidOperationException();
             }
         }
 

@@ -37,6 +37,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("Andrew", actual);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(LifecycleObservingExport), typeof(LifecycleDependency))]
+        public void ExportedPropertyIsReadBeforeImportsAreSatisfied(IContainer container)
+        {
+            Assert.Equal("before", container.GetExportedValue<string>("LifecycleObservingProperty"));
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         public void ExportedPropertyValueDoesNotGetDisposed(IContainer container)
         {
@@ -117,6 +123,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             actual = container.GetExportedValue<Action>("Method_Extra_Export");
             Assert.NotNull(actual);
+        }
+
+        [Export]
+        public class LifecycleObservingExport
+        {
+            [Import]
+            public LifecycleDependency Dependency { get; set; } = null!;
+
+            [Export("LifecycleObservingProperty")]
+            public string Value => this.Dependency is null ? "before" : "after";
+        }
+
+        [Export]
+        public class LifecycleDependency
+        {
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]

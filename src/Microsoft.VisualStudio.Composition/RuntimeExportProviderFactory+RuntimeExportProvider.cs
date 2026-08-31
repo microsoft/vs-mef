@@ -79,6 +79,22 @@ namespace Microsoft.VisualStudio.Composition
                 this.activationPlanRegistry = activationPlanRegistry;
             }
 
+            /// <inheritdoc/>
+            protected override void Dispose(bool disposing)
+            {
+                try
+                {
+                    base.Dispose(disposing);
+                }
+                finally
+                {
+                    if (disposing)
+                    {
+                        this.runtimeExportLookupCache.Clear();
+                    }
+                }
+            }
+
             private protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
@@ -180,6 +196,11 @@ namespace Microsoft.VisualStudio.Composition
 
             private RuntimeExportLookup CreateRuntimeExportLookup(Type type, string contractName)
             {
+                if (type.IsEquivalentTo(typeof(object)))
+                {
+                    return RuntimeExportLookup.Unsupported;
+                }
+
                 IReadOnlyCollection<RuntimeComposition.RuntimeExport> exports = this.composition.GetExports(contractName);
                 string typeIdentity = ContractNameServices.GetTypeIdentity(type);
                 RuntimeComposition.RuntimeExport? matchingExport = null;
@@ -194,15 +215,15 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                if (matchingExportCount != 1)
+                if (matchingExportCount != 1 || matchingExport!.MemberRef is object)
                 {
                     return RuntimeExportLookup.Unsupported;
                 }
 
-                RuntimeComposition.RuntimePart part = this.composition.GetPart(matchingExport!);
+                RuntimeComposition.RuntimePart part = this.composition.GetPart(matchingExport);
                 return part.TypeRef.IsGenericTypeDefinition
                     ? RuntimeExportLookup.Unsupported
-                    : new RuntimeExportLookup(part, matchingExport!);
+                    : new RuntimeExportLookup(part, matchingExport);
             }
 
             internal bool TryCreateDirectActivationPlan(
