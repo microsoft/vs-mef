@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -18,6 +19,22 @@ using Xunit;
 /// </summary>
 public class ActivationExpressionCompilationTests
 {
+    /// <summary>
+    /// Verifies that unsupported expression compilation is reported as unavailable instead of throwing.
+    /// </summary>
+    [Fact]
+    public void ExpressionCompilationFailureReturnsFalse()
+    {
+        Expression<Func<int>> expression = Expression.Lambda<Func<int>>(new UnsupportedCompilationExpression());
+        MethodInfo tryCompileMethod = typeof(ReflectionHelpers)
+            .GetMethod("TryCompile", BindingFlags.Static | BindingFlags.NonPublic)!
+            .MakeGenericMethod(typeof(Func<int>));
+        object?[] arguments = new object?[] { expression, null };
+
+        Assert.False((bool)tryCompileMethod.Invoke(null, arguments)!);
+        Assert.Null(arguments[1]);
+    }
+
     /// <summary>
     /// Verifies that expression compilation is disabled by default.
     /// </summary>
@@ -751,5 +768,16 @@ public class ActivationExpressionCompilationTests
     [Export(typeof(IAdapter))]
     private sealed class SecondAdapter : IAdapter
     {
+    }
+
+    private sealed class UnsupportedCompilationExpression : Expression
+    {
+        public override bool CanReduce => true;
+
+        public override ExpressionType NodeType => ExpressionType.Extension;
+
+        public override Type Type => typeof(int);
+
+        public override Expression Reduce() => throw new PlatformNotSupportedException();
     }
 }

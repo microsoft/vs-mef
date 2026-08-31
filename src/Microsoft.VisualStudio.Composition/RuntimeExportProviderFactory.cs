@@ -199,9 +199,6 @@ namespace Microsoft.VisualStudio.Composition
                 Interlocked.Increment(ref this.fusedExpressionCompilationCount);
             }
 
-            internal Action<object, object?> GetOrCreateImportingMemberSetter(MemberInfo member)
-                => this.GetOrCreateLazyImportingMemberSetter(member).Value;
-
             internal Lazy<Action<object, object?>> GetOrCreateLazyImportingMemberSetter(MemberInfo member)
             {
                 return this.importingMemberSetters.GetOrAdd(
@@ -209,14 +206,24 @@ namespace Microsoft.VisualStudio.Composition
                     member => new Lazy<Action<object, object?>>(
                         () =>
                         {
-                            Interlocked.Increment(ref this.expressionCompilationCount);
-                            return member.CreateImportingMemberSetter();
+                            try
+                            {
+                                Action<object, object?> setter = member.CreateImportingMemberSetter();
+                                Interlocked.Increment(ref this.expressionCompilationCount);
+                                return setter;
+                            }
+                            catch (Exception ex) when (ex.IsExpressionCompilationFailure())
+                            {
+                                return member switch
+                                {
+                                    PropertyInfo property => (instance, value) => property.SetValue(instance, value),
+                                    FieldInfo field => (instance, value) => field.SetValue(instance, value),
+                                    _ => throw new NotSupportedException(),
+                                };
+                            }
                         },
                         LazyThreadSafetyMode.ExecutionAndPublication));
             }
-
-            internal Func<object?[], object?> GetOrCreateInstanceFactory(MethodBase method)
-                => this.GetOrCreateLazyInstanceFactory(method).Value;
 
             internal Lazy<Func<object?[], object?>> GetOrCreateLazyInstanceFactory(MethodBase method)
             {
@@ -225,8 +232,16 @@ namespace Microsoft.VisualStudio.Composition
                     method => new Lazy<Func<object?[], object?>>(
                         () =>
                         {
-                            Interlocked.Increment(ref this.expressionCompilationCount);
-                            return method.CreateInstanceFactory();
+                            try
+                            {
+                                Func<object?[], object?> factory = method.CreateInstanceFactory();
+                                Interlocked.Increment(ref this.expressionCompilationCount);
+                                return factory;
+                            }
+                            catch (Exception ex) when (ex.IsExpressionCompilationFailure())
+                            {
+                                return arguments => method.Instantiate(arguments);
+                            }
                         },
                         LazyThreadSafetyMode.ExecutionAndPublication));
             }
@@ -254,7 +269,7 @@ namespace Microsoft.VisualStudio.Composition
                     return false;
                 }
 
-                factory = this.GetOrCreateInstanceFactory(method);
+                factory = this.GetOrCreateLazyInstanceFactory(method).Value;
                 return true;
             }
 

@@ -756,6 +756,33 @@ namespace Microsoft.VisualStudio.Composition
             return Expression.Lambda<Action<object, object?>>(assignment, instance, value).Compile();
         }
 
+        internal static bool TryCompile<TDelegate>(this Expression<TDelegate> expression, [NotNullWhen(true)] out TDelegate? compiledDelegate)
+            where TDelegate : Delegate
+        {
+            Requires.NotNull(expression, nameof(expression));
+
+            try
+            {
+                compiledDelegate = expression.Compile();
+                return true;
+            }
+            catch (Exception ex) when (ex.IsExpressionCompilationFailure())
+            {
+                compiledDelegate = null;
+                return false;
+            }
+        }
+
+        internal static bool IsExpressionCompilationFailure(this Exception exception)
+        {
+            return exception is ArgumentException
+                or InvalidOperationException
+                or MemberAccessException
+                or NotSupportedException
+                or TypeAccessException
+                or System.Security.SecurityException;
+        }
+
         private static Expression ConvertInvocationValue(Expression value, Type destinationType)
         {
             return destinationType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(destinationType) is null

@@ -370,6 +370,23 @@ namespace Microsoft.VisualStudio.Composition
                 int maximumOperationCount,
                 [NotNullWhen(true)] out DirectActivationPlan? activationPlan)
             {
+                try
+                {
+                    return this.TryCreateFusedActivationPlanCore(part, minimumOperationCount, maximumOperationCount, out activationPlan);
+                }
+                catch (Exception ex) when (ex.IsExpressionCompilationFailure())
+                {
+                    activationPlan = null;
+                    return false;
+                }
+            }
+
+            private bool TryCreateFusedActivationPlanCore(
+                RuntimeComposition.RuntimePart part,
+                int minimumOperationCount,
+                int maximumOperationCount,
+                [NotNullWhen(true)] out DirectActivationPlan? activationPlan)
+            {
                 activationPlan = null;
                 var exportProviderParameter = Expression.Parameter(typeof(RuntimeExportProvider), "exportProvider");
                 var importingPartTrackerParameter = Expression.Parameter(typeof(RuntimePartLifecycleTracker), "importingPartTracker");
@@ -405,12 +422,15 @@ namespace Microsoft.VisualStudio.Composition
                     return false;
                 }
 
-                Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object> createValue =
+                Expression<Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>> createValueExpression =
                     Expression.Lambda<Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>>(
                         Expression.Convert(creationExpression, typeof(object)),
                         exportProviderParameter,
-                        importingPartTrackerParameter).Compile();
-                this.activationPlanRegistry.RecordFusedExpressionCompilation();
+                        importingPartTrackerParameter);
+                if (!createValueExpression.TryCompile(out Func<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>? createValue))
+                {
+                    return false;
+                }
 
                 Action<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>? satisfyImports = null;
                 if (memberAssignments.Count > 0)
@@ -422,11 +442,21 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     satisfactionExpressions[memberAssignments.Count] = Expression.Empty();
-                    satisfyImports = Expression.Lambda<Action<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>>(
-                        Expression.Block(satisfactionExpressions),
-                        exportProviderParameter,
-                        importingPartTrackerParameter,
-                        instanceParameter).Compile();
+                    Expression<Action<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>> satisfyImportsExpression =
+                        Expression.Lambda<Action<RuntimeExportProvider, RuntimePartLifecycleTracker?, object>>(
+                            Expression.Block(satisfactionExpressions),
+                            exportProviderParameter,
+                            importingPartTrackerParameter,
+                            instanceParameter);
+                    if (!satisfyImportsExpression.TryCompile(out satisfyImports))
+                    {
+                        return false;
+                    }
+                }
+
+                this.activationPlanRegistry.RecordFusedExpressionCompilation();
+                if (satisfyImports is object)
+                {
                     this.activationPlanRegistry.RecordFusedExpressionCompilation();
                 }
 
