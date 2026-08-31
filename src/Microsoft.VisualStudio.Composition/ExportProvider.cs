@@ -14,10 +14,13 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Runtime.ExceptionServices;
     using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
     using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object?>;
+    using IAsyncDisposable = System.IAsyncDisposable;
 
-    public abstract partial class ExportProvider : IDisposableObservable
+    public abstract partial class ExportProvider : IDisposableObservable, IAsyncDisposable
     {
         internal static readonly ExportDefinition ExportProviderExportDefinition = new ExportDefinition(
             ContractNameServices.GetTypeIdentity(typeof(ExportProvider)),
@@ -60,6 +63,8 @@ namespace Microsoft.VisualStudio.Composition
         /// This field is lazy to avoid a chicken-and-egg problem with initializing it in our constructor.
         /// </remarks>
         private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>> metadataViewProviders;
+
+        private readonly JoinableTaskFactory? joinableTaskFactory;
 
         /// <summary>
         /// A map of shared boundary names to their shared instances.
@@ -106,7 +111,8 @@ namespace Microsoft.VisualStudio.Composition
             ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts,
             ImmutableHashSet<string> freshSharingBoundaries,
             ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners,
-            Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>>? inheritedMetadataViewProviders)
+            Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>>? inheritedMetadataViewProviders,
+            JoinableTaskFactory? joinableTaskFactory)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(sharedInstantiatedParts, nameof(sharedInstantiatedParts));
@@ -119,6 +125,7 @@ namespace Microsoft.VisualStudio.Composition
             this.disposableInstantiatedSharedParts = disposableInstantiatedSharedParts;
             this.freshSharingBoundaries = freshSharingBoundaries;
             this.sharingBoundaryExportProviderOwners = sharingBoundaryExportProviderOwners;
+            this.joinableTaskFactory = joinableTaskFactory;
 
             foreach (string freshSharingBoundary in freshSharingBoundaries)
             {
@@ -139,13 +146,24 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         private protected ExportProvider(Resolver resolver)
+            : this(resolver, joinableTaskFactory: null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExportProvider"/> class.
+        /// </summary>
+        /// <param name="resolver">The resolver to use.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing asynchronous parts.</param>
+        private protected ExportProvider(Resolver resolver, JoinableTaskFactory? joinableTaskFactory)
             : this(
                 resolver,
                 SharedInstantiatedPartsTemplate,
                 DisposableInstantiatedSharedPartsTemplate,
                 ImmutableHashSet.Create<string>().Add(string.Empty),
                 ImmutableDictionary.Create<string, ExportProvider>(),
-                null)
+                null,
+                joinableTaskFactory)
         {
         }
 
@@ -156,7 +174,8 @@ namespace Microsoft.VisualStudio.Composition
                   parent.disposableInstantiatedSharedParts,
                   freshSharingBoundaries,
                   parent.sharingBoundaryExportProviderOwners,
-                  parent.metadataViewProviders)
+                  parent.metadataViewProviders,
+                  parent.joinableTaskFactory)
         {
             this.Resolver = parent.Resolver;
         }
@@ -462,30 +481,25 @@ namespace Microsoft.VisualStudio.Composition
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Asynchronously disposes composed parts owned by this export provider.
+        /// </summary>
+        /// <returns>A task that completes when all disposable parts have been disposed.</returns>
+        public async ValueTask DisposeAsync()
+        {
+            await this.DisposeAsyncCore().ConfigureAwait(false);
+            GC.SuppressFinalize(this);
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
             {
-                this.isDisposed = true;
-
-                // Snapshot the contents of the collection within the lock,
-                // then dispose of the values outside the lock to avoid
-                // executing arbitrary 3rd-party code within our lock.
-                List<IDisposable> disposableSnapshot;
-                lock (this.disposableNonSharedParts)
+                List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
+                if (this.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
                 {
-                    disposableSnapshot = new List<IDisposable>(this.disposableNonSharedParts);
-                    this.disposableNonSharedParts.Clear();
-                }
-
-                foreach (var sharingBoundary in this.freshSharingBoundaries)
-                {
-                    var disposablePartsHashSet = this.disposableInstantiatedSharedParts[sharingBoundary];
-                    lock (disposablePartsHashSet)
-                    {
-                        disposableSnapshot.AddRange(disposablePartsHashSet);
-                        disposablePartsHashSet.Clear();
-                    }
+                    joinableTaskFactory.Run(async () => await DisposeSnapshotAsync(disposableSnapshot).ConfigureAwait(false));
+                    return;
                 }
 
                 // Take care to give all disposal parts a chance to dispose
@@ -513,6 +527,68 @@ namespace Microsoft.VisualStudio.Composition
                     throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
                 }
             }
+        }
+
+        private protected virtual async ValueTask DisposeAsyncCore()
+        {
+            List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
+            await DisposeSnapshotAsync(disposableSnapshot).ConfigureAwait(false);
+        }
+
+        private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot)
+        {
+            List<Exception>? exceptions = null;
+            foreach (IDisposable item in disposableSnapshot)
+            {
+                try
+                {
+                    if (item is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        item.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= new List<Exception>();
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (exceptions != null)
+            {
+                throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
+            }
+        }
+
+        private List<IDisposable> TakeDisposableSnapshot()
+        {
+            this.isDisposed = true;
+
+            // Snapshot the contents of the collection within the lock,
+            // then dispose of the values outside the lock to avoid
+            // executing arbitrary 3rd-party code within our lock.
+            List<IDisposable> disposableSnapshot;
+            lock (this.disposableNonSharedParts)
+            {
+                disposableSnapshot = new List<IDisposable>(this.disposableNonSharedParts);
+                this.disposableNonSharedParts.Clear();
+            }
+
+            foreach (string sharingBoundary in this.freshSharingBoundaries)
+            {
+                HashSet<IDisposable> disposablePartsHashSet = this.disposableInstantiatedSharedParts[sharingBoundary];
+                lock (disposablePartsHashSet)
+                {
+                    disposableSnapshot.AddRange(disposablePartsHashSet);
+                    disposablePartsHashSet.Clear();
+                }
+            }
+
+            return disposableSnapshot;
         }
 
         protected static object CannotInstantiatePartWithNoImportingConstructor()
@@ -1089,7 +1165,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Every single instantiated MEF part (including each individual NonShared instance)
         /// has an associated instance of this class to track its lifecycle from initialization to disposal.
         /// </summary>
-        internal abstract class PartLifecycleTracker : IDisposable
+        internal abstract class PartLifecycleTracker : IDisposable, IAsyncDisposable
         {
             /// <summary>
             /// An object that locks when the state machine is transitioning between states.
@@ -1259,25 +1335,27 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             public void Dispose()
             {
-                this.isDisposed = true;
-
-                if (this.IsNonShared && this.nonSharedPartOwner is null)
+                (object? value, HashSet<PartLifecycleTracker>? nonSharedChildParts) = this.TakeDisposableValues();
+                if (value is IAsyncDisposable asyncDisposable)
                 {
-                    this.OwningExportProvider.ReleaseNonSharedPart(this);
+                    if (this.OwningExportProvider.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
+                    {
+                        joinableTaskFactory.Run(async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
+                    }
+                    else if (value is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                    else
+                    {
+#pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async-only parts are disposed.
+                        asyncDisposable.DisposeAsync().AsTask().Wait();
+#pragma warning restore VSTHRD002
+                    }
                 }
-
-                IDisposable? disposableValue = this.value as IDisposable;
-                this.value = null;
-                if (disposableValue is object)
+                else
                 {
-                    disposableValue.Dispose();
-                }
-
-                HashSet<PartLifecycleTracker>? nonSharedChildParts;
-                lock (this.syncObject)
-                {
-                    nonSharedChildParts = this.nonSharedChildParts;
-                    this.nonSharedChildParts = null;
+                    (value as IDisposable)?.Dispose();
                 }
 
                 if (nonSharedChildParts is object)
@@ -1287,6 +1365,57 @@ namespace Microsoft.VisualStudio.Composition
                         descendant.Dispose();
                     }
                 }
+            }
+
+            /// <summary>
+            /// Asynchronously disposes of the MEF part if it is disposable.
+            /// </summary>
+            /// <returns>A task that completes when this part and its non-shared descendants have been disposed.</returns>
+            public async ValueTask DisposeAsync()
+            {
+                (object? value, HashSet<PartLifecycleTracker>? nonSharedChildParts) = this.TakeDisposableValues();
+                if (value is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    (value as IDisposable)?.Dispose();
+                }
+
+                if (nonSharedChildParts is object)
+                {
+                    foreach (PartLifecycleTracker descendant in nonSharedChildParts)
+                    {
+                        await descendant.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+            }
+
+            private (object? Value, HashSet<PartLifecycleTracker>? NonSharedChildParts) TakeDisposableValues()
+            {
+                object? value;
+                HashSet<PartLifecycleTracker>? nonSharedChildParts;
+                lock (this.syncObject)
+                {
+                    if (this.isDisposed)
+                    {
+                        return (null, null);
+                    }
+
+                    this.isDisposed = true;
+                    value = this.value;
+                    this.value = null;
+                    nonSharedChildParts = this.nonSharedChildParts;
+                    this.nonSharedChildParts = null;
+                }
+
+                if (this.IsNonShared && this.nonSharedPartOwner is null)
+                {
+                    this.OwningExportProvider.ReleaseNonSharedPart(this);
+                }
+
+                return (value, nonSharedChildParts);
             }
 
             /// <summary>
@@ -1392,7 +1521,7 @@ namespace Microsoft.VisualStudio.Composition
                             Assumes.True(this.State == PartLifecycleState.Creating);
                             this.Value = value;
 
-                            if (value is IDisposable)
+                            if (value is IDisposable || value is IAsyncDisposable)
                             {
                                 if (this.sharingBoundary is object || this.nonSharedPartOwner is null)
                                 {
@@ -1739,6 +1868,11 @@ namespace Microsoft.VisualStudio.Composition
 #pragma warning disable CA2215 // Dispose methods should call base class dispose
             protected override void Dispose(bool disposing)
 #pragma warning restore CA2215 // Dispose methods should call base class dispose
+            {
+                throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
+            }
+
+            private protected override ValueTask DisposeAsyncCore()
             {
                 throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
             }

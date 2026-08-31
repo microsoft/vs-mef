@@ -7,6 +7,7 @@ _layout: landing
 * [Why VS-MEF?](docs/why.md)
 * [Differences between .NET MEF, NuGet MEF and VS MEF](docs/mef_library_differences.md)
 * [Hosting](docs/hosting.md)
+* [Authoring MEF parts](docs/parts.md)
 * [Dynamic recomposition](docs/dynamic_recomposition.md)
 * [Diagnostic Analyzers](analyzers/index.md)
 * [vsmefx tool](docs/vsmefx.md)

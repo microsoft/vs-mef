@@ -16,6 +16,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
+    using IAsyncDisposable = System.IAsyncDisposable;
 
     public class CachedComposition : ICompositionCacheManager, IRuntimeCompositionCacheManager
     {
@@ -72,7 +74,24 @@ namespace Microsoft.VisualStudio.Composition
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
             return runtimeComposition.CreateExportProviderFactory();
+#pragma warning restore VSTHRD012
+        }
+
+        /// <summary>
+        /// Loads an export provider factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// </summary>
+        /// <param name="cacheStream">The stream to read the cached composition from.</param>
+        /// <param name="resolver">The resolver to use when loading the composition.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>A task whose result is the loaded export provider factory.</returns>
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
+            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
+            return runtimeComposition.CreateExportProviderFactory(joinableTaskFactory);
         }
 
         private class SerializationContext : SerializationContextBase

@@ -10,12 +10,167 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Threading;
     using Xunit;
+    using IAsyncDisposable = System.IAsyncDisposable;
     using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Disposal", "")]
     public class DisposablePartsTests
     {
+        [Fact]
+        public async Task AsyncDisposablePartDisposedWithExportProviderAsync()
+        {
+            AsyncDisposablePart.DisposalCount = 0;
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposablePart));
+            exportProvider.GetExportedValue<AsyncDisposablePart>();
+
+            await exportProvider.DisposeAsync();
+            await exportProvider.DisposeAsync();
+
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+        }
+
+        [Fact]
+        public async Task AsyncDisposalPrefersIAsyncDisposableOverIDisposable()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(DualDisposablePart));
+            DualDisposablePart part = exportProvider.GetExportedValue<DualDisposablePart>();
+
+            await exportProvider.DisposeAsync();
+
+            Assert.True(part.DisposeAsyncCalled);
+            Assert.False(part.DisposeCalled);
+        }
+
+        [Fact]
+        public async Task AsyncDisposablePartDisposedSynchronouslyWithJoinableTaskFactory()
+        {
+            AsyncDisposablePart.DisposalCount = 0;
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskContext.Factory, typeof(AsyncDisposablePart));
+            exportProvider.GetExportedValue<AsyncDisposablePart>();
+
+            exportProvider.Dispose();
+
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+        }
+
+        [Fact]
+        public async Task AsyncDisposablePartDisposedSynchronouslyWithoutJoinableTaskFactory()
+        {
+            AsyncDisposablePart.DisposalCount = 0;
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposablePart));
+            exportProvider.GetExportedValue<AsyncDisposablePart>();
+
+            exportProvider.Dispose();
+
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+        }
+
+        [Fact]
+        public async Task AsyncDisposablePartCreatedByExportFactoryDisposedSynchronouslyWithoutJoinableTaskFactory()
+        {
+            AsyncDisposablePart.DisposalCount = 0;
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposablePart), typeof(AsyncDisposablePartFactory));
+            AsyncDisposablePartFactory partFactory = exportProvider.GetExportedValue<AsyncDisposablePartFactory>();
+
+            using (partFactory.Factory.CreateExport())
+            {
+            }
+
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+            exportProvider.Dispose();
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+        }
+
+        [Fact]
+        public async Task AsyncDisposablePartCreatedByMefV1ExportFactoryDisposedSynchronouslyWithJoinableTaskFactory()
+        {
+            AsyncDisposablePart.DisposalCount = 0;
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider exportProvider = await CreateExportProviderAsync(TestUtilities.V1Discovery, joinableTaskContext.Factory, typeof(AsyncDisposablePart), typeof(AsyncDisposablePartFactoryV1));
+            AsyncDisposablePartFactoryV1 partFactory = exportProvider.GetExportedValue<AsyncDisposablePartFactoryV1>();
+
+            using (partFactory.Factory.CreateExport())
+            {
+            }
+
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+            exportProvider.Dispose();
+            Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+        }
+
+        private static async Task<ExportProvider> CreateExportProviderAsync(JoinableTaskFactory? joinableTaskFactory, params Type[] partTypes)
+        {
+            return await CreateExportProviderAsync(TestUtilities.V2Discovery, joinableTaskFactory, partTypes);
+        }
+
+        private static async Task<ExportProvider> CreateExportProviderAsync(PartDiscovery partDiscovery, JoinableTaskFactory? joinableTaskFactory, params Type[] partTypes)
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await partDiscovery.CreatePartsAsync(partTypes));
+            CompositionConfiguration configuration = CompositionConfiguration.Create(catalog);
+            IExportProviderFactory exportProviderFactory;
+            if (joinableTaskFactory is object)
+            {
+                exportProviderFactory = configuration.CreateExportProviderFactory(joinableTaskFactory);
+            }
+            else
+            {
+#pragma warning disable VSTHRD012 // This path tests direct blocking and asynchronous disposal without a joinable task factory.
+                exportProviderFactory = configuration.CreateExportProviderFactory();
+#pragma warning restore VSTHRD012
+            }
+
+            return exportProviderFactory.CreateExportProvider();
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class AsyncDisposablePart : IAsyncDisposable
+        {
+            internal static int DisposalCount;
+
+            public async ValueTask DisposeAsync()
+            {
+                await Task.Yield();
+                DisposalCount++;
+            }
+        }
+
+        [Export]
+        public class DualDisposablePart : IDisposable, IAsyncDisposable
+        {
+            internal bool DisposeCalled { get; private set; }
+
+            internal bool DisposeAsyncCalled { get; private set; }
+
+            public void Dispose()
+            {
+                this.DisposeCalled = true;
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                this.DisposeAsyncCalled = true;
+                return default;
+            }
+        }
+
+        [Export]
+        public class AsyncDisposablePartFactory
+        {
+            [Import]
+            public ExportFactory<AsyncDisposablePart> Factory { get; set; } = null!;
+        }
+
+        [MefV1.Export]
+        public class AsyncDisposablePartFactoryV1
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<AsyncDisposablePart> Factory { get; set; } = null!;
+        }
+
         #region Disposable part happy path test
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart))]
