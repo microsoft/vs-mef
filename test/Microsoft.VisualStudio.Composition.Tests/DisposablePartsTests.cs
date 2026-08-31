@@ -99,6 +99,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task DisposeAsyncCoreRunsWhenDerivedDisposeOverrideThrows()
+        {
+            ExportProvider innerExportProvider = await CreateExportProviderAsync(joinableTaskFactory: null);
+            var exportProvider = new ThrowingDisposeExportProvider(innerExportProvider);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => exportProvider.DisposeAsync().AsTask());
+
+            Assert.True(exportProvider.DisposeAsyncCoreCalled);
+        }
+
+        [Fact]
         public async Task DisposeContinuesWithNonSharedDescendantsAfterPartThrows()
         {
             DisposableChildPart.DisposalCount = 0;
@@ -352,6 +363,36 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 this.DisposeCallCount++;
                 base.Dispose(disposing);
+            }
+        }
+
+        private class ThrowingDisposeExportProvider : DelegatingExportProvider
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ThrowingDisposeExportProvider"/> class.
+            /// </summary>
+            /// <param name="inner">The export provider to delegate to.</param>
+            internal ThrowingDisposeExportProvider(ExportProvider inner)
+                : base(inner)
+            {
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether <see cref="DisposeAsyncCore"/> was invoked.
+            /// </summary>
+            internal bool DisposeAsyncCoreCalled { get; private set; }
+
+            /// <inheritdoc />
+            protected override void Dispose(bool disposing)
+            {
+                throw new InvalidOperationException();
+            }
+
+            /// <inheritdoc />
+            protected override async ValueTask DisposeAsyncCore()
+            {
+                this.DisposeAsyncCoreCalled = true;
+                await base.DisposeAsyncCore();
             }
         }
 

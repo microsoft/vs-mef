@@ -519,6 +519,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private async Task CompleteDisposalAsync(TaskCompletionSource<object?> completionSource)
         {
+            Exception? disposeException = null;
             try
             {
                 this.invokingDisposeCallback.Value = true;
@@ -530,13 +531,52 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.invokingDisposeCallback.Value = false;
                 }
-
-                await this.DisposeAsyncCore().ConfigureAwait(false);
-                completionSource.SetResult(null);
             }
             catch (Exception ex)
             {
-                completionSource.SetException(ex);
+                disposeException = ex;
+            }
+
+            Exception? asyncDisposeException = null;
+            try
+            {
+                await this.DisposeAsyncCore().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                asyncDisposeException = ex;
+            }
+
+            if (disposeException is null && asyncDisposeException is null)
+            {
+                completionSource.SetResult(null);
+            }
+            else if (disposeException is null)
+            {
+                completionSource.SetException(asyncDisposeException!);
+            }
+            else if (asyncDisposeException is null)
+            {
+                completionSource.SetException(disposeException);
+            }
+            else
+            {
+                var exceptions = new List<Exception>();
+                AddFlattenedException(exceptions, disposeException);
+                AddFlattenedException(exceptions, asyncDisposeException);
+                completionSource.SetException(new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions));
+            }
+        }
+
+        private static void AddFlattenedException(List<Exception> exceptions, Exception exception)
+        {
+            if (exception is AggregateException aggregateException)
+            {
+                exceptions.AddRange(aggregateException.Flatten().InnerExceptions);
+            }
+            else
+            {
+                exceptions.Add(exception);
             }
         }
 
@@ -1966,7 +2006,7 @@ namespace Microsoft.VisualStudio.Composition
 
             protected override ValueTask DisposeAsyncCore()
             {
-                throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
+                return default;
             }
         }
     }
