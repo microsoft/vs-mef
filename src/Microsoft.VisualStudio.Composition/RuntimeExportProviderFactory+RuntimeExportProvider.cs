@@ -1614,6 +1614,7 @@ namespace Microsoft.VisualStudio.Composition
                             out Func<object?[], object?>? instanceFactory)
                             ? instanceFactory!(ctorArgs)
                             : importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
+                        Assumes.NotNull(part);
                         return part;
                     }
                     catch (Exception ex)
