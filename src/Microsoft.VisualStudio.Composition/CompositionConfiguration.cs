@@ -399,88 +399,173 @@ namespace Microsoft.VisualStudio.Composition
 
             var partsList = parts.ToList();
             var partsByDefinition = partsList.ToDictionary(part => part.Definition, ReferenceEquality<ComposablePartDefinition>.Default);
-            var requiredSharingBoundaries = partsList.ToDictionary(
-                part => part,
-                part =>
-                {
-                    var boundaries = new HashSet<string>();
-                    string? sharingBoundary = GetEffectiveSharingBoundary(part);
-                    if (!string.IsNullOrEmpty(sharingBoundary))
-                    {
-                        boundaries.Add(sharingBoundary!);
-                    }
-
-                    return boundaries;
-                });
-            var blockedParts = new HashSet<ComposedPart>();
-            bool requirementsChanged;
-            do
+            var pessimisticUnreachableParts = AnalyzeUnreachableParts(ImmutableHashSet<ComposedPart>.Empty);
+            var unreachableParts = AnalyzeUnreachableParts(pessimisticUnreachableParts);
+            foreach (var part in unreachableParts)
             {
-                requirementsChanged = false;
-                foreach (var part in partsList.Where(part => !blockedParts.Contains(part)))
-                {
-                    foreach (var import in part.SatisfyingExports.Where(import => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne))
-                    {
-                        var viableExports = import.Value
-                            .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
-                            .ToList();
-                        if (viableExports.Count != 1)
-                        {
-                            requirementsChanged |= blockedParts.Add(part);
-                            break;
-                        }
-
-                        if (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0)
-                        {
-                            var exportedPart = partsByDefinition[viableExports[0].PartDefinition];
-                            int previousBoundaryCount = requiredSharingBoundaries[part].Count;
-                            requiredSharingBoundaries[part].UnionWith(requiredSharingBoundaries[exportedPart]);
-                            requirementsChanged |= requiredSharingBoundaries[part].Count != previousBoundaryCount;
-                        }
-                    }
-                }
+                yield return new ComposedPartDiagnostic(part, Strings.SharingBoundaryHasNoExportFactory, GetEffectiveSharingBoundary(part));
             }
-            while (requirementsChanged);
 
-            var reachableScopes = new List<(ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries)>
+            HashSet<ComposedPart> AnalyzeUnreachableParts(IReadOnlyCollection<ComposedPart> prunedOptionalExports)
             {
-                (ImmutableHashSet<string>.Empty, ImmutableHashSet<string>.Empty),
-            };
-            bool scopeAdded;
-            do
-            {
-                scopeAdded = false;
-                foreach (var scope in reachableScopes.ToList())
-                {
-                    foreach (var part in partsList.Where(part => CanInstantiatePartInScope(part, scope)))
+                // The query-directed search normally visits only scopes relevant to one part. Fail open at this
+                // explicit bound so pathological boundary graphs cannot exhaust composition-time memory.
+                const int MaxScopesPerPart = 1024;
+
+                var requiredSharingBoundaries = partsList.ToDictionary(
+                    part => part,
+                    part =>
                     {
-                        foreach (var import in part.SatisfyingExports.Where(import => import.Key.IsExportFactory))
+                        var boundaries = new HashSet<string>();
+                        string? sharingBoundary = GetEffectiveSharingBoundary(part);
+                        if (!string.IsNullOrEmpty(sharingBoundary))
                         {
-                            bool hasViableExport = import.Value.Any(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart));
-                            var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
-                                .Where(boundary => !string.IsNullOrEmpty(boundary))
-                                .ToImmutableHashSet();
-                            if (hasViableExport && freshBoundaries.Count > 0)
+                            boundaries.Add(sharingBoundary!);
+                        }
+
+                        return boundaries;
+                    });
+                var blockedParts = new HashSet<ComposedPart>();
+                bool requirementsChanged;
+                do
+                {
+                    requirementsChanged = false;
+                    foreach (var part in partsList.Where(part => !blockedParts.Contains(part)))
+                    {
+                        foreach (var import in part.SatisfyingExports.Where(import => !import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
+                        {
+                            var viableExports = import.Value
+                                .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
+                                .Where(export => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne || !prunedOptionalExports.Contains(partsByDefinition[export.PartDefinition]))
+                                .ToList();
+                            if (import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne && viableExports.Count != 1)
                             {
-                                var allBoundaries = scope.AllBoundaries.Union(freshBoundaries);
-                                if (!reachableScopes.Any(existing => existing.AllBoundaries.SetEquals(allBoundaries) && existing.FreshBoundaries.SetEquals(freshBoundaries)))
-                                {
-                                    reachableScopes.Add((allBoundaries, freshBoundaries));
-                                    scopeAdded = true;
-                                }
+                                requirementsChanged |= blockedParts.Add(part);
+                                break;
+                            }
+
+                            foreach (var export in viableExports)
+                            {
+                                var exportedPart = partsByDefinition[export.PartDefinition];
+                                int previousBoundaryCount = requiredSharingBoundaries[part].Count;
+                                requiredSharingBoundaries[part].UnionWith(requiredSharingBoundaries[exportedPart]);
+                                requirementsChanged |= requiredSharingBoundaries[part].Count != previousBoundaryCount;
                             }
                         }
                     }
                 }
-            }
-            while (scopeAdded);
+                while (requirementsChanged);
 
-            foreach (var part in partsList)
-            {
-                string? sharingBoundary = GetEffectiveSharingBoundary(part);
-                if (!string.IsNullOrEmpty(sharingBoundary) && !reachableScopes.Any(scope => CanInstantiatePartInScope(part, scope)))
+                var unreachable = new HashSet<ComposedPart>();
+                foreach (var part in partsList)
                 {
-                    yield return new ComposedPartDiagnostic(part, Strings.SharingBoundaryHasNoExportFactory, sharingBoundary);
+                    string? sharingBoundary = GetEffectiveSharingBoundary(part);
+                    if (!string.IsNullOrEmpty(sharingBoundary) && !IsPartReachable(part))
+                    {
+                        unreachable.Add(part);
+                    }
+                }
+
+                return unreachable;
+
+                bool IsPartReachable(ComposedPart targetPart)
+                {
+                    if (blockedParts.Contains(targetPart))
+                    {
+                        return false;
+                    }
+
+                    var relevantBoundaries = new HashSet<string>(requiredSharingBoundaries[targetPart]);
+                    bool relevantBoundariesChanged;
+                    do
+                    {
+                        relevantBoundariesChanged = false;
+                        foreach (var factoryOwner in partsList.Where(part => !blockedParts.Contains(part)))
+                        {
+                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory))
+                            {
+                                var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
+                                    .Where(boundary => !string.IsNullOrEmpty(boundary))
+                                    .ToImmutableHashSet();
+                                if (freshBoundaries.Overlaps(relevantBoundaries))
+                                {
+                                    int previousBoundaryCount = relevantBoundaries.Count;
+                                    relevantBoundaries.UnionWith(requiredSharingBoundaries[factoryOwner]);
+                                    foreach (var export in import.Value.Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart)))
+                                    {
+                                        relevantBoundaries.UnionWith(requiredSharingBoundaries[partsByDefinition[export.PartDefinition]]);
+                                    }
+
+                                    relevantBoundariesChanged |= relevantBoundaries.Count != previousBoundaryCount;
+                                }
+                            }
+                        }
+                    }
+                    while (relevantBoundariesChanged);
+
+                    var reachableScopes = new List<(ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries)>
+                    {
+                        (ImmutableHashSet<string>.Empty, ImmutableHashSet<string>.Empty),
+                    };
+                    for (int scopeIndex = 0; scopeIndex < reachableScopes.Count; scopeIndex++)
+                    {
+                        var scope = reachableScopes[scopeIndex];
+                        if (CanInstantiatePartInScope(targetPart, scope))
+                        {
+                            return true;
+                        }
+
+                        foreach (var factoryOwner in partsList.Where(part => CanInstantiatePartInScope(part, scope)))
+                        {
+                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory))
+                            {
+                                var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
+                                    .Where(boundary => !string.IsNullOrEmpty(boundary))
+                                    .ToImmutableHashSet();
+                                if (freshBoundaries.Count == 0 || !freshBoundaries.Overlaps(relevantBoundaries))
+                                {
+                                    continue;
+                                }
+
+                                var allBoundaries = scope.AllBoundaries.Union(freshBoundaries);
+                                var childScope = (AllBoundaries: allBoundaries, FreshBoundaries: freshBoundaries);
+                                bool hasInstantiableTarget = import.Value
+                                    .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
+                                    .Any(export => CanInstantiatePartInScope(partsByDefinition[export.PartDefinition], childScope));
+                                if (hasInstantiableTarget && !reachableScopes.Any(existing => existing.AllBoundaries.SetEquals(allBoundaries) && existing.FreshBoundaries.SetEquals(freshBoundaries)))
+                                {
+                                    if (reachableScopes.Count >= MaxScopesPerPart)
+                                    {
+                                        return true;
+                                    }
+
+                                    reachableScopes.Add(childScope);
+                                }
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+
+                bool CanInstantiatePartInScope(
+                    ComposedPart part,
+                    (ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries) scope)
+                {
+                    if (blockedParts.Contains(part) || !requiredSharingBoundaries[part].IsSubsetOf(scope.AllBoundaries))
+                    {
+                        return false;
+                    }
+
+                    string? sharingBoundary = GetEffectiveSharingBoundary(part);
+                    if (!part.Definition.IsShared)
+                    {
+                        return true;
+                    }
+
+                    return string.IsNullOrEmpty(sharingBoundary)
+                        ? scope.AllBoundaries.Count == 0
+                        : scope.FreshBoundaries.Contains(sharingBoundary!);
                 }
             }
 
@@ -489,26 +574,6 @@ namespace Microsoft.VisualStudio.Composition
                 return sharingBoundaryOverrides.TryGetValue(part.Definition, out string? effectiveSharingBoundary)
                     ? effectiveSharingBoundary
                     : part.Definition.SharingBoundary;
-            }
-
-            bool CanInstantiatePartInScope(
-                ComposedPart part,
-                (ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries) scope)
-            {
-                if (blockedParts.Contains(part) || !requiredSharingBoundaries[part].IsSubsetOf(scope.AllBoundaries))
-                {
-                    return false;
-                }
-
-                string? sharingBoundary = GetEffectiveSharingBoundary(part);
-                if (!part.Definition.IsShared)
-                {
-                    return true;
-                }
-
-                return string.IsNullOrEmpty(sharingBoundary)
-                    ? scope.AllBoundaries.Count == 0
-                    : scope.FreshBoundaries.Contains(sharingBoundary!);
             }
         }
 

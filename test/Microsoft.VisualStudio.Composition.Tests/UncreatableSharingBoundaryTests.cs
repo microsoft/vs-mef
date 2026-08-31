@@ -157,6 +157,38 @@ public class UncreatableSharingBoundaryTests
         Assert.IsType<SiblingScopeB>(root.FactoryB.CreateExport().Value);
     }
 
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithSiblingServiceFactories),
+        typeof(SiblingServiceA),
+        typeof(SiblingServiceB),
+        typeof(ImportManyOwnerWithNestedFactory),
+        typeof(NestedFromIncompatibleImportMany),
+        InvalidConfiguration = true)]
+    public void ImportManyAcrossSiblingScopesDoesNotEnableNestedFactory(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
+        Assert.Equal(typeof(NestedFromIncompatibleImportMany), Assert.Single(rootCause.Parts).Definition.Type);
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithInvalidSiblingFactoryTarget),
+        typeof(ExistingScopeC),
+        typeof(TargetForScopeA),
+        typeof(UnrelatedScopeA),
+        InvalidConfiguration = true)]
+    public void FactoryTargetMustBeInstantiableInProspectiveScope(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
+        Assert.Equal(typeof(UnrelatedScopeA), Assert.Single(rootCause.Parts).Definition.Type);
+
+        var root = container.GetExportedValue<RootWithInvalidSiblingFactoryTarget>();
+        Assert.IsType<ExistingScopeC>(root.FactoryC.CreateExport().Value);
+    }
+
     public interface IMessageHandler { }
 
     [Export(typeof(IMessageHandler))]
@@ -288,4 +320,58 @@ public class UncreatableSharingBoundaryTests
 
     [Export, Shared("C")]
     public class UncreatableNestedScope { }
+
+    public interface ISiblingService { }
+
+    [Export, Export(typeof(ISiblingService)), Shared("serviceA")]
+    public class SiblingServiceA : ISiblingService { }
+
+    [Export, Export(typeof(ISiblingService)), Shared("serviceB")]
+    public class SiblingServiceB : ISiblingService { }
+
+    [Export, Shared]
+    public class RootWithSiblingServiceFactories
+    {
+        [Import, SharingBoundary("serviceA")]
+        public ExportFactory<SiblingServiceA> FactoryA { get; set; } = null!;
+
+        [Import, SharingBoundary("serviceB")]
+        public ExportFactory<SiblingServiceB> FactoryB { get; set; } = null!;
+    }
+
+    [Export]
+    public class ImportManyOwnerWithNestedFactory
+    {
+        [ImportMany]
+        public ICollection<ISiblingService> Services { get; set; } = null!;
+
+        [Import, SharingBoundary("nestedFromImportMany")]
+        public ExportFactory<NestedFromIncompatibleImportMany> Factory { get; set; } = null!;
+    }
+
+    [Export, Shared("nestedFromImportMany")]
+    public class NestedFromIncompatibleImportMany { }
+
+    [Export, Shared]
+    public class RootWithInvalidSiblingFactoryTarget
+    {
+        [Import, SharingBoundary("scopeC")]
+        public ExportFactory<ExistingScopeC> FactoryC { get; set; } = null!;
+
+        [Import, SharingBoundary("scopeA")]
+        public ExportFactory<TargetForScopeA> FactoryA { get; set; } = null!;
+    }
+
+    [Export, Shared("scopeC")]
+    public class ExistingScopeC { }
+
+    [Export]
+    public class TargetForScopeA
+    {
+        [Import]
+        public ExistingScopeC ScopeC { get; set; } = null!;
+    }
+
+    [Export, Shared("scopeA")]
+    public class UnrelatedScopeA { }
 }
