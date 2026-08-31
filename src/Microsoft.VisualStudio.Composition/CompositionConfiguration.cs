@@ -398,7 +398,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(sharingBoundaryOverrides, nameof(sharingBoundaryOverrides));
 
             var partsList = parts.ToList();
-            var partsByDefinition = partsList.ToDictionary(part => part.Definition);
+            var partsByDefinition = partsList.ToDictionary(part => part.Definition, ReferenceEquality<ComposablePartDefinition>.Default);
             var requiredSharingBoundaries = partsList.ToDictionary(
                 part => part,
                 part =>
