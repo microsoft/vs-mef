@@ -23,9 +23,8 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="inner">The instance to forward queries to.</param>
         protected DelegatingExportProvider(ExportProvider inner)
-            : base(inner.Resolver, joinableTaskFactory: null)
+            : base(Requires.NotNull(inner, nameof(inner)).Resolver, joinableTaskFactory: null)
         {
-            Requires.NotNull(inner, nameof(inner));
             this.inner = inner;
         }
 

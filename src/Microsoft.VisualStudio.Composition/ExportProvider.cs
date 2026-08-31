@@ -1379,35 +1379,52 @@ namespace Microsoft.VisualStudio.Composition
             public void Dispose()
             {
                 (object? value, HashSet<PartLifecycleTracker>? nonSharedChildParts) = this.TakeDisposableValues();
-                if (value is IAsyncDisposable asyncDisposable)
+                List<Exception>? exceptions = null;
+                try
                 {
-                    if (this.OwningExportProvider.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
+                    if (value is IAsyncDisposable asyncDisposable)
                     {
-                        joinableTaskFactory.Run(async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
-                    }
-                    else if (value is IDisposable disposable)
-                    {
-                        disposable.Dispose();
+                        if (this.OwningExportProvider.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
+                        {
+                            joinableTaskFactory.Run(async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
+                        }
+                        else if (value is IDisposable disposable)
+                        {
+                            disposable.Dispose();
+                        }
+                        else
+                        {
+#pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async-only parts are disposed.
+                            asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
+                        }
                     }
                     else
                     {
-#pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async-only parts are disposed.
-                        asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
-#pragma warning restore VSTHRD002
+                        (value as IDisposable)?.Dispose();
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    (value as IDisposable)?.Dispose();
+                    (exceptions ??= new List<Exception>()).Add(ex);
                 }
 
                 if (nonSharedChildParts is object)
                 {
                     foreach (PartLifecycleTracker descendant in nonSharedChildParts)
                     {
-                        descendant.Dispose();
+                        try
+                        {
+                            descendant.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            (exceptions ??= new List<Exception>()).Add(ex);
+                        }
                     }
                 }
+
+                ThrowDisposalExceptions(exceptions);
             }
 
             /// <summary>
@@ -1417,21 +1434,50 @@ namespace Microsoft.VisualStudio.Composition
             public async ValueTask DisposeAsync()
             {
                 (object? value, HashSet<PartLifecycleTracker>? nonSharedChildParts) = this.TakeDisposableValues();
-                if (value is IAsyncDisposable asyncDisposable)
+                List<Exception>? exceptions = null;
+                try
                 {
-                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                    if (value is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        (value as IDisposable)?.Dispose();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    (value as IDisposable)?.Dispose();
+                    (exceptions ??= new List<Exception>()).Add(ex);
                 }
 
                 if (nonSharedChildParts is object)
                 {
                     foreach (PartLifecycleTracker descendant in nonSharedChildParts)
                     {
-                        await descendant.DisposeAsync().ConfigureAwait(false);
+                        try
+                        {
+                            await descendant.DisposeAsync().ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            (exceptions ??= new List<Exception>()).Add(ex);
+                        }
                     }
+                }
+
+                ThrowDisposalExceptions(exceptions);
+            }
+
+            private static void ThrowDisposalExceptions(List<Exception>? exceptions)
+            {
+                if (exceptions?.Count == 1)
+                {
+                    ExceptionDispatchInfo.Capture(exceptions[0]).Throw();
+                }
+                else if (exceptions is object)
+                {
+                    throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
                 }
             }
 

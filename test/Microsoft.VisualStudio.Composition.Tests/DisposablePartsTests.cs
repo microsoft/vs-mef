@@ -74,6 +74,30 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task DisposeContinuesWithNonSharedDescendantsAfterPartThrows()
+        {
+            DisposableChildPart.DisposalCount = 0;
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(ThrowingDisposablePartWithChild), typeof(DisposableChildPart));
+            exportProvider.GetExportedValue<ThrowingDisposablePartWithChild>();
+
+            Assert.Throws<AggregateException>(() => exportProvider.Dispose());
+
+            Assert.Equal(1, DisposableChildPart.DisposalCount);
+        }
+
+        [Fact]
+        public async Task DisposeAsyncContinuesWithNonSharedDescendantsAfterPartThrows()
+        {
+            AsyncDisposableChildPart.DisposalCount = 0;
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(ThrowingAsyncDisposablePartWithChild), typeof(AsyncDisposableChildPart));
+            exportProvider.GetExportedValue<ThrowingAsyncDisposablePartWithChild>();
+
+            await Assert.ThrowsAsync<AggregateException>(() => exportProvider.DisposeAsync().AsTask());
+
+            Assert.Equal(1, AsyncDisposableChildPart.DisposalCount);
+        }
+
+        [Fact]
         public async Task AsyncDisposablePartDisposedSynchronouslyWithJoinableTaskFactory()
         {
             AsyncDisposablePart.DisposalCount = 0;
@@ -232,6 +256,53 @@ namespace Microsoft.VisualStudio.Composition.Tests
 #pragma warning disable VSTHRD003 // This test part intentionally awaits a signal controlled by the test.
                 await this.AllowDisposalToComplete.Task;
 #pragma warning restore VSTHRD003
+            }
+        }
+
+        [Export]
+        public class ThrowingDisposablePartWithChild : IDisposable
+        {
+            [Import]
+            public DisposableChildPart Child { get; set; } = null!;
+
+            public void Dispose()
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        [Export]
+        public class DisposableChildPart : IDisposable
+        {
+            internal static int DisposalCount;
+
+            public void Dispose()
+            {
+                DisposalCount++;
+            }
+        }
+
+        [Export]
+        public class ThrowingAsyncDisposablePartWithChild : IAsyncDisposable
+        {
+            [Import]
+            public AsyncDisposableChildPart Child { get; set; } = null!;
+
+            public ValueTask DisposeAsync()
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        [Export]
+        public class AsyncDisposableChildPart : IAsyncDisposable
+        {
+            internal static int DisposalCount;
+
+            public ValueTask DisposeAsync()
+            {
+                DisposalCount++;
+                return default;
             }
         }
 
