@@ -140,6 +140,8 @@ namespace Microsoft.VisualStudio.Composition
                 errors.AddRange(part.Validate(metadataViewsAndProviders));
             }
 
+            errors.AddRange(FindPartsInUncreatableSharingBoundaries(parts));
+
             // Detect loops of all non-shared parts.
             errors.AddRange(FindLoops(parts));
 
@@ -380,6 +382,36 @@ namespace Microsoft.VisualStudio.Composition
                             yield return new ComposedPartDiagnostic(path, Strings.LoopInvolvingImportingCtorArgumentAndAllNonLazyImports);
                         }
                     }
+                }
+            }
+        }
+
+        private static IEnumerable<ComposedPartDiagnostic> FindPartsInUncreatableSharingBoundaries(IEnumerable<ComposedPart> parts)
+        {
+            Requires.NotNull(parts, nameof(parts));
+
+            var partsList = parts.ToList();
+            var creatableSharingBoundaries = new HashSet<string>();
+            bool addedSharingBoundary;
+            do
+            {
+                addedSharingBoundary = false;
+                foreach (var part in partsList.Where(part => part.RequiredSharingBoundaries.All(creatableSharingBoundaries.Contains)))
+                {
+                    foreach (string sharingBoundary in part.Definition.Imports.SelectMany(import => import.ImportDefinition.ExportFactorySharingBoundaries))
+                    {
+                        addedSharingBoundary |= creatableSharingBoundaries.Add(sharingBoundary);
+                    }
+                }
+            }
+            while (addedSharingBoundary);
+
+            foreach (var part in partsList)
+            {
+                string? sharingBoundary = part.Definition.SharingBoundary;
+                if (!string.IsNullOrEmpty(sharingBoundary) && !creatableSharingBoundaries.Contains(sharingBoundary!))
+                {
+                    yield return new ComposedPartDiagnostic(part, Strings.SharingBoundaryHasNoExportFactory, sharingBoundary);
                 }
             }
         }
