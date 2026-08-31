@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.Composition
                         relevantBoundariesChanged = false;
                         foreach (var factoryOwner in partsList.Where(part => !blockedParts.Contains(part)))
                         {
-                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory))
+                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory && import.Value.Count > 0))
                             {
                                 var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
                                     .Where(boundary => !string.IsNullOrEmpty(boundary))
@@ -517,7 +517,7 @@ namespace Microsoft.VisualStudio.Composition
 
                         foreach (var factoryOwner in partsList.Where(part => CanInstantiatePartInScope(part, scope)))
                         {
-                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory))
+                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory && import.Value.Count > 0))
                             {
                                 var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
                                     .Where(boundary => !string.IsNullOrEmpty(boundary))
