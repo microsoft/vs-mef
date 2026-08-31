@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="options">Options that control export provider behavior.</param>
         /// <param name="cancellationToken">A token that may cancel the operation.</param>
         /// <returns>The loaded export provider factory.</returns>
-        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, ExportProviderFactoryOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, ExportProviderFactoryOptions options, CancellationToken cancellationToken)
         {
             var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
             return runtimeComposition.CreateExportProviderFactory(options);

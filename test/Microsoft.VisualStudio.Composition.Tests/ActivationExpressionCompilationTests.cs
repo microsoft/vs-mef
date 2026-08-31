@@ -407,7 +407,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             IExportProviderFactory factory = await cache.LoadExportProviderFactoryAsync(
                 stream,
                 Resolver.DefaultInstance,
-                ExportProviderFactoryOptions.EnableActivationExpressionCompilation);
+                ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+                cancellationToken: default);
             using ExportProvider provider = factory.CreateExportProvider();
             _ = provider.GetExportedValue<NonSharedPart>();
             _ = provider.GetExportedValue<NonSharedPart>();
