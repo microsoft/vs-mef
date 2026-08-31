@@ -66,6 +66,8 @@ namespace Microsoft.VisualStudio.Composition
 
         private readonly object disposalSyncObject = new object();
 
+        private readonly System.Threading.AsyncLocal<bool> invokingDisposeCallback = new System.Threading.AsyncLocal<bool>();
+
         private readonly JoinableTaskFactory? joinableTaskFactory;
 
         /// <summary>
@@ -481,7 +483,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Dispose()
         {
-            this.Dispose(true);
+            this.WaitForDisposal(this.GetOrStartDisposalTaskAsync());
             GC.SuppressFinalize(this);
         }
 
@@ -497,25 +499,17 @@ namespace Microsoft.VisualStudio.Composition
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !this.invokingDisposeCallback.Value)
             {
-                Task disposalTask = this.GetOrStartDisposalTaskAsync();
-                if (this.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
-                {
-#pragma warning disable VSTHRD003 // The JTF is intentionally joining the shared disposal operation initiated by any caller.
-                    joinableTaskFactory.Run(async () => await disposalTask.ConfigureAwait(false));
-#pragma warning restore VSTHRD003
-                }
-                else
-                {
-#pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async parts are disposed.
-                    disposalTask.GetAwaiter().GetResult();
-#pragma warning restore VSTHRD002
-                }
+                this.WaitForDisposal(this.GetOrStartDisposalTaskAsync());
             }
         }
 
-        private protected virtual async ValueTask DisposeAsyncCore()
+        /// <summary>
+        /// Asynchronously disposes resources owned by this export provider.
+        /// </summary>
+        /// <returns>A task that completes when disposal finishes.</returns>
+        protected virtual async ValueTask DisposeAsyncCore()
         {
             List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
             await DisposeSnapshotAsync(disposableSnapshot).ConfigureAwait(false);
@@ -525,6 +519,16 @@ namespace Microsoft.VisualStudio.Composition
         {
             try
             {
+                this.invokingDisposeCallback.Value = true;
+                try
+                {
+                    this.Dispose(true);
+                }
+                finally
+                {
+                    this.invokingDisposeCallback.Value = false;
+                }
+
                 await this.DisposeAsyncCore().ConfigureAwait(false);
                 completionSource.SetResult(null);
             }
@@ -544,6 +548,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
                     this.disposalTask = completionSource.Task;
+                    this.isDisposed = true;
                 }
 
                 result = this.disposalTask;
@@ -555,6 +560,22 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             return result;
+        }
+
+        private void WaitForDisposal(Task disposalTask)
+        {
+            if (this.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
+            {
+#pragma warning disable VSTHRD003 // The JTF is intentionally joining the shared disposal operation initiated by any caller.
+                joinableTaskFactory.Run(async () => await disposalTask.ConfigureAwait(false));
+#pragma warning restore VSTHRD003
+            }
+            else
+            {
+#pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async parts are disposed.
+                disposalTask.GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
+            }
         }
 
         private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot)
@@ -1894,7 +1915,7 @@ namespace Microsoft.VisualStudio.Composition
                 throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
             }
 
-            private protected override ValueTask DisposeAsyncCore()
+            protected override ValueTask DisposeAsyncCore()
             {
                 throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
             }

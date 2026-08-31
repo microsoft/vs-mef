@@ -62,6 +62,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task DisposeAsyncInvokesDerivedDisposeOverride()
+        {
+            ExportProvider innerExportProvider = await CreateExportProviderAsync(joinableTaskFactory: null);
+            var exportProvider = new DisposeTrackingExportProvider(innerExportProvider);
+
+            await exportProvider.DisposeAsync();
+            await exportProvider.DisposeAsync();
+
+            Assert.Equal(1, exportProvider.DisposeCallCount);
+        }
+
+        [Fact]
         public async Task AsyncDisposablePartDisposedSynchronouslyWithJoinableTaskFactory()
         {
             AsyncDisposablePart.DisposalCount = 0;
@@ -100,6 +112,35 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, AsyncDisposablePart.DisposalCount);
             exportProvider.Dispose();
             Assert.Equal(1, AsyncDisposablePart.DisposalCount);
+        }
+
+        [Fact]
+        public async Task DualDisposablePartCreatedByExportFactoryUsesIDisposableWithoutJoinableTaskFactory()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(DualDisposablePart), typeof(DualDisposablePartFactory));
+            DualDisposablePartFactory partFactory = exportProvider.GetExportedValue<DualDisposablePartFactory>();
+            var export = partFactory.Factory.CreateExport();
+            DualDisposablePart part = export.Value;
+
+            export.Dispose();
+
+            Assert.True(part.DisposeCalled);
+            Assert.False(part.DisposeAsyncCalled);
+        }
+
+        [Fact]
+        public async Task DualDisposablePartCreatedByExportFactoryUsesIAsyncDisposableWithJoinableTaskFactory()
+        {
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskContext.Factory, typeof(DualDisposablePart), typeof(DualDisposablePartFactory));
+            DualDisposablePartFactory partFactory = exportProvider.GetExportedValue<DualDisposablePartFactory>();
+            var export = partFactory.Factory.CreateExport();
+            DualDisposablePart part = export.Value;
+
+            export.Dispose();
+
+            Assert.False(part.DisposeCalled);
+            Assert.True(part.DisposeAsyncCalled);
         }
 
         [Fact]
@@ -194,11 +235,42 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        private class DisposeTrackingExportProvider : DelegatingExportProvider
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="DisposeTrackingExportProvider"/> class.
+            /// </summary>
+            /// <param name="inner">The export provider to delegate to.</param>
+            internal DisposeTrackingExportProvider(ExportProvider inner)
+                : base(inner)
+            {
+            }
+
+            /// <summary>
+            /// Gets the number of calls to <see cref="Dispose(bool)"/>.
+            /// </summary>
+            internal int DisposeCallCount { get; private set; }
+
+            /// <inheritdoc />
+            protected override void Dispose(bool disposing)
+            {
+                this.DisposeCallCount++;
+                base.Dispose(disposing);
+            }
+        }
+
         [Export]
         public class AsyncDisposablePartFactory
         {
             [Import]
             public ExportFactory<AsyncDisposablePart> Factory { get; set; } = null!;
+        }
+
+        [Export]
+        public class DualDisposablePartFactory
+        {
+            [Import]
+            public ExportFactory<DualDisposablePart> Factory { get; set; } = null!;
         }
 
         [MefV1.Export]
