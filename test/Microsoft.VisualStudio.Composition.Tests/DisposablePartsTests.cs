@@ -44,6 +44,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task SynchronousDisposalPrefersIDisposableWithoutJoinableTaskFactory()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(DualDisposablePart));
+            DualDisposablePart part = exportProvider.GetExportedValue<DualDisposablePart>();
+
+            exportProvider.Dispose();
+
+            Assert.True(part.DisposeCalled);
+            Assert.False(part.DisposeAsyncCalled);
+        }
+
+        [Fact]
+        public async Task SynchronousDisposalPrefersIAsyncDisposableWithJoinableTaskFactory()
+        {
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskContext.Factory, typeof(DualDisposablePart));
+            DualDisposablePart part = exportProvider.GetExportedValue<DualDisposablePart>();
+
+            exportProvider.Dispose();
+
+            Assert.False(part.DisposeCalled);
+            Assert.True(part.DisposeAsyncCalled);
+        }
+
+        [Fact]
         public async Task ConcurrentDisposalCallsAwaitSameOperation()
         {
             ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposalGatePart));

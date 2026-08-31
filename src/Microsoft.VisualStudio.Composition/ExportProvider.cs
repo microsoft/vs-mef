@@ -109,6 +109,8 @@ namespace Microsoft.VisualStudio.Composition
 
         private Task? disposalTask;
 
+        private bool disposalStartedSynchronously;
+
         private bool isDisposed;
 
         private ExportProvider(
@@ -483,7 +485,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Dispose()
         {
-            this.WaitForDisposal(this.GetOrStartDisposalTaskAsync());
+            this.WaitForDisposal(this.GetOrStartDisposalTaskAsync(disposeSynchronously: true));
             GC.SuppressFinalize(this);
         }
 
@@ -493,7 +495,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns>A task that completes when all disposable parts have been disposed.</returns>
         public async ValueTask DisposeAsync()
         {
-            await this.GetOrStartDisposalTaskAsync().ConfigureAwait(false);
+            await this.GetOrStartDisposalTaskAsync(disposeSynchronously: false).ConfigureAwait(false);
             GC.SuppressFinalize(this);
         }
 
@@ -501,7 +503,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             if (disposing && !this.invokingDisposeCallback.Value)
             {
-                this.WaitForDisposal(this.GetOrStartDisposalTaskAsync());
+                this.WaitForDisposal(this.GetOrStartDisposalTaskAsync(disposeSynchronously: true));
             }
         }
 
@@ -512,7 +514,7 @@ namespace Microsoft.VisualStudio.Composition
         protected virtual async ValueTask DisposeAsyncCore()
         {
             List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
-            await DisposeSnapshotAsync(disposableSnapshot).ConfigureAwait(false);
+            await DisposeSnapshotAsync(disposableSnapshot, this.disposalStartedSynchronously).ConfigureAwait(false);
         }
 
         private async Task CompleteDisposalAsync(TaskCompletionSource<object?> completionSource)
@@ -538,7 +540,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private Task GetOrStartDisposalTaskAsync()
+        private Task GetOrStartDisposalTaskAsync(bool disposeSynchronously)
         {
             TaskCompletionSource<object?>? completionSource = null;
             Task result;
@@ -548,6 +550,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
                     this.disposalTask = completionSource.Task;
+                    this.disposalStartedSynchronously = disposeSynchronously;
                     this.isDisposed = true;
                 }
 
@@ -578,14 +581,14 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot)
+        private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot, bool disposeSynchronously)
         {
             List<Exception>? exceptions = null;
             foreach (IDisposable item in disposableSnapshot)
             {
                 try
                 {
-                    if (item is IAsyncDisposable asyncDisposable)
+                    if (!disposeSynchronously && item is IAsyncDisposable asyncDisposable)
                     {
                         await asyncDisposable.DisposeAsync().ConfigureAwait(false);
                     }
