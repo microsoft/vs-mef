@@ -358,6 +358,7 @@ namespace Microsoft.VisualStudio.Composition
                 bool newSharingScope = sharingBoundaries.Count > 0;
                 Func<KeyValuePair<object?, IDisposable?>> valueFactory = () =>
                 {
+                    Verify.NotDisposed(this);
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;

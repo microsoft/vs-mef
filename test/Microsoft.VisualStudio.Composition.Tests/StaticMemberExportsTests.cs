@@ -149,6 +149,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.False(ClassWithStaticMemberExports.ConstructorCalled);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports), typeof(PartImportingStaticPropertyFactory), NoCompatGoal = true)]
+        public void ExportFactoryOfStaticMemberThrowsAfterContainerDisposal(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartImportingStaticPropertyFactory>();
+            container.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => importingPart.Factory.CreateExport());
+        }
+
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticDisposableMemberExports), NoCompatGoal = true)]
         public void ExportFactoryOfStaticMemberDoesNotDisposeExportedValue(IContainer container)
         {
