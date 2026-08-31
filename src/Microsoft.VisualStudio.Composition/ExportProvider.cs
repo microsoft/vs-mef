@@ -64,6 +64,8 @@ namespace Microsoft.VisualStudio.Composition
         /// </remarks>
         private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>> metadataViewProviders;
 
+        private readonly object disposalSyncObject = new object();
+
         private readonly JoinableTaskFactory? joinableTaskFactory;
 
         /// <summary>
@@ -102,6 +104,8 @@ namespace Microsoft.VisualStudio.Composition
         /// All access to this dictionary is guarded by a lock on this field.
         /// </remarks>
         private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
+
+        private Task? disposalTask;
 
         private bool isDisposed;
 
@@ -487,7 +491,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns>A task that completes when all disposable parts have been disposed.</returns>
         public async ValueTask DisposeAsync()
         {
-            await this.DisposeAsyncCore().ConfigureAwait(false);
+            await this.GetOrStartDisposalTaskAsync().ConfigureAwait(false);
             GC.SuppressFinalize(this);
         }
 
@@ -495,36 +499,18 @@ namespace Microsoft.VisualStudio.Composition
         {
             if (disposing)
             {
-                List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
+                Task disposalTask = this.GetOrStartDisposalTaskAsync();
                 if (this.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
                 {
-                    joinableTaskFactory.Run(async () => await DisposeSnapshotAsync(disposableSnapshot).ConfigureAwait(false));
-                    return;
+#pragma warning disable VSTHRD003 // The JTF is intentionally joining the shared disposal operation initiated by any caller.
+                    joinableTaskFactory.Run(async () => await disposalTask.ConfigureAwait(false));
+#pragma warning restore VSTHRD003
                 }
-
-                // Take care to give all disposal parts a chance to dispose
-                // even if some parts throw exceptions.
-                List<Exception>? exceptions = null;
-                foreach (var item in disposableSnapshot)
+                else
                 {
-                    try
-                    {
-                        item.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (exceptions == null)
-                        {
-                            exceptions = new List<Exception>();
-                        }
-
-                        exceptions.Add(ex);
-                    }
-                }
-
-                if (exceptions != null)
-                {
-                    throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
+#pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async parts are disposed.
+                    disposalTask.GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
                 }
             }
         }
@@ -533,6 +519,42 @@ namespace Microsoft.VisualStudio.Composition
         {
             List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
             await DisposeSnapshotAsync(disposableSnapshot).ConfigureAwait(false);
+        }
+
+        private async Task CompleteDisposalAsync(TaskCompletionSource<object?> completionSource)
+        {
+            try
+            {
+                await this.DisposeAsyncCore().ConfigureAwait(false);
+                completionSource.SetResult(null);
+            }
+            catch (Exception ex)
+            {
+                completionSource.SetException(ex);
+            }
+        }
+
+        private Task GetOrStartDisposalTaskAsync()
+        {
+            TaskCompletionSource<object?>? completionSource = null;
+            Task result;
+            lock (this.disposalSyncObject)
+            {
+                if (this.disposalTask is null)
+                {
+                    completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    this.disposalTask = completionSource.Task;
+                }
+
+                result = this.disposalTask;
+            }
+
+            if (completionSource is object)
+            {
+                this.CompleteDisposalAsync(completionSource).Forget();
+            }
+
+            return result;
         }
 
         private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot)
@@ -1349,7 +1371,7 @@ namespace Microsoft.VisualStudio.Composition
                     else
                     {
 #pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async-only parts are disposed.
-                        asyncDisposable.DisposeAsync().AsTask().Wait();
+                        asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002
                     }
                 }

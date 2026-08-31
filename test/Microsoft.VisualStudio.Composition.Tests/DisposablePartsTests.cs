@@ -44,6 +44,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task ConcurrentDisposalCallsAwaitSameOperation()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposalGatePart));
+            AsyncDisposalGatePart part = exportProvider.GetExportedValue<AsyncDisposalGatePart>();
+
+            Task firstDisposal = exportProvider.DisposeAsync().AsTask();
+#pragma warning disable VSTHRD003 // This test intentionally awaits signals initiated by the disposal operation.
+            await part.DisposalStarted.Task;
+#pragma warning restore VSTHRD003
+            Task secondDisposal = exportProvider.DisposeAsync().AsTask();
+
+            Assert.False(secondDisposal.IsCompleted);
+            part.AllowDisposalToComplete.SetResult(null);
+            await Task.WhenAll(firstDisposal, secondDisposal);
+            Assert.Equal(1, part.DisposalCount);
+        }
+
+        [Fact]
         public async Task AsyncDisposablePartDisposedSynchronouslyWithJoinableTaskFactory()
         {
             AsyncDisposablePart.DisposalCount = 0;
@@ -154,6 +172,25 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 this.DisposeAsyncCalled = true;
                 return default;
+            }
+        }
+
+        [Export]
+        public class AsyncDisposalGatePart : IAsyncDisposable
+        {
+            internal TaskCompletionSource<object?> AllowDisposalToComplete { get; } = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            internal TaskCompletionSource<object?> DisposalStarted { get; } = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            internal int DisposalCount { get; private set; }
+
+            public async ValueTask DisposeAsync()
+            {
+                this.DisposalCount++;
+                this.DisposalStarted.SetResult(null);
+#pragma warning disable VSTHRD003 // This test part intentionally awaits a signal controlled by the test.
+                await this.AllowDisposalToComplete.Task;
+#pragma warning restore VSTHRD003
             }
         }
 
