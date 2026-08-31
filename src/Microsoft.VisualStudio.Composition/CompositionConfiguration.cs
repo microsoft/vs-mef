@@ -571,6 +571,11 @@ namespace Microsoft.VisualStudio.Composition
 
             string? GetEffectiveSharingBoundary(ComposedPart part)
             {
+                if (!part.Definition.IsSharingBoundaryInferred)
+                {
+                    return part.Definition.SharingBoundary;
+                }
+
                 return sharingBoundaryOverrides.TryGetValue(part.Definition, out string? effectiveSharingBoundary)
                     ? effectiveSharingBoundary
                     : part.Definition.SharingBoundary;
@@ -588,7 +593,7 @@ namespace Microsoft.VisualStudio.Composition
 
             var sharingBoundariesAndMetadata = ComputeSharingBoundaryMetadata(partBuilders);
 
-            var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
+            var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>(ReferenceEquality<ComposablePartDefinition>.Default);
             foreach (PartBuilder partBuilder in partBuilders)
             {
                 if (partBuilder.PartDefinition.IsSharingBoundaryInferred)
