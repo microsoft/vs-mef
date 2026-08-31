@@ -398,7 +398,11 @@ namespace Microsoft.VisualStudio.Composition
                 addedSharingBoundary = false;
                 foreach (var part in partsList.Where(part => part.RequiredSharingBoundaries.All(creatableSharingBoundaries.Contains)))
                 {
-                    foreach (string sharingBoundary in part.Definition.Imports.SelectMany(import => import.ImportDefinition.ExportFactorySharingBoundaries))
+                    var sharingBoundariesCreatedBySatisfiedImports = part.SatisfyingExports
+                        .Where(import => import.Key.IsExportFactory && import.Value.Count > 0)
+                        .SelectMany(import => import.Key.ImportDefinition.ExportFactorySharingBoundaries)
+                        .Where(sharingBoundary => !string.IsNullOrEmpty(sharingBoundary));
+                    foreach (string sharingBoundary in sharingBoundariesCreatedBySatisfiedImports)
                     {
                         addedSharingBoundary |= creatableSharingBoundaries.Add(sharingBoundary);
                     }

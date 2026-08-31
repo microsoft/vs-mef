@@ -54,6 +54,20 @@ public class UncreatableSharingBoundaryTests
         Assert.Contains(typeof(UncreatableChild), rejectedPartTypes);
     }
 
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithUnsatisfiedBoundaryFactory),
+        typeof(OrphanPart),
+        InvalidConfiguration = true)]
+    public void UnsatisfiedExportFactoryDoesNotMakeSharingBoundaryCreatable(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
+        Assert.Equal(typeof(OrphanPart), Assert.Single(rootCause.Parts).Definition.Type);
+
+        Assert.Null(container.GetExportedValue<RootWithUnsatisfiedBoundaryFactory>().Factory);
+    }
+
     public interface IMessageHandler { }
 
     [Export(typeof(IMessageHandler))]
@@ -88,4 +102,16 @@ public class UncreatableSharingBoundaryTests
 
     [Export, Shared("child")]
     public class UncreatableChild { }
+
+    public interface IMissing { }
+
+    [Export]
+    public class RootWithUnsatisfiedBoundaryFactory
+    {
+        [Import(AllowDefault = true), SharingBoundary("orphan")]
+        public ExportFactory<IMissing>? Factory { get; set; }
+    }
+
+    [Export, Shared("orphan")]
+    public class OrphanPart { }
 }
