@@ -86,6 +86,43 @@ public class UncreatableSharingBoundaryTests
         Assert.Contains(typeof(OrphanPart), rejectedPartTypes);
     }
 
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(InvalidFactoryOwner),
+        typeof(ScopedFromInvalidFactory),
+        InvalidConfiguration = true)]
+    public void InvalidPartDoesNotMakeSharingBoundaryCreatable(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rejectedPartTypes = v3Container.Configuration.CompositionErrors.Peek()
+            .Select(error => Assert.Single(error.Parts).Definition.Type)
+            .ToHashSet();
+
+        Assert.Equal(2, rejectedPartTypes.Count);
+        Assert.Contains(typeof(InvalidFactoryOwner), rejectedPartTypes);
+        Assert.Contains(typeof(ScopedFromInvalidFactory), rejectedPartTypes);
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(InvalidDependency),
+        typeof(FactoryOwnerWithInvalidDependency),
+        typeof(ScopedFromTransitivelyInvalidFactory),
+        InvalidConfiguration = true)]
+    public void TransitivelyInvalidPartDoesNotMakeSharingBoundaryCreatable(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
+        Assert.Equal(typeof(InvalidDependency), Assert.Single(rootCause.Parts).Definition.Type);
+
+        var secondOrderRejectedPartTypes = v3Container.Configuration.CompositionErrors.Pop().Peek()
+            .Select(error => Assert.Single(error.Parts).Definition.Type)
+            .ToHashSet();
+        Assert.Equal(2, secondOrderRejectedPartTypes.Count);
+        Assert.Contains(typeof(FactoryOwnerWithInvalidDependency), secondOrderRejectedPartTypes);
+        Assert.Contains(typeof(ScopedFromTransitivelyInvalidFactory), secondOrderRejectedPartTypes);
+    }
+
     public interface IMessageHandler { }
 
     [Export(typeof(IMessageHandler))]
@@ -139,4 +176,37 @@ public class UncreatableSharingBoundaryTests
         [MefV1.ImportMany]
         public ICollection<OrphanPart> Parts { get; set; } = null!;
     }
+
+    [Export]
+    public class InvalidFactoryOwner
+    {
+        [Import]
+        public IMissing Missing { get; set; } = null!;
+
+        [Import, SharingBoundary("madeByInvalid")]
+        public ExportFactory<ScopedFromInvalidFactory> Factory { get; set; } = null!;
+    }
+
+    [Export, Shared("madeByInvalid")]
+    public class ScopedFromInvalidFactory { }
+
+    [Export]
+    public class InvalidDependency
+    {
+        [Import]
+        public IMissing Missing { get; set; } = null!;
+    }
+
+    [Export]
+    public class FactoryOwnerWithInvalidDependency
+    {
+        [Import]
+        public InvalidDependency InvalidDependency { get; set; } = null!;
+
+        [Import, SharingBoundary("madeByTransitivelyInvalid")]
+        public ExportFactory<ScopedFromTransitivelyInvalidFactory> Factory { get; set; } = null!;
+    }
+
+    [Export, Shared("madeByTransitivelyInvalid")]
+    public class ScopedFromTransitivelyInvalidFactory { }
 }

@@ -140,10 +140,11 @@ namespace Microsoft.VisualStudio.Composition
                 errors.AddRange(part.Validate(metadataViewsAndProviders));
             }
 
-            errors.AddRange(FindPartsInUncreatableSharingBoundaries(parts, sharingBoundaryOverrides));
-
             // Detect loops of all non-shared parts.
             errors.AddRange(FindLoops(parts));
+
+            var initiallyViableParts = parts.Except(errors.SelectMany(error => error.Parts));
+            errors.AddRange(FindPartsInUncreatableSharingBoundaries(initiallyViableParts, sharingBoundaryOverrides));
 
             // If errors are found, re-validate the salvaged parts in case there are parts whose dependencies are affected by the initial errors
             if (errors.Count > 0)
@@ -180,6 +181,9 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         previousErrors.AddRange(part.RemoveSatisfyingExports(invalidPartDefinitionsSet));
                     }
+
+                    var viableParts = salvagedParts.Except(previousErrors.SelectMany(error => error.Parts));
+                    previousErrors.AddRange(FindPartsInUncreatableSharingBoundaries(viableParts, sharingBoundaryOverrides));
                 }
 
                 var finalCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedPartDefinitions);
