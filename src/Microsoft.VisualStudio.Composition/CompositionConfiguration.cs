@@ -398,6 +398,11 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(sharingBoundaryOverrides, nameof(sharingBoundaryOverrides));
 
             var partsList = parts.ToList();
+            if (!partsList.Any(part => !string.IsNullOrEmpty(GetEffectiveSharingBoundary(part))))
+            {
+                yield break;
+            }
+
             var partsByDefinition = partsList.ToDictionary(part => part.Definition, ReferenceEquality<ComposablePartDefinition>.Default);
             var pessimisticUnreachableParts = AnalyzeUnreachableParts(ImmutableHashSet<ComposedPart>.Empty);
             var unreachableParts = AnalyzeUnreachableParts(pessimisticUnreachableParts);
