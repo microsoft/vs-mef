@@ -591,12 +591,18 @@ namespace Microsoft.VisualStudio.Composition
                 memberValueFactory = () =>
                 {
                     Verify.NotDisposed(this);
+
+                    if (exportingMemberRef.IsStatic)
+                    {
+                        return (GetValueFromMember(null, exportingMemberRef.MemberInfo), null);
+                    }
+
                     PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired, nonSharedPartOwner: null);
                     return (GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo), nonSharedInstanceRequired ? maybeSharedValueFactory : null);
                 };
             }
 
-            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired)
+            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired, exportingMemberRef?.IsStatic != true)
             {
                 ExportingAssemblyName = originalPartTypeRef.AssemblyName,
             };
@@ -654,7 +660,9 @@ namespace Microsoft.VisualStudio.Composition
                 () =>
                 {
                     var result = exportInfo.ExportedValueGetter();
-                    return new KeyValuePair<object?, IDisposable?>(result.Value, result.NonSharedDisposalTracker ?? result.Value as IDisposable);
+                    return new KeyValuePair<object?, IDisposable?>(
+                        result.Value,
+                        result.NonSharedDisposalTracker ?? (exportInfo.ShouldDisposeExportedValue ? result.Value as IDisposable : null));
                 },
                 exportFactoryType,
                 exportInfo.Definition.Metadata));
@@ -1056,9 +1064,15 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             public ExportInfo(string contractName, IReadOnlyDictionary<string, object?> metadata, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime)
+                : this(contractName, metadata, exportedValueGetter, hasNonSharedLifetime, shouldDisposeExportedValue: true)
+            {
+            }
+
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object?> metadata, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime, bool shouldDisposeExportedValue)
                 : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
             {
                 this.HasNonSharedLifetime = hasNonSharedLifetime;
+                this.ShouldDisposeExportedValue = shouldDisposeExportedValue;
             }
 
             public ExportInfo(ExportDefinition exportDefinition, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter)
@@ -1069,6 +1083,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 this.Definition = exportDefinition;
                 this.ExportedValueGetter = exportedValueGetter;
+                this.ShouldDisposeExportedValue = true;
             }
 
             public ExportDefinition Definition { get; }
@@ -1082,6 +1097,11 @@ namespace Microsoft.VisualStudio.Composition
             /// Gets a value indicating whether <see cref="ExportedValueGetter"/> will produce a value that must be disposed of if <see cref="ReleaseExport(Export)"/> is invoked.
             /// </summary>
             public bool HasNonSharedLifetime { get; }
+
+            /// <summary>
+            /// Gets a value indicating whether the exported value should be disposed when no separate disposal tracker is available.
+            /// </summary>
+            public bool ShouldDisposeExportedValue { get; }
 
             internal required AssemblyName ExportingAssemblyName { get; init; }
 
@@ -1100,7 +1120,7 @@ namespace Microsoft.VisualStudio.Composition
                 string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
                     ? closedTypeIdentity : this.Definition.ContractName;
 
-                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime)
+                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime, this.ShouldDisposeExportedValue)
                 {
                     ExportingAssemblyName = this.ExportingAssemblyName,
                 };
