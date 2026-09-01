@@ -189,6 +189,78 @@ public class UncreatableSharingBoundaryTests
         Assert.IsType<ExistingScopeC>(root.FactoryC.CreateExport().Value);
     }
 
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithOptionalCycleFactories),
+        typeof(OptionalCycleA),
+        typeof(OptionalCycleB),
+        InvalidConfiguration = true)]
+    public void OptionalImportsAcrossSiblingScopesDoNotMutuallySalvageParts(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rejectedPartTypes = v3Container.Configuration.CompositionErrors.Peek()
+            .Select(error => Assert.Single(error.Parts).Definition.Type)
+            .ToHashSet();
+
+        Assert.Equal(2, rejectedPartTypes.Count);
+        Assert.Contains(typeof(OptionalCycleA), rejectedPartTypes);
+        Assert.Contains(typeof(OptionalCycleB), rejectedPartTypes);
+
+        var root = container.GetExportedValue<RootWithOptionalCycleFactories>();
+        Assert.Null(root.FactoryA);
+        Assert.Null(root.FactoryB);
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithManyBoundaryFactories),
+        typeof(ScaleBoundary0),
+        typeof(ScaleBoundary1),
+        typeof(ScaleBoundary2),
+        typeof(ScaleBoundary3),
+        typeof(ScaleBoundary4),
+        typeof(ScaleBoundary5),
+        typeof(ScaleBoundary6),
+        typeof(ScaleBoundary7),
+        typeof(ScaleBoundary8),
+        typeof(ScaleBoundary9),
+        typeof(ScaleOrphan),
+        InvalidConfiguration = true)]
+    public void MissingBoundaryIsRejectedBeforeLargeScopeSearch(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rootCause = Assert.Single(v3Container.Configuration.CompositionErrors.Peek());
+        Assert.Equal(typeof(ScaleOrphan), Assert.Single(rootCause.Parts).Definition.Type);
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithManyBoundaryFactories),
+        typeof(ScaleBoundary0),
+        typeof(ScaleBoundary1),
+        typeof(ScaleBoundary2),
+        typeof(ScaleBoundary3),
+        typeof(ScaleBoundary4),
+        typeof(ScaleBoundary5),
+        typeof(ScaleBoundary6),
+        typeof(ScaleBoundary7),
+        typeof(ScaleBoundary8),
+        typeof(ScaleBoundary9),
+        typeof(BlockedScaleFactoryTarget),
+        typeof(ScalePartWithBlockedBoundary),
+        InvalidConfiguration = true)]
+    public void BoundaryWithOnlyBlockedFactoryTargetIsRejectedBeforeLargeScopeSearch(IContainer container)
+    {
+        var v3Container = Assert.IsType<TestUtilities.V3ContainerWrapper>(container);
+        var rejectedPartTypes = v3Container.Configuration.CompositionErrors
+            .SelectMany(batch => batch)
+            .SelectMany(error => error.Parts)
+            .Select(part => part.Definition.Type)
+            .ToHashSet();
+
+        Assert.Contains(typeof(ScalePartWithBlockedBoundary), rejectedPartTypes);
+    }
+
     public interface IMessageHandler { }
 
     [Export(typeof(IMessageHandler))]
@@ -374,4 +446,170 @@ public class UncreatableSharingBoundaryTests
 
     [Export, Shared("scopeA")]
     public class UnrelatedScopeA { }
+
+    [Export]
+    public class RootWithOptionalCycleFactories
+    {
+        [Import(AllowDefault = true), SharingBoundary("optionalCycleA")]
+        public ExportFactory<OptionalCycleA>? FactoryA { get; set; }
+
+        [Import(AllowDefault = true), SharingBoundary("optionalCycleB")]
+        public ExportFactory<OptionalCycleB>? FactoryB { get; set; }
+    }
+
+    [Export, Shared("optionalCycleA")]
+    public class OptionalCycleA
+    {
+        [Import(AllowDefault = true)]
+        public OptionalCycleB? Dependency { get; set; }
+    }
+
+    [Export, Shared("optionalCycleB")]
+    public class OptionalCycleB
+    {
+        [Import(AllowDefault = true)]
+        public OptionalCycleA? Dependency { get; set; }
+    }
+
+    [Export]
+    public class RootWithManyBoundaryFactories
+    {
+        [Import, SharingBoundary("scale0")]
+        public ExportFactory<ScaleBoundary0> Factory0 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale1")]
+        public ExportFactory<ScaleBoundary1> Factory1 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale2")]
+        public ExportFactory<ScaleBoundary2> Factory2 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale3")]
+        public ExportFactory<ScaleBoundary3> Factory3 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale4")]
+        public ExportFactory<ScaleBoundary4> Factory4 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale5")]
+        public ExportFactory<ScaleBoundary5> Factory5 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale6")]
+        public ExportFactory<ScaleBoundary6> Factory6 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale7")]
+        public ExportFactory<ScaleBoundary7> Factory7 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale8")]
+        public ExportFactory<ScaleBoundary8> Factory8 { get; set; } = null!;
+
+        [Import, SharingBoundary("scale9")]
+        public ExportFactory<ScaleBoundary9> Factory9 { get; set; } = null!;
+
+        [Import(AllowDefault = true), SharingBoundary("blockedAtScale")]
+        public ExportFactory<BlockedScaleFactoryTarget>? BlockedFactory { get; set; }
+    }
+
+    [Export, Shared("scale0")]
+    public class ScaleBoundary0 { }
+
+    [Export, Shared("scale1")]
+    public class ScaleBoundary1 { }
+
+    [Export, Shared("scale2")]
+    public class ScaleBoundary2 { }
+
+    [Export, Shared("scale3")]
+    public class ScaleBoundary3 { }
+
+    [Export, Shared("scale4")]
+    public class ScaleBoundary4 { }
+
+    [Export, Shared("scale5")]
+    public class ScaleBoundary5 { }
+
+    [Export, Shared("scale6")]
+    public class ScaleBoundary6 { }
+
+    [Export, Shared("scale7")]
+    public class ScaleBoundary7 { }
+
+    [Export, Shared("scale8")]
+    public class ScaleBoundary8 { }
+
+    [Export, Shared("scale9")]
+    public class ScaleBoundary9 { }
+
+    [Export, Shared("missingAtScale")]
+    public class ScaleOrphan
+    {
+        [Import]
+        public ScaleBoundary0 Boundary0 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary1 Boundary1 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary2 Boundary2 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary3 Boundary3 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary4 Boundary4 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary5 Boundary5 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary6 Boundary6 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary7 Boundary7 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary8 Boundary8 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary9 Boundary9 { get; set; } = null!;
+    }
+
+    [Export, Shared("blockedAtScale")]
+    public class BlockedScaleFactoryTarget
+    {
+        [Import]
+        public IMissing Missing { get; set; } = null!;
+    }
+
+    [Export, Shared("blockedAtScale")]
+    public class ScalePartWithBlockedBoundary
+    {
+        [Import]
+        public ScaleBoundary0 Boundary0 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary1 Boundary1 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary2 Boundary2 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary3 Boundary3 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary4 Boundary4 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary5 Boundary5 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary6 Boundary6 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary7 Boundary7 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary8 Boundary8 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary9 Boundary9 { get; set; } = null!;
+    }
 }

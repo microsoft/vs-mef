@@ -406,6 +406,55 @@ namespace Microsoft.VisualStudio.Composition
             var partsByDefinition = partsList.ToDictionary(part => part.Definition, ReferenceEquality<ComposablePartDefinition>.Default);
             var pessimisticUnreachableParts = AnalyzeUnreachableParts(ImmutableHashSet<ComposedPart>.Empty);
             var unreachableParts = AnalyzeUnreachableParts(pessimisticUnreachableParts);
+            while (true)
+            {
+                var currentlyUnreachableParts = AnalyzeUnreachableParts(unreachableParts);
+                currentlyUnreachableParts.ExceptWith(unreachableParts);
+                if (currentlyUnreachableParts.Count == 0)
+                {
+                    break;
+                }
+
+                // Reject terminal groups first. Parts that merely depend on a rejected optional export
+                // are reconsidered after that export is removed from the graph.
+                var optionalDependencies = currentlyUnreachableParts.ToDictionary(
+                    part => part,
+                    part => new HashSet<ComposedPart>(part.SatisfyingExports
+                        .Where(import => import.Key.ImportDefinition.Cardinality != ImportCardinality.ExactlyOne
+                            && (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
+                        .SelectMany(import => import.Value)
+                        .Select(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) ? exportedPart : null)
+                        .OfType<ComposedPart>()
+                        .Where(currentlyUnreachableParts.Contains)));
+                var reachableDependenciesByPart = currentlyUnreachableParts.ToDictionary(part => part, GetReachableDependencies);
+                foreach (var part in currentlyUnreachableParts)
+                {
+                    if (reachableDependenciesByPart[part].All(dependency => reachableDependenciesByPart[dependency].Contains(part)))
+                    {
+                        unreachableParts.Add(part);
+                    }
+                }
+
+                HashSet<ComposedPart> GetReachableDependencies(ComposedPart part)
+                {
+                    var reachableDependencies = new HashSet<ComposedPart> { part };
+                    var pendingDependencies = new Stack<ComposedPart>();
+                    pendingDependencies.Push(part);
+                    while (pendingDependencies.Count > 0)
+                    {
+                        foreach (var dependency in optionalDependencies[pendingDependencies.Pop()])
+                        {
+                            if (reachableDependencies.Add(dependency))
+                            {
+                                pendingDependencies.Push(dependency);
+                            }
+                        }
+                    }
+
+                    return reachableDependencies;
+                }
+            }
+
             foreach (var part in unreachableParts)
             {
                 yield return new ComposedPartDiagnostic(part, Strings.SharingBoundaryHasNoExportFactory, GetEffectiveSharingBoundary(part));
@@ -413,8 +462,8 @@ namespace Microsoft.VisualStudio.Composition
 
             HashSet<ComposedPart> AnalyzeUnreachableParts(IReadOnlyCollection<ComposedPart> prunedOptionalExports)
             {
-                // The query-directed search normally visits only scopes relevant to one part. Fail open at this
-                // explicit bound so pathological boundary graphs cannot exhaust composition-time memory.
+                // The query-directed search normally visits only scopes relevant to one part. Report an
+                // indeterminate result at this bound so pathological graphs cannot exhaust composition-time memory.
                 const int MaxScopesPerPart = 1024;
 
                 var requiredSharingBoundaries = partsList.ToDictionary(
@@ -465,7 +514,7 @@ namespace Microsoft.VisualStudio.Composition
                 foreach (var part in partsList)
                 {
                     string? sharingBoundary = GetEffectiveSharingBoundary(part);
-                    if (!string.IsNullOrEmpty(sharingBoundary) && !IsPartReachable(part))
+                    if (!string.IsNullOrEmpty(sharingBoundary) && IsPartReachable(part) == false)
                     {
                         unreachable.Add(part);
                     }
@@ -473,7 +522,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 return unreachable;
 
-                bool IsPartReachable(ComposedPart targetPart)
+                bool? IsPartReachable(ComposedPart targetPart)
                 {
                     if (blockedParts.Contains(targetPart))
                     {
@@ -508,6 +557,18 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     while (relevantBoundariesChanged);
 
+                    string targetSharingBoundary = GetEffectiveSharingBoundary(targetPart)!;
+                    bool targetBoundaryHasFactory = partsList
+                        .Where(part => !blockedParts.Contains(part))
+                        .SelectMany(part => part.SatisfyingExports)
+                        .Where(import => import.Key.IsExportFactory && import.Value.Count > 0)
+                        .Any(import => import.Key.ImportDefinition.ExportFactorySharingBoundaries.Contains(targetSharingBoundary)
+                            && import.Value.Any(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart)));
+                    if (!targetBoundaryHasFactory)
+                    {
+                        return false;
+                    }
+
                     var reachableScopes = new List<(ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries)>
                     {
                         (ImmutableHashSet<string>.Empty, ImmutableHashSet<string>.Empty),
@@ -541,7 +602,7 @@ namespace Microsoft.VisualStudio.Composition
                                 {
                                     if (reachableScopes.Count >= MaxScopesPerPart)
                                     {
-                                        return true;
+                                        return null;
                                     }
 
                                     reachableScopes.Add(childScope);
