@@ -117,7 +117,9 @@ namespace Microsoft.VisualStudio.Composition
 
         public IExportProviderFactory CreateExportProviderFactory()
         {
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
             return this.CreateExportProviderFactory(ExportProviderFactoryOptions.None);
+#pragma warning restore VSTHRD012
         }
 
         /// <summary>
@@ -131,7 +133,9 @@ namespace Microsoft.VisualStudio.Composition
                 (options & ~ExportProviderFactoryOptions.EnableActivationExpressionCompilation) == 0,
                 nameof(options),
                 "Unsupported export provider factory options.");
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
             return new RuntimeExportProviderFactory(this, options);
+#pragma warning restore VSTHRD012
         }
 
         /// <summary>

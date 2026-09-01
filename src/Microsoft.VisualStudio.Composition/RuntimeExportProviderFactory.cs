@@ -26,10 +26,12 @@ namespace Microsoft.VisualStudio.Composition
         private readonly RuntimeComposition composition;
         private readonly JoinableTaskFactory? joinableTaskFactory;
 
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
         internal RuntimeExportProviderFactory(RuntimeComposition composition)
             : this(composition, ExportProviderFactoryOptions.None)
         {
         }
+#pragma warning restore VSTHRD012
 
         internal RuntimeExportProviderFactory(RuntimeComposition composition, ExportProviderFactoryOptions options)
             : this(composition, options, joinableTaskFactory: null)
@@ -142,24 +144,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 Lazy<RuntimeExportProvider.DirectActivationPlan?> lazyPlan = this.directActivationPlans.GetOrAdd(
                     part,
-                    part => new Lazy<RuntimeExportProvider.DirectActivationPlan?>(
-                        () =>
-                        {
-                            if (exportProvider.TryCreateDirectActivationPlan(part, new HashSet<TypeRef>(), out RuntimeExportProvider.DirectActivationPlan? plan))
-                            {
-                                if (part.SharingBoundary?.Length > 0
-                                    && plan.OperationCount < NamedBoundaryDirectActivationPlanMinimumOperationCount)
-                                {
-                                    return null;
-                                }
-
-                                Interlocked.Increment(ref this.directActivationPlanCount);
-                                return plan;
-                            }
-
-                            return null;
-                        },
-                        LazyThreadSafetyMode.ExecutionAndPublication));
+                    part => this.CreateDirectActivationPlanLazy(exportProvider, part));
                 activationPlan = lazyPlan.Value;
                 return activationPlan is object;
             }
@@ -185,25 +170,60 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Lazy<RuntimeExportProvider.DirectActivationPlan?> lazyPlan = this.fusedActivationPlans.GetOrAdd(
                     part,
-                    part => new Lazy<RuntimeExportProvider.DirectActivationPlan?>(
-                        () =>
+                    part => this.CreateFusedActivationPlanLazy(exportProvider, part));
+                activationPlan = lazyPlan.Value;
+                return activationPlan is object;
+            }
+
+            private Lazy<RuntimeExportProvider.DirectActivationPlan?> CreateDirectActivationPlanLazy(
+                RuntimeExportProvider exportProvider,
+                RuntimeComposition.RuntimePart part)
+            {
+                var weakExportProvider = new WeakReference<RuntimeExportProvider>(exportProvider);
+                return new Lazy<RuntimeExportProvider.DirectActivationPlan?>(
+                    () =>
+                    {
+                        if (weakExportProvider.TryGetTarget(out RuntimeExportProvider? currentExportProvider)
+                            && currentExportProvider.TryCreateDirectActivationPlan(part, new HashSet<TypeRef>(), out RuntimeExportProvider.DirectActivationPlan? plan))
                         {
-                            if (exportProvider.TryCreateFusedActivationPlan(
+                            if (part.SharingBoundary?.Length > 0
+                                && plan.OperationCount < NamedBoundaryDirectActivationPlanMinimumOperationCount)
+                            {
+                                return null;
+                            }
+
+                            Interlocked.Increment(ref this.directActivationPlanCount);
+                            return plan;
+                        }
+
+                        return null;
+                    },
+                    LazyThreadSafetyMode.ExecutionAndPublication);
+            }
+
+            private Lazy<RuntimeExportProvider.DirectActivationPlan?> CreateFusedActivationPlanLazy(
+                RuntimeExportProvider exportProvider,
+                RuntimeComposition.RuntimePart part)
+            {
+                var weakExportProvider = new WeakReference<RuntimeExportProvider>(exportProvider);
+                return new Lazy<RuntimeExportProvider.DirectActivationPlan?>(
+                    () =>
+                    {
+                        if (weakExportProvider.TryGetTarget(out RuntimeExportProvider? currentExportProvider)
+                            && currentExportProvider.TryCreateFusedActivationPlan(
                                 part,
                                 NamedBoundaryDirectActivationPlanMinimumOperationCount,
                                 FusedActivationPlanMaximumOperationCount,
                                 out RuntimeExportProvider.DirectActivationPlan? plan))
-                            {
-                                Interlocked.Increment(ref this.directActivationPlanCount);
-                                Interlocked.Increment(ref this.fusedActivationPlanCount);
-                                return plan;
-                            }
+                        {
+                            Interlocked.Increment(ref this.directActivationPlanCount);
+                            Interlocked.Increment(ref this.fusedActivationPlanCount);
+                            return plan;
+                        }
 
-                            return null;
-                        },
-                        LazyThreadSafetyMode.ExecutionAndPublication));
-                activationPlan = lazyPlan.Value;
-                return activationPlan is object;
+                        return null;
+                    },
+                    LazyThreadSafetyMode.ExecutionAndPublication);
             }
 
             internal void RecordFusedExpressionCompilation()

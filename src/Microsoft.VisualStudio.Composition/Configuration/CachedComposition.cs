@@ -73,7 +73,9 @@ namespace Microsoft.VisualStudio.Composition
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
             return await this.LoadExportProviderFactoryAsync(cacheStream, resolver, ExportProviderFactoryOptions.None, cancellationToken).ConfigureAwait(false);
+#pragma warning restore VSTHRD012
         }
 
         /// <summary>
@@ -87,7 +89,9 @@ namespace Microsoft.VisualStudio.Composition
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, ExportProviderFactoryOptions options, CancellationToken cancellationToken)
         {
             var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
             return runtimeComposition.CreateExportProviderFactory(options);
+#pragma warning restore VSTHRD012
         }
 
         /// <summary>

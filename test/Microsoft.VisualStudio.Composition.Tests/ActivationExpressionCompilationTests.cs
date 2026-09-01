@@ -370,6 +370,69 @@ public class ActivationExpressionCompilationTests
     }
 
     /// <summary>
+    /// Verifies that asynchronous disposal keeps boundary roots on the lifecycle path.
+    /// </summary>
+    [Fact]
+    public void AsyncDisposableBoundaryRootDoesNotUseDirectActivationPlan()
+    {
+        IExportProviderFactory factory = CreateBoundaryPlanFactory();
+        using ExportProvider provider = factory.CreateExportProvider();
+        BoundaryPlanOwner owner = provider.GetExportedValue<BoundaryPlanOwner>();
+
+        AsyncDisposableBoundaryRoot firstValue;
+        using (Export<AsyncDisposableBoundaryRoot> first = owner.AsyncDisposableFactory.CreateExport())
+        {
+            firstValue = first.Value;
+            Assert.False(firstValue.IsDisposed);
+        }
+
+        Assert.True(firstValue.IsDisposed);
+
+        AsyncDisposableBoundaryRoot secondValue;
+        using (Export<AsyncDisposableBoundaryRoot> second = owner.AsyncDisposableFactory.CreateExport())
+        {
+            secondValue = second.Value;
+            Assert.False(secondValue.IsDisposed);
+        }
+
+        Assert.True(secondValue.IsDisposed);
+        Assert.Equal(0, GetDirectActivationPlanCount(factory));
+    }
+
+    /// <summary>
+    /// Verifies that an asynchronous disposable dependency prevents factory-island fusion.
+    /// </summary>
+    [Fact]
+    public void AsyncDisposableDependencyDoesNotUseFusedActivationPlan()
+    {
+        IExportProviderFactory factory = CreateFactory(
+            ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+            typeof(AsyncDisposableIslandOwner),
+            typeof(AsyncDisposableIslandRoot),
+            typeof(AsyncDisposableIslandDependency),
+            typeof(FactoryOnlyDependencyA),
+            typeof(FactoryOnlyDependencyB),
+            typeof(FactoryOnlyDependencyC));
+        using ExportProvider provider = factory.CreateExportProvider();
+        AsyncDisposableIslandOwner owner = provider.GetExportedValue<AsyncDisposableIslandOwner>();
+
+        using (Export<AsyncDisposableIslandRoot> first = owner.Factory.CreateExport())
+        {
+            _ = first.Value;
+        }
+
+        AsyncDisposableIslandDependency secondDependency;
+        using (Export<AsyncDisposableIslandRoot> second = owner.Factory.CreateExport())
+        {
+            secondDependency = second.Value.AsyncDisposableDependency;
+            Assert.False(secondDependency.IsDisposed);
+        }
+
+        Assert.True(secondDependency.IsDisposed);
+        Assert.Equal(0, GetFusedActivationPlanCount(factory));
+    }
+
+    /// <summary>
     /// Verifies that a compiled direct plan correctly satisfies constructor, property, and many imports.
     /// </summary>
     [Fact]
@@ -452,7 +515,8 @@ public class ActivationExpressionCompilationTests
             typeof(BoundaryCycleB),
             typeof(BoundaryCycleHelperA),
             typeof(BoundaryCycleHelperB),
-            typeof(DisposableBoundaryRoot));
+            typeof(DisposableBoundaryRoot),
+            typeof(AsyncDisposableBoundaryRoot));
     }
 
     private static CompositionConfiguration CreateConfiguration(params Type[] partTypes)
@@ -542,6 +606,9 @@ public class ActivationExpressionCompilationTests
 
         [Import, SharingBoundary("SharedPlanBoundary")]
         internal ExportFactory<DisposableBoundaryRoot> DisposableFactory { get; set; } = null!;
+
+        [Import, SharingBoundary("SharedPlanBoundary")]
+        internal ExportFactory<AsyncDisposableBoundaryRoot> AsyncDisposableFactory { get; set; } = null!;
     }
 
     [Export, Shared("SharedPlanBoundary")]
@@ -626,6 +693,53 @@ public class ActivationExpressionCompilationTests
         internal bool IsDisposed { get; private set; }
 
         public void Dispose() => this.IsDisposed = true;
+    }
+
+    [Export, Shared("SharedPlanBoundary")]
+    private sealed class AsyncDisposableBoundaryRoot : IAsyncDisposable
+    {
+        internal bool IsDisposed { get; private set; }
+
+        public ValueTask DisposeAsync()
+        {
+            this.IsDisposed = true;
+            return default;
+        }
+    }
+
+    [Export, Shared]
+    private sealed class AsyncDisposableIslandOwner
+    {
+        [Import]
+        internal ExportFactory<AsyncDisposableIslandRoot> Factory { get; set; } = null!;
+    }
+
+    [Export]
+    private sealed class AsyncDisposableIslandRoot
+    {
+        [ImportingConstructor]
+        internal AsyncDisposableIslandRoot(
+            AsyncDisposableIslandDependency asyncDisposableDependency,
+            FactoryOnlyDependencyA dependencyA,
+            FactoryOnlyDependencyB dependencyB,
+            FactoryOnlyDependencyC dependencyC)
+        {
+            this.AsyncDisposableDependency = asyncDisposableDependency;
+        }
+
+        internal AsyncDisposableIslandDependency AsyncDisposableDependency { get; }
+    }
+
+    [Export]
+    private sealed class AsyncDisposableIslandDependency : IAsyncDisposable
+    {
+        internal bool IsDisposed { get; private set; }
+
+        public ValueTask DisposeAsync()
+        {
+            this.IsDisposed = true;
+            return default;
+        }
     }
 
     [Export, Shared]

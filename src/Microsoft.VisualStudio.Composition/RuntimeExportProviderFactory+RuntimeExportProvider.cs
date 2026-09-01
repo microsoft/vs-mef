@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading;
     using Microsoft.VisualStudio.Composition.Reflection;
     using Microsoft.VisualStudio.Threading;
+    using IAsyncDisposable = System.IAsyncDisposable;
 
     internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
@@ -240,6 +241,7 @@ namespace Microsoft.VisualStudio.Composition
                     || part.TypeRef.IsGenericTypeDefinition
                     || part.OnImportsSatisfiedMethodRefs.Count > 0
                     || typeof(IDisposable).GetTypeInfo().IsAssignableFrom(part.TypeRef.Resolve().GetTypeInfo())
+                    || typeof(IAsyncDisposable).GetTypeInfo().IsAssignableFrom(part.TypeRef.Resolve().GetTypeInfo())
                     || !partsBeingBuilt.Add(part.TypeRef))
                 {
                     return false;
@@ -485,6 +487,7 @@ namespace Microsoft.VisualStudio.Composition
                     || part.TypeRef.IsGenericTypeDefinition
                     || part.OnImportsSatisfiedMethodRefs.Count > 0
                     || typeof(IDisposable).GetTypeInfo().IsAssignableFrom(part.TypeRef.Resolve().GetTypeInfo())
+                    || typeof(IAsyncDisposable).GetTypeInfo().IsAssignableFrom(part.TypeRef.Resolve().GetTypeInfo())
                     || !partsBeingBuilt.Add(part.TypeRef))
                 {
                     return false;
