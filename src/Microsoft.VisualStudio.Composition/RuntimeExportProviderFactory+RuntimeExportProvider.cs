@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
@@ -35,6 +36,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private readonly RuntimeComposition composition;
             private readonly ReportFaultCallback? faultCallback;
+            private readonly ConcurrentDictionary<(Type Type, string? ContractName), RuntimeExportLookup> runtimeExportLookupCache = new();
 
             internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback, JoinableTaskFactory? joinableTaskFactory)
                 : this(composition, joinableTaskFactory)
@@ -58,6 +60,22 @@ namespace Microsoft.VisualStudio.Composition
                 this.composition = composition;
             }
 
+            /// <inheritdoc/>
+            protected override void Dispose(bool disposing)
+            {
+                try
+                {
+                    base.Dispose(disposing);
+                }
+                finally
+                {
+                    if (disposing)
+                    {
+                        this.runtimeExportLookupCache.Clear();
+                    }
+                }
+            }
+
             private protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
@@ -75,11 +93,98 @@ namespace Microsoft.VisualStudio.Composition
                         export.MemberRef);
             }
 
+            private protected override bool TryGetExportedValue(Type type, string? contractName, out object? value)
+            {
+                Verify.NotDisposed(this);
+
+                contractName = string.IsNullOrEmpty(contractName) ? null : contractName;
+                if (!this.runtimeExportLookupCache.TryGetValue((type, contractName), out RuntimeExportLookup? lookup))
+                {
+                    lookup = this.CreateRuntimeExportLookup(type, contractName ?? ContractNameServices.GetTypeIdentity(type));
+                    lookup = this.runtimeExportLookupCache.GetOrAdd((type, contractName), lookup);
+                }
+
+                Assumes.NotNull(lookup);
+                if (!lookup.CanUseFastPath)
+                {
+                    value = null;
+                    return false;
+                }
+
+                if (lookup.TryGetSharedValue(out value))
+                {
+                    return true;
+                }
+
+                value = this.GetRuntimeExportedValue(lookup, type, out bool isFullyInitialized);
+                if (isFullyInitialized)
+                {
+                    lookup.SetSharedValue(value);
+                }
+
+                return true;
+            }
+
+            private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type, out bool isFullyInitialized)
+            {
+                isFullyInitialized = false;
+                MemberInfo? exportingMember = lookup.Export!.Member;
+                if (exportingMember?.IsStatic() == true)
+                {
+                    return GetValueFromMember(null, exportingMember, type, lookup.Export.ExportedValueTypeRef.Resolve());
+                }
+
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
+                    lookup.Part!.TypeRef,
+                    lookup.Part.TypeRef,
+                    lookup.Part.SharingBoundary,
+                    EmptyMetadata,
+                    !lookup.Part.IsShared,
+                    nonSharedPartOwner: null);
+                object? part = partLifecycle.GetValueReadyToExpose();
+                isFullyInitialized = partLifecycle.State == PartLifecycleState.Final;
+                return lookup.Export.MemberRef is null
+                    ? part
+                    : GetValueFromMember(part, exportingMember!, type, lookup.Export.ExportedValueTypeRef.Resolve());
+            }
+
             internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
             {
                 return nonSharedPartOwner is object
                     ? new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata, nonSharedPartOwner)
                     : new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
+            }
+
+            private RuntimeExportLookup CreateRuntimeExportLookup(Type type, string contractName)
+            {
+                if (type.IsEquivalentTo(typeof(object)))
+                {
+                    return RuntimeExportLookup.Unsupported;
+                }
+
+                IReadOnlyCollection<RuntimeComposition.RuntimeExport> exports = this.composition.GetExports(contractName);
+                string typeIdentity = ContractNameServices.GetTypeIdentity(type);
+                RuntimeComposition.RuntimeExport? matchingExport = null;
+                int matchingExportCount = 0;
+                foreach (RuntimeComposition.RuntimeExport export in exports)
+                {
+                    if (export.Metadata.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out object? exportedTypeIdentity)
+                        && string.Equals(typeIdentity, exportedTypeIdentity as string, StringComparison.Ordinal))
+                    {
+                        matchingExport = export;
+                        matchingExportCount++;
+                    }
+                }
+
+                if (matchingExportCount != 1 || matchingExport!.MemberRef is object)
+                {
+                    return RuntimeExportLookup.Unsupported;
+                }
+
+                RuntimeComposition.RuntimePart part = this.composition.GetPart(matchingExport);
+                return part.TypeRef.IsGenericTypeDefinition
+                    ? RuntimeExportLookup.Unsupported
+                    : new RuntimeExportLookup(part, matchingExport);
             }
 
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
@@ -257,12 +362,13 @@ namespace Microsoft.VisualStudio.Composition
                 Func<KeyValuePair<object?, IDisposable?>> valueFactory = () =>
                 {
 #pragma warning disable VSTHRD012 // The child export provider inherits the joinable task factory from its parent.
+                    Verify.NotDisposed(this);
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
 #pragma warning restore VSTHRD012
                     object? constructedValue = scope.GetExportedValue(import, export, importingPartTracker, out PartLifecycleTracker? partLifecycle);
-                    partLifecycle!.GetValueReadyToExpose();
+                    partLifecycle?.GetValueReadyToExpose();
                     var disposableValue = newSharingScope ? scope : partLifecycle as IDisposable;
                     return new KeyValuePair<object?, IDisposable?>(constructedValue, disposableValue);
                 };
@@ -295,6 +401,13 @@ namespace Microsoft.VisualStudio.Composition
                     return exportProvider;
                 }
 
+                if (export.MemberRef?.IsStatic == true)
+                {
+                    partLifecycle = null;
+                    return lazy ? ConstructLazyStaticExportedValue(this, import, export, importingPartTracker, this.faultCallback) :
+                                  ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+                }
+
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
@@ -302,7 +415,16 @@ namespace Microsoft.VisualStudio.Composition
                 return lazy ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback) :
                               ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
 
-                static Func<object?> ConstructLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
+                static Func<object?> ConstructLazyStaticExportedValue(RuntimeExportProvider exportProvider, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, ReportFaultCallback? faultCallback)
+                {
+                    return () =>
+                    {
+                        Verify.NotDisposed(exportProvider);
+                        return ConstructExportedValue(import, export, importingPartTracker, partLifecycle: null, faultCallback);
+                    };
+                }
+
+                static Func<object?> ConstructLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker? partLifecycle, ReportFaultCallback? faultCallback)
                 {
                     // Avoid inlining this method into its parent to avoid non-lazy path from paying for capture allocation
                     return () => ConstructExportedValue(import, export, importingPartTracker, partLifecycle, faultCallback);
@@ -346,34 +468,33 @@ namespace Microsoft.VisualStudio.Composition
                     nonSharedPartOwner);
             }
 
-            private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
+            private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker? partLifecycle, ReportFaultCallback? faultCallback)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
-                Requires.NotNull(partLifecycle, nameof(partLifecycle));
 
                 try
                 {
                     bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, import.ImportingParameterRef != null);
-                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && partLifecycle != null && !import.IsExportFactory)
                     {
                         importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
                     }
 
                     if (export.MemberRef != null)
                     {
-                        object? part = export.Member!.IsStatic()
+                        object? part = export.MemberRef.IsStatic
                             ? null
-                            : (fullyInitializedValueIsRequired
-                                ? partLifecycle.GetValueReadyToExpose()
-                                : partLifecycle.GetValueReadyToRetrieveExportingMembers());
+                            : fullyInitializedValueIsRequired
+                                ? partLifecycle!.GetValueReadyToExpose()
+                                : partLifecycle!.GetValueReadyToRetrieveExportingMembers();
                         return GetValueFromMember(part, export.Member!, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
                     }
                     else
                     {
                         return fullyInitializedValueIsRequired
-                            ? partLifecycle.GetValueReadyToExpose()
-                            : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                            ? partLifecycle!.GetValueReadyToExpose()
+                            : partLifecycle!.GetValueReadyToRetrieveExportingMembers();
                     }
                 }
                 catch (Exception e)
@@ -483,6 +604,50 @@ namespace Microsoft.VisualStudio.Composition
                 public object? Value { get; private set; }
             }
 
+            private sealed class RuntimeExportLookup
+            {
+                internal static readonly RuntimeExportLookup Unsupported = new RuntimeExportLookup();
+                private volatile bool hasSharedValue;
+                private object? sharedValue;
+
+                private RuntimeExportLookup()
+                {
+                }
+
+                internal RuntimeExportLookup(RuntimeComposition.RuntimePart part, RuntimeComposition.RuntimeExport export)
+                {
+                    this.Part = part;
+                    this.Export = export;
+                }
+
+                internal bool CanUseFastPath => this.Part is object;
+
+                internal RuntimeComposition.RuntimePart? Part { get; }
+
+                internal RuntimeComposition.RuntimeExport? Export { get; }
+
+                internal bool TryGetSharedValue(out object? value)
+                {
+                    if (this.hasSharedValue)
+                    {
+                        value = this.sharedValue;
+                        return true;
+                    }
+
+                    value = null;
+                    return false;
+                }
+
+                internal void SetSharedValue(object? value)
+                {
+                    if (this.Part!.IsShared && this.Export!.MemberRef is null)
+                    {
+                        this.sharedValue = value;
+                        this.hasSharedValue = true;
+                    }
+                }
+            }
+
             [DebuggerDisplay("{" + nameof(partDefinition) + "." + nameof(RuntimeComposition.RuntimePart.TypeRef) + "." + nameof(TypeRef.ResolvedType) + ".FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
@@ -524,6 +689,12 @@ namespace Microsoft.VisualStudio.Composition
                     get { return this.partDefinition.TypeRef.Resolve(); }
                 }
 
+                protected override bool CanInitializeNonSharedValueDirectly =>
+                    this.partDefinition.IsInstantiable
+                    && this.partDefinition.ImportingConstructorArguments.Count == 0
+                    && this.partDefinition.ImportingMembers.Count == 0
+                    && this.partDefinition.OnImportsSatisfiedMethodRefs.Count == 0;
+
                 internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
                 {
                     base.ReportPartiallyInitializedImport(part);
@@ -543,8 +714,13 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     var constructedPartTypeRef = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
-                    var ctorArgs = this.partDefinition.ImportingConstructorArguments
-                        .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
+                    IReadOnlyList<RuntimeComposition.RuntimeImport> constructorImports = this.partDefinition.ImportingConstructorArguments;
+                    object?[] ctorArgs = constructorImports.Count == 0 ? EmptyObjectArray : new object?[constructorImports.Count];
+                    for (int i = 0; i < constructorImports.Count; i++)
+                    {
+                        ctorArgs[i] = this.OwningExportProvider.GetValueForImportSite(this, constructorImports[i]).Value;
+                    }
+
                     MethodBase? importingConstructorOrFactoryMethod = this.partDefinition.ImportingConstructorOrFactoryMethod!;
                     if (importingConstructorOrFactoryMethod.ContainsGenericParameters)
                     {

@@ -292,11 +292,21 @@ namespace Microsoft.VisualStudio.Composition
 
         public T GetExportedValue<T>()
         {
+            if (this.TryGetExportedValue(typeof(T), contractName: null, out object? value))
+            {
+                return CastValueTo<T>(value)!;
+            }
+
             return this.GetExport<T>().Value;
         }
 
         public T GetExportedValue<T>(string? contractName)
         {
+            if (this.TryGetExportedValue(typeof(T), contractName, out object? value))
+            {
+                return CastValueTo<T>(value)!;
+            }
+
             return this.GetExport<T>(contractName).Value;
         }
 
@@ -708,6 +718,19 @@ namespace Microsoft.VisualStudio.Composition
         /// </remarks>
         private protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
+        /// <summary>
+        /// Attempts to retrieve an exported value through a provider-specific optimized path.
+        /// </summary>
+        /// <param name="type">The exported value type.</param>
+        /// <param name="contractName">The optional contract name.</param>
+        /// <param name="value">Receives the exported value when the optimized path is available.</param>
+        /// <returns><see langword="true"/> when <paramref name="value"/> was produced; otherwise, <see langword="false"/>.</returns>
+        private protected virtual bool TryGetExportedValue(Type type, string? contractName, out object? value)
+        {
+            value = null;
+            return false;
+        }
+
         private protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object?> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string? partSharingBoundary, bool nonSharedInstanceRequired, MemberRef? exportingMemberRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
@@ -730,12 +753,18 @@ namespace Microsoft.VisualStudio.Composition
                 memberValueFactory = () =>
                 {
                     Verify.NotDisposed(this);
+
+                    if (exportingMemberRef.IsStatic)
+                    {
+                        return (GetValueFromMember(null, exportingMemberRef.MemberInfo), null);
+                    }
+
                     PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired, nonSharedPartOwner: null);
                     return (GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo), nonSharedInstanceRequired ? maybeSharedValueFactory : null);
                 };
             }
 
-            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired)
+            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired, exportingMemberRef?.IsStatic != true)
             {
                 ExportingAssemblyName = originalPartTypeRef.AssemblyName,
             };
@@ -793,7 +822,9 @@ namespace Microsoft.VisualStudio.Composition
                 () =>
                 {
                     var result = exportInfo.ExportedValueGetter();
-                    return new KeyValuePair<object?, IDisposable?>(result.Value, result.NonSharedDisposalTracker ?? result.Value as IDisposable);
+                    return new KeyValuePair<object?, IDisposable?>(
+                        result.Value,
+                        result.NonSharedDisposalTracker ?? (exportInfo.ShouldDisposeExportedValue ? result.Value as IDisposable : null));
                 },
                 exportFactoryType,
                 exportInfo.Definition.Metadata));
@@ -1195,9 +1226,15 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             public ExportInfo(string contractName, IReadOnlyDictionary<string, object?> metadata, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime)
+                : this(contractName, metadata, exportedValueGetter, hasNonSharedLifetime, shouldDisposeExportedValue: true)
+            {
+            }
+
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object?> metadata, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime, bool shouldDisposeExportedValue)
                 : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
             {
                 this.HasNonSharedLifetime = hasNonSharedLifetime;
+                this.ShouldDisposeExportedValue = shouldDisposeExportedValue;
             }
 
             public ExportInfo(ExportDefinition exportDefinition, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter)
@@ -1208,6 +1245,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 this.Definition = exportDefinition;
                 this.ExportedValueGetter = exportedValueGetter;
+                this.ShouldDisposeExportedValue = true;
             }
 
             public ExportDefinition Definition { get; }
@@ -1221,6 +1259,11 @@ namespace Microsoft.VisualStudio.Composition
             /// Gets a value indicating whether <see cref="ExportedValueGetter"/> will produce a value that must be disposed of if <see cref="ReleaseExport(Export)"/> is invoked.
             /// </summary>
             public bool HasNonSharedLifetime { get; }
+
+            /// <summary>
+            /// Gets a value indicating whether the exported value should be disposed when no separate disposal tracker is available.
+            /// </summary>
+            public bool ShouldDisposeExportedValue { get; }
 
             internal required AssemblyName ExportingAssemblyName { get; init; }
 
@@ -1239,7 +1282,7 @@ namespace Microsoft.VisualStudio.Composition
                 string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
                     ? closedTypeIdentity : this.Definition.ContractName;
 
-                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime)
+                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime, this.ShouldDisposeExportedValue)
                 {
                     ExportingAssemblyName = this.ExportingAssemblyName,
                 };
@@ -1378,6 +1421,11 @@ namespace Microsoft.VisualStudio.Composition
             protected abstract Type PartType { get; }
 
             /// <summary>
+            /// Gets a value indicating whether this non-shared part has no lifecycle work beyond construction.
+            /// </summary>
+            protected virtual bool CanInitializeNonSharedValueDirectly => false;
+
+            /// <summary>
             /// Gets the instance of the part after fully initializing it.
             /// </summary>
             /// <remarks>
@@ -1388,6 +1436,11 @@ namespace Microsoft.VisualStudio.Composition
             /// </remarks>
             public object? GetValueReadyToExpose()
             {
+                if (this.IsNonShared && this.State == PartLifecycleState.NotCreated && this.CanInitializeNonSharedValueDirectly)
+                {
+                    return this.InitializeNonSharedValueDirectly();
+                }
+
                 // If this very thread is already executing a step on this part, then we have some
                 // form of reentrancy going on. In which case, the general policy seems to be that
                 // we return an incompletely initialized part.
@@ -1404,6 +1457,41 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 return this.Value;
+            }
+
+            private object? InitializeNonSharedValueDirectly()
+            {
+                try
+                {
+                    this.executingStepThreadId = Environment.CurrentManagedThreadId;
+                    object? value = this.CreateValue();
+                    this.Value = value;
+
+                    if (value is IDisposable || value is IAsyncDisposable)
+                    {
+                        if (this.nonSharedPartOwner is null)
+                        {
+                            this.OwningExportProvider.TrackDisposableValue(this, sharingBoundary: null);
+                        }
+                        else
+                        {
+                            this.nonSharedPartOwner.AddNonSharedDescendant(this);
+                        }
+                    }
+
+                    Assumes.True(this.UpdateState(PartLifecycleState.Final));
+                    if (value is null)
+                    {
+                        this.ThrowPartNotInstantiableException();
+                    }
+
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
+                }
             }
 
             /// <summary>

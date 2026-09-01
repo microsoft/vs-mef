@@ -103,6 +103,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<Apple>(apple);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ObjectContractExport), typeof(TypedContractExport))]
+        public void GetExportedValue_OfTypeObjectPreservesAmbiguousCardinality(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<object>("MixedContract"));
+        }
+
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(Apple))]
         public void GetExportedValues_OfTypeByObjectAndContractName_NonGeneric(IContainer container)
         {
@@ -741,6 +747,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 get { return "PASS"; }
             }
+        }
+
+        [Export("MixedContract", typeof(object))]
+        public class ObjectContractExport
+        {
+        }
+
+        [Export("MixedContract", typeof(TypedContractExport))]
+        public class TypedContractExport
+        {
         }
 
         #endregion

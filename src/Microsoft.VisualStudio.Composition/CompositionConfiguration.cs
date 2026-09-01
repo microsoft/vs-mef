@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.Composition
                             string.Format(
                                 CultureInfo.CurrentCulture,
                                 Strings.UnableToDeterminePrimarySharingBoundary,
-                                ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null, null)));
+                                partBuilder.PartDefinition.TypeRef.FullName));
                     }
                 }
             }
