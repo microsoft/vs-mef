@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
+    using IAsyncDisposable = System.IAsyncDisposable;
 
     public class RuntimeComposition : IEquatable<RuntimeComposition>
     {
@@ -130,6 +132,17 @@ namespace Microsoft.VisualStudio.Composition
                 nameof(options),
                 "Unsupported export provider factory options.");
             return new RuntimeExportProviderFactory(this, options);
+        }
+
+        /// <summary>
+        /// Creates a factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// </summary>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <returns>A factory that creates export providers for this runtime composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory joinableTaskFactory)
+        {
+            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
+            return new RuntimeExportProviderFactory(this, joinableTaskFactory);
         }
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)

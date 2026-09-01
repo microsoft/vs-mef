@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     /// <summary>
@@ -23,9 +24,10 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="inner">The instance to forward queries to.</param>
         protected DelegatingExportProvider(ExportProvider inner)
-            : base(inner.Resolver)
+#pragma warning disable VSTHRD012 // The parent constructor propagates its joinable task factory.
+            : base(Requires.NotNull(inner, nameof(inner)), ImmutableHashSet<string>.Empty)
+#pragma warning restore VSTHRD012
         {
-            Requires.NotNull(inner, nameof(inner));
             this.inner = inner;
         }
 

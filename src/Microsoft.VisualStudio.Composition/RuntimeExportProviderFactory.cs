@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
 
     internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private readonly ActivationPlanRegistry activationPlanRegistry;
         private readonly RuntimeComposition composition;
+        private readonly JoinableTaskFactory? joinableTaskFactory;
 
         internal RuntimeExportProviderFactory(RuntimeComposition composition)
             : this(composition, ExportProviderFactoryOptions.None)
@@ -30,10 +32,21 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         internal RuntimeExportProviderFactory(RuntimeComposition composition, ExportProviderFactoryOptions options)
+            : this(composition, options, joinableTaskFactory: null)
+        {
+        }
+
+        internal RuntimeExportProviderFactory(RuntimeComposition composition, JoinableTaskFactory joinableTaskFactory)
+            : this(composition, ExportProviderFactoryOptions.None, joinableTaskFactory)
+        {
+        }
+
+        private RuntimeExportProviderFactory(RuntimeComposition composition, ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
         {
             Requires.NotNull(composition, nameof(composition));
             this.composition = composition;
             this.activationPlanRegistry = new ActivationPlanRegistry(options);
+            this.joinableTaskFactory = joinableTaskFactory;
         }
 
         internal int ExpressionCompilationCount => this.activationPlanRegistry.ExpressionCompilationCount;
@@ -46,13 +59,13 @@ namespace Microsoft.VisualStudio.Composition
 
         public ExportProvider CreateExportProvider()
         {
-            return new RuntimeExportProvider(this.composition, this.activationPlanRegistry);
+            return new RuntimeExportProvider(this.composition, this.activationPlanRegistry, this.joinableTaskFactory);
         }
 
         public ExportProvider CreateExportProvider(ReportFaultCallback faultCallback)
         {
             Requires.NotNull(faultCallback, nameof(faultCallback));
-            return new RuntimeExportProvider(this.composition, this.activationPlanRegistry, faultCallback);
+            return new RuntimeExportProvider(this.composition, this.activationPlanRegistry, faultCallback, this.joinableTaskFactory);
         }
 
         private sealed class ActivationPlanRegistry

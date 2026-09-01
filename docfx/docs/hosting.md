@@ -72,6 +72,35 @@ var exportProvider = exportProviderFactory.CreateExportProvider();
 var program = exportProvider.GetExportedValue<Program>();
 ```
 
+## Disposing an ExportProvider
+
+Prefer asynchronous disposal when the host supports it:
+
+```csharp
+ExportProvider exportProvider = exportProviderFactory.CreateExportProvider();
+try
+{
+    // Acquire and use exports.
+}
+finally
+{
+    await exportProvider.DisposeAsync();
+}
+```
+
+Synchronous disposal also cleans up parts that implement only <xref:System.IAsyncDisposable>.
+Without additional configuration, <xref:Microsoft.VisualStudio.Composition.ExportProvider.Dispose> blocks until each asynchronous cleanup operation completes.
+Hosts that use `Microsoft.VisualStudio.Threading` should provide their <xref:Microsoft.VisualStudio.Threading.JoinableTaskFactory> when creating the export provider factory so synchronous disposal can block without deadlocking the main thread:
+
+```csharp
+IExportProviderFactory exportProviderFactory = config.CreateExportProviderFactory(joinableTaskFactory);
+using ExportProvider exportProvider = exportProviderFactory.CreateExportProvider();
+```
+
+The `JoinableTaskFactory` overload is also available from <xref:Microsoft.VisualStudio.Composition.RuntimeComposition.CreateExportProviderFactory*> and <xref:Microsoft.VisualStudio.Composition.CachedComposition.LoadExportProviderFactoryAsync*>.
+The configured factory applies to the root export provider, sharing boundaries, and parts created by `ExportFactory<T>`.
+See [Disposing MEF parts](parts.md#disposing-mef-parts) for the corresponding part-author guidance.
+
 ## Migrating from .NET MEF or NuGet MEF
 
 ### Where is <xref:System.ComponentModel.Composition.Hosting.DirectoryCatalog>?
