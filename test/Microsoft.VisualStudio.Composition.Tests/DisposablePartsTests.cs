@@ -84,6 +84,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task LateTrackedPartUsesJoinableTaskFactoryDisposalPolicy()
+        {
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider innerExportProvider = await CreateExportProviderAsync(joinableTaskContext.Factory);
+            var exportProvider = new PartOwningDelegatingExportProvider(innerExportProvider, new DualDisposablePart());
+            var latePart = new DualDisposablePart();
+            exportProvider.Dispose();
+
+            exportProvider.TrackPart(latePart);
+            innerExportProvider.Dispose();
+
+            Assert.False(latePart.DisposeCalled);
+            Assert.True(latePart.DisposeAsyncCalled);
+        }
+
+        [Fact]
         public async Task ConcurrentDisposalCallsAwaitSameOperation()
         {
             ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposalGatePart));
@@ -447,6 +463,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             /// <param name="part">The part whose disposal should be tracked.</param>
             internal PartOwningDelegatingExportProvider(ExportProvider inner, IDisposable part)
                 : base(inner)
+            {
+                this.TrackDisposableValue(part, sharingBoundary: null);
+            }
+
+            /// <summary>
+            /// Tracks another part for disposal.
+            /// </summary>
+            /// <param name="part">The part whose disposal should be tracked.</param>
+            internal void TrackPart(IDisposable part)
             {
                 this.TrackDisposableValue(part, sharingBoundary: null);
             }

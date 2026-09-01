@@ -1027,11 +1027,11 @@ namespace Microsoft.VisualStudio.Composition
 
         private void DisposeLateTrackedValue(IDisposable disposable)
         {
-            if (!this.disposalStartedSynchronously && disposable is IAsyncDisposable asyncDisposable)
+            bool disposeSynchronously = this.disposalStartedSynchronously && this.joinableTaskFactory is null;
+            if (!disposeSynchronously && disposable is IAsyncDisposable asyncDisposable)
             {
-#pragma warning disable VSTHRD002 // Disposal must finish before the concurrent activation can expose the part.
-                asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
-#pragma warning restore VSTHRD002
+                // Disposal must finish before the concurrent activation can expose the part.
+                this.WaitForDisposal(asyncDisposable.DisposeAsync().AsTask());
             }
             else
             {
