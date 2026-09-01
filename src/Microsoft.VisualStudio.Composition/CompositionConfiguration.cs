@@ -538,9 +538,7 @@ namespace Microsoft.VisualStudio.Composition
                         {
                             foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory && import.Value.Count > 0))
                             {
-                                var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
-                                    .Where(boundary => !string.IsNullOrEmpty(boundary))
-                                    .ToImmutableHashSet();
+                                var freshBoundaries = ((ImmutableHashSet<string>)import.Key.ImportDefinition.ExportFactorySharingBoundaries).Remove(string.Empty);
                                 if (freshBoundaries.Overlaps(relevantBoundaries))
                                 {
                                     int previousBoundaryCount = relevantBoundaries.Count;
@@ -585,9 +583,7 @@ namespace Microsoft.VisualStudio.Composition
                         {
                             foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory && import.Value.Count > 0))
                             {
-                                var freshBoundaries = import.Key.ImportDefinition.ExportFactorySharingBoundaries
-                                    .Where(boundary => !string.IsNullOrEmpty(boundary))
-                                    .ToImmutableHashSet();
+                                var freshBoundaries = ((ImmutableHashSet<string>)import.Key.ImportDefinition.ExportFactorySharingBoundaries).Remove(string.Empty);
                                 if (freshBoundaries.Count == 0 || !freshBoundaries.Overlaps(relevantBoundaries))
                                 {
                                     continue;
