@@ -69,6 +69,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task DelegatingExportProviderInheritsJoinableTaskFactory()
+        {
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider innerExportProvider = await CreateExportProviderAsync(joinableTaskContext.Factory);
+            var part = new DualDisposablePart();
+            var exportProvider = new PartOwningDelegatingExportProvider(innerExportProvider, part);
+
+            exportProvider.Dispose();
+            innerExportProvider.Dispose();
+
+            Assert.False(part.DisposeCalled);
+            Assert.True(part.DisposeAsyncCalled);
+        }
+
+        [Fact]
         public async Task ConcurrentDisposalCallsAwaitSameOperation()
         {
             ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposalGatePart));
@@ -363,6 +378,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 this.DisposeCallCount++;
                 base.Dispose(disposing);
+            }
+        }
+
+        private class PartOwningDelegatingExportProvider : DelegatingExportProvider
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PartOwningDelegatingExportProvider"/> class.
+            /// </summary>
+            /// <param name="inner">The export provider to delegate to.</param>
+            /// <param name="part">The part whose disposal should be tracked.</param>
+            internal PartOwningDelegatingExportProvider(ExportProvider inner, IDisposable part)
+                : base(inner)
+            {
+                this.TrackDisposableValue(part, sharingBoundary: null);
             }
         }
 
