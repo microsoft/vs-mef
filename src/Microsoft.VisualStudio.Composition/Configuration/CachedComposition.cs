@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task whose result is the loaded export provider factory.</returns>
-        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
         {
             Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
             var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
