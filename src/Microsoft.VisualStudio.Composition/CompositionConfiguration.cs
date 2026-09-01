@@ -462,8 +462,8 @@ namespace Microsoft.VisualStudio.Composition
 
             HashSet<ComposedPart> AnalyzeUnreachableParts(IReadOnlyCollection<ComposedPart> prunedOptionalExports)
             {
-                // The query-directed search normally visits only scopes relevant to one part. Report an
-                // indeterminate result at this bound so pathological graphs cannot exhaust composition-time memory.
+                // The query-directed search normally visits only scopes relevant to one part. Return null
+                // at this bound so the caller does not diagnose an indeterminate result as unreachable.
                 const int MaxScopesPerPart = 1024;
 
                 var requiredSharingBoundaries = partsList.ToDictionary(
