@@ -149,6 +149,27 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task DisposeAsyncDisposesDescendantWhoseConstructionFinishesLate()
+        {
+            LateAsyncDisposableChild.Reset();
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(PartWithLateAsyncDisposableChild), typeof(LateAsyncDisposableChild));
+            Task<PartWithLateAsyncDisposableChild> activation = Task.Run(exportProvider.GetExportedValue<PartWithLateAsyncDisposableChild>);
+
+            await LateAsyncDisposableChild.ConstructionStarted.Task;
+            try
+            {
+                await exportProvider.DisposeAsync();
+            }
+            finally
+            {
+                LateAsyncDisposableChild.AllowConstructionToFinish.SetResult(null);
+            }
+
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () => await activation);
+            Assert.Equal(1, LateAsyncDisposableChild.DisposalCount);
+        }
+
+        [Fact]
         public async Task AsyncDisposablePartDisposedSynchronouslyWithJoinableTaskFactory()
         {
             AsyncDisposablePart.DisposalCount = 0;
@@ -354,6 +375,42 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 DisposalCount++;
                 return default;
+            }
+        }
+
+        [Export]
+        public class PartWithLateAsyncDisposableChild
+        {
+            [Import]
+            public LateAsyncDisposableChild Child { get; set; } = null!;
+        }
+
+        [Export]
+        public class LateAsyncDisposableChild : IAsyncDisposable
+        {
+            internal static TaskCompletionSource<object?> AllowConstructionToFinish = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            internal static TaskCompletionSource<object?> ConstructionStarted = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            internal static int DisposalCount;
+
+            public LateAsyncDisposableChild()
+            {
+                ConstructionStarted.SetResult(null);
+#pragma warning disable VSTHRD002 // The test intentionally holds construction across provider disposal.
+                AllowConstructionToFinish.Task.GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                DisposalCount++;
+                return default;
+            }
+
+            internal static void Reset()
+            {
+                AllowConstructionToFinish = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+                ConstructionStarted = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+                DisposalCount = 0;
             }
         }
 

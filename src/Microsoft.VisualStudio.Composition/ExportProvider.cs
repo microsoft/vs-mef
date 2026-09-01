@@ -995,20 +995,47 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(instantiatedPart, nameof(instantiatedPart));
 
-            if (sharingBoundary is null)
+            bool disposeImmediately;
+            lock (this.disposalSyncObject)
             {
-                lock (this.disposableNonSharedParts)
+                disposeImmediately = this.isDisposed;
+                if (!disposeImmediately)
                 {
-                    this.disposableNonSharedParts.Add(instantiatedPart);
+                    if (sharingBoundary is null)
+                    {
+                        lock (this.disposableNonSharedParts)
+                        {
+                            this.disposableNonSharedParts.Add(instantiatedPart);
+                        }
+                    }
+                    else
+                    {
+                        var disposablePartsHashSet = this.disposableInstantiatedSharedParts[sharingBoundary];
+                        lock (disposablePartsHashSet)
+                        {
+                            disposablePartsHashSet.Add(instantiatedPart);
+                        }
+                    }
                 }
+            }
+
+            if (disposeImmediately)
+            {
+                this.DisposeLateTrackedValue(instantiatedPart);
+            }
+        }
+
+        private void DisposeLateTrackedValue(IDisposable disposable)
+        {
+            if (!this.disposalStartedSynchronously && disposable is IAsyncDisposable asyncDisposable)
+            {
+#pragma warning disable VSTHRD002 // Disposal must finish before the concurrent activation can expose the part.
+                asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002
             }
             else
             {
-                var disposablePartsHashSet = this.disposableInstantiatedSharedParts[sharingBoundary];
-                lock (disposablePartsHashSet)
-                {
-                    disposablePartsHashSet.Add(instantiatedPart);
-                }
+                disposable.Dispose();
             }
         }
 
@@ -1701,16 +1728,34 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 else
                 {
-                    this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
-
+                    bool disposeDescendant;
                     lock (this.syncObject)
                     {
-                        if (this.nonSharedChildParts is null)
-                        {
-                            this.nonSharedChildParts = new HashSet<PartLifecycleTracker>();
-                        }
+                        disposeDescendant = this.isDisposed;
+                    }
 
-                        this.nonSharedChildParts.Add(nonSharedDescendant);
+                    if (!disposeDescendant)
+                    {
+                        this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+
+                        lock (this.syncObject)
+                        {
+                            disposeDescendant = this.isDisposed;
+                            if (!disposeDescendant)
+                            {
+                                if (this.nonSharedChildParts is null)
+                                {
+                                    this.nonSharedChildParts = new HashSet<PartLifecycleTracker>();
+                                }
+
+                                this.nonSharedChildParts.Add(nonSharedDescendant);
+                            }
+                        }
+                    }
+
+                    if (disposeDescendant)
+                    {
+                        this.OwningExportProvider.DisposeLateTrackedValue(nonSharedDescendant);
                     }
                 }
             }
