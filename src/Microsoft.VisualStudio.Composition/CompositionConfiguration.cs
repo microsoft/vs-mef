@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Runtime.CompilerServices;
     using System.Xml.Linq;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
+    using IAsyncDisposable = System.IAsyncDisposable;
 
     public class CompositionConfiguration
     {
@@ -245,7 +247,21 @@ namespace Microsoft.VisualStudio.Composition
         public IExportProviderFactory CreateExportProviderFactory()
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
+#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
             return composition.CreateExportProviderFactory();
+#pragma warning restore VSTHRD012
+        }
+
+        /// <summary>
+        /// Creates a factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// </summary>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <returns>A factory that creates export providers for this composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory joinableTaskFactory)
+        {
+            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
+            var composition = RuntimeComposition.CreateRuntimeComposition(this);
+            return composition.CreateExportProviderFactory(joinableTaskFactory);
         }
 
         public string? GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)

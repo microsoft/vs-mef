@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Reflection;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
 
     internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
@@ -37,20 +38,22 @@ namespace Microsoft.VisualStudio.Composition
             private readonly ReportFaultCallback? faultCallback;
             private readonly ConcurrentDictionary<(Type Type, string? ContractName), RuntimeExportLookup> runtimeExportLookupCache = new();
 
-            internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback)
-                : this(composition)
+            internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback, JoinableTaskFactory? joinableTaskFactory)
+                : this(composition, joinableTaskFactory)
             {
                 this.faultCallback = faultCallback;
             }
 
-            internal RuntimeExportProvider(RuntimeComposition composition)
-                : base(Requires.NotNull(composition, nameof(composition)).Resolver)
+            internal RuntimeExportProvider(RuntimeComposition composition, JoinableTaskFactory? joinableTaskFactory = null)
+                : base(Requires.NotNull(composition, nameof(composition)).Resolver, joinableTaskFactory)
             {
                 this.composition = composition;
             }
 
             internal RuntimeExportProvider(RuntimeComposition composition, ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
+#pragma warning disable VSTHRD012 // The parent constructor propagates its joinable task factory.
                 : base(parent, freshSharingBoundaries)
+#pragma warning restore VSTHRD012
             {
                 Requires.NotNull(composition, nameof(composition));
 
@@ -358,10 +361,12 @@ namespace Microsoft.VisualStudio.Composition
                 bool newSharingScope = sharingBoundaries.Count > 0;
                 Func<KeyValuePair<object?, IDisposable?>> valueFactory = () =>
                 {
+#pragma warning disable VSTHRD012 // The child export provider inherits the joinable task factory from its parent.
                     Verify.NotDisposed(this);
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
+#pragma warning restore VSTHRD012
                     object? constructedValue = scope.GetExportedValue(import, export, importingPartTracker, out PartLifecycleTracker? partLifecycle);
                     partLifecycle?.GetValueReadyToExpose();
                     var disposableValue = newSharingScope ? scope : partLifecycle as IDisposable;

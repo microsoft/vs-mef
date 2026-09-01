@@ -3,6 +3,7 @@ items:
 - href: dynamic_recomposition.md
 - href: hosting.md
 - href: metadata-views.md
+- href: parts.md
 - href: mef_library_differences.md
 - href: vsmefx.md
 - href: why.md
