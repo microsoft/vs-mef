@@ -524,7 +524,10 @@ namespace Microsoft.VisualStudio.Composition
         protected virtual async ValueTask DisposeAsyncCore()
         {
             List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
-            await DisposeSnapshotAsync(disposableSnapshot, this.disposalStartedSynchronously).ConfigureAwait(false);
+
+            // When a JTF is available, WaitForDisposal joins this whole asynchronous operation once.
+            bool disposeSynchronously = this.disposalStartedSynchronously && this.joinableTaskFactory is null;
+            await DisposeSnapshotAsync(disposableSnapshot, disposeSynchronously).ConfigureAwait(false);
         }
 
         private async Task CompleteDisposalAsync(TaskCompletionSource<object?> completionSource)
