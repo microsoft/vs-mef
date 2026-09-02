@@ -6,13 +6,10 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using Microsoft.VisualStudio.Threading;
     using IAsyncDisposable = System.IAsyncDisposable;
@@ -115,23 +112,17 @@ namespace Microsoft.VisualStudio.Composition
             return new RuntimeComposition(parts, metadataViewsAndProviders, resolver);
         }
 
+        /// <inheritdoc cref="CreateExportProviderFactory(JoinableTaskFactory?)"/>
         public IExportProviderFactory CreateExportProviderFactory()
-        {
-#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
-            return new RuntimeExportProviderFactory(this);
-#pragma warning restore VSTHRD012
-        }
+            => this.CreateExportProviderFactory(joinableTaskFactory: null);
 
         /// <summary>
-        /// Creates a factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// Creates an <see cref="IExportProviderFactory"/> for this runtime composition.
         /// </summary>
-        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
         /// <returns>A factory that creates export providers for this runtime composition.</returns>
-        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory joinableTaskFactory)
-        {
-            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
-            return new RuntimeExportProviderFactory(this, joinableTaskFactory);
-        }
+        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory? joinableTaskFactory)
+            => new RuntimeExportProviderFactory(this, joinableTaskFactory);
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {
