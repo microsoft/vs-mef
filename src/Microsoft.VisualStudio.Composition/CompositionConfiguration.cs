@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Xml.Linq;
@@ -244,22 +243,17 @@ namespace Microsoft.VisualStudio.Composition
             return metadataViewsAndProviders.ToImmutable();
         }
 
+        /// <inheritdoc cref="CreateExportProviderFactory(JoinableTaskFactory?)"/>
         public IExportProviderFactory CreateExportProviderFactory()
-        {
-            var composition = RuntimeComposition.CreateRuntimeComposition(this);
-#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
-            return composition.CreateExportProviderFactory();
-#pragma warning restore VSTHRD012
-        }
+            => this.CreateExportProviderFactory(joinableTaskFactory: null);
 
         /// <summary>
-        /// Creates a factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// Creates an <see cref="IExportProviderFactory"/> for this composition configuration.
         /// </summary>
-        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
         /// <returns>A factory that creates export providers for this composition.</returns>
-        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory joinableTaskFactory)
+        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory? joinableTaskFactory)
         {
-            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
             return composition.CreateExportProviderFactory(joinableTaskFactory);
         }
