@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        private RuntimeExportProviderFactory(RuntimeComposition composition, ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
+        internal RuntimeExportProviderFactory(RuntimeComposition composition, ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
         {
             Requires.NotNull(composition, nameof(composition));
             this.composition = composition;

@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Xml.Linq;
@@ -244,10 +243,9 @@ namespace Microsoft.VisualStudio.Composition
             return metadataViewsAndProviders.ToImmutable();
         }
 
+        /// <inheritdoc cref="CreateExportProviderFactory(JoinableTaskFactory?)"/>
         public IExportProviderFactory CreateExportProviderFactory()
-#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
-            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None);
-#pragma warning restore VSTHRD012
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory: null);
 
         /// <summary>
         /// Creates an export provider factory with runtime behavior configured by the specified options.
@@ -255,23 +253,26 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="options">Options that control export provider runtime behavior.</param>
         /// <returns>The export provider factory.</returns>
         public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options)
-        {
-            var composition = RuntimeComposition.CreateRuntimeComposition(this);
-#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
-            return composition.CreateExportProviderFactory(options);
-#pragma warning restore VSTHRD012
-        }
+            => this.CreateExportProviderFactory(options, joinableTaskFactory: null);
 
         /// <summary>
-        /// Creates a factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// Creates an <see cref="IExportProviderFactory"/> for this composition configuration.
         /// </summary>
-        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
         /// <returns>A factory that creates export providers for this composition.</returns>
-        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory joinableTaskFactory)
+        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory? joinableTaskFactory)
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory);
+
+        /// <summary>
+        /// Creates an <see cref="IExportProviderFactory"/> for this composition configuration.
+        /// </summary>
+        /// <param name="options">Options that control export provider runtime behavior.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
+        /// <returns>A factory that creates export providers for this composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
         {
-            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
-            return composition.CreateExportProviderFactory(joinableTaskFactory);
+            return composition.CreateExportProviderFactory(options, joinableTaskFactory);
         }
 
         public string? GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)

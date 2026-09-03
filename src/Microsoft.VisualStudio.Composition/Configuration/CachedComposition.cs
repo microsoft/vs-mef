@@ -6,12 +6,7 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Diagnostics;
-    using System.Globalization;
     using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -72,11 +67,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
-        {
-#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
-            return await this.LoadExportProviderFactoryAsync(cacheStream, resolver, ExportProviderFactoryOptions.None, cancellationToken).ConfigureAwait(false);
-#pragma warning restore VSTHRD012
-        }
+            => await this.LoadExportProviderFactoryAsync(cacheStream, resolver, ExportProviderFactoryOptions.None, joinableTaskFactory: null, cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Loads an export provider factory with optional runtime behavior enabled.
@@ -87,26 +78,32 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="cancellationToken">A token that may cancel the operation.</param>
         /// <returns>The loaded export provider factory.</returns>
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, ExportProviderFactoryOptions options, CancellationToken cancellationToken)
-        {
-            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
-#pragma warning disable VSTHRD012 // Without a JTF, synchronous disposal blocks directly on async-only parts.
-            return runtimeComposition.CreateExportProviderFactory(options);
-#pragma warning restore VSTHRD012
-        }
+            => await this.LoadExportProviderFactoryAsync(cacheStream, resolver, options, joinableTaskFactory: null, cancellationToken).ConfigureAwait(false);
 
         /// <summary>
-        /// Loads an export provider factory that synchronously disposes asynchronous parts using the specified joinable task factory.
+        /// Creates an <see cref="IExportProviderFactory"/> for this cached composition.
         /// </summary>
         /// <param name="cacheStream">The stream to read the cached composition from.</param>
         /// <param name="resolver">The resolver to use when loading the composition.</param>
-        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task whose result is the loaded export provider factory.</returns>
-        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, JoinableTaskFactory joinableTaskFactory, CancellationToken cancellationToken)
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, JoinableTaskFactory? joinableTaskFactory, CancellationToken cancellationToken)
+            => await this.LoadExportProviderFactoryAsync(cacheStream, resolver, ExportProviderFactoryOptions.None, joinableTaskFactory, cancellationToken).ConfigureAwait(false);
+
+        /// <summary>
+        /// Creates an <see cref="IExportProviderFactory"/> for this cached composition.
+        /// </summary>
+        /// <param name="cacheStream">The stream to read the cached composition from.</param>
+        /// <param name="resolver">The resolver to use when loading the composition.</param>
+        /// <param name="options">Options that control export provider runtime behavior.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>A task whose result is the loaded export provider factory.</returns>
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory, CancellationToken cancellationToken)
         {
-            Requires.NotNull(joinableTaskFactory, nameof(joinableTaskFactory));
-            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
-            return runtimeComposition.CreateExportProviderFactory(joinableTaskFactory);
+            RuntimeComposition runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
+            return runtimeComposition.CreateExportProviderFactory(options, joinableTaskFactory);
         }
 
         private class SerializationContext : SerializationContextBase
