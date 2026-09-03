@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Runtime.ExceptionServices;
     using System.Runtime.InteropServices;
     using Microsoft.VisualStudio.Composition.Reflection;
 
@@ -702,6 +703,25 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <summary>
+        /// Invokes a constructor or static factory method without exposing reflection's invocation wrapper.
+        /// </summary>
+        /// <param name="ctorOrFactoryMethod">The constructor or static factory method to invoke.</param>
+        /// <param name="arguments">The invocation arguments.</param>
+        /// <returns>The constructed value.</returns>
+        internal static object InstantiateWithoutTargetInvocationException(this MethodBase ctorOrFactoryMethod, object?[] arguments)
+        {
+            try
+            {
+                return ctorOrFactoryMethod.Instantiate(arguments);
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException is object)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw Assumes.NotReachable();
+            }
+        }
+
+        /// <summary>
         /// Creates a delegate that invokes a constructor or static factory method.
         /// </summary>
         /// <param name="ctorOrFactoryMethod">The constructor or static factory method to invoke.</param>
@@ -793,6 +813,7 @@ namespace Microsoft.VisualStudio.Composition
                 or InvalidOperationException
                 or MemberAccessException
                 or NotSupportedException
+                or PlatformNotSupportedException
                 or TypeAccessException
                 or System.Security.SecurityException;
         }

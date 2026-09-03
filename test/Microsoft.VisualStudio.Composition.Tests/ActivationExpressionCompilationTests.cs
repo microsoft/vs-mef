@@ -36,6 +36,28 @@ public class ActivationExpressionCompilationTests
     }
 
     /// <summary>
+    /// Verifies that the reflection fallback matches compiled constructor exception behavior.
+    /// </summary>
+    [Fact]
+    public void ReflectionInstanceFactoryFallbackUnwrapsTargetInvocationException()
+    {
+        ConstructorInfo constructor = typeof(ThrowingDependency).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            Type.EmptyTypes,
+            modifiers: null)!;
+
+        MethodInfo fallbackMethod = typeof(ReflectionHelpers).GetMethod(
+            "InstantiateWithoutTargetInvocationException",
+            BindingFlags.Static | BindingFlags.NonPublic)!;
+        TargetInvocationException invocationException = Assert.Throws<TargetInvocationException>(
+            () => fallbackMethod.Invoke(null, new object?[] { constructor, Array.Empty<object?>() }));
+        InvalidOperationException exception = Assert.IsType<InvalidOperationException>(invocationException.InnerException);
+
+        Assert.Equal("Expected activation failure.", exception.Message);
+    }
+
+    /// <summary>
     /// Verifies that fault-reporting providers retain callback behavior after repeated activation.
     /// </summary>
     [Fact]

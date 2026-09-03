@@ -273,7 +273,7 @@ namespace Microsoft.VisualStudio.Composition
                             }
                             catch (Exception ex) when (ex.IsExpressionCompilationFailure())
                             {
-                                return arguments => method.Instantiate(arguments);
+                                return arguments => method.InstantiateWithoutTargetInvocationException(arguments);
                             }
                         },
                         LazyThreadSafetyMode.ExecutionAndPublication));
