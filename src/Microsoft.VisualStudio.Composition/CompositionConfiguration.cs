@@ -462,9 +462,32 @@ namespace Microsoft.VisualStudio.Composition
 
             HashSet<ComposedPart> AnalyzeUnreachableParts(IReadOnlyCollection<ComposedPart> prunedOptionalExports)
             {
-                // The query-directed search normally visits only scopes relevant to one part. Return null
-                // at this bound so the caller does not diagnose an indeterminate result as unreachable.
+                // The query-directed search normally visits only scopes relevant to one part. Treat exhaustion
+                // as non-reachability so an indeterminate part cannot survive to fail during activation.
                 const int MaxScopesPerPart = 1024;
+
+                var blockedParts = new HashSet<ComposedPart>();
+                bool blockedPartsChanged;
+                do
+                {
+                    blockedPartsChanged = false;
+                    foreach (var part in partsList.Where(part => !blockedParts.Contains(part)))
+                    {
+                        foreach (var import in part.SatisfyingExports.Where(import => !import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
+                        {
+                            var viableExports = import.Value
+                                .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
+                                .Where(export => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne || !prunedOptionalExports.Contains(partsByDefinition[export.PartDefinition]))
+                                .ToList();
+                            if (import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne && viableExports.Count != 1)
+                            {
+                                blockedPartsChanged |= blockedParts.Add(part);
+                                break;
+                            }
+                        }
+                    }
+                }
+                while (blockedPartsChanged);
 
                 var requiredSharingBoundaries = partsList.ToDictionary(
                     part => part,
@@ -479,7 +502,6 @@ namespace Microsoft.VisualStudio.Composition
 
                         return boundaries;
                     });
-                var blockedParts = new HashSet<ComposedPart>();
                 bool requirementsChanged;
                 do
                 {
@@ -488,21 +510,12 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         foreach (var import in part.SatisfyingExports.Where(import => !import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
                         {
-                            var viableExports = import.Value
+                            foreach (var export in import.Value
                                 .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
-                                .Where(export => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne || !prunedOptionalExports.Contains(partsByDefinition[export.PartDefinition]))
-                                .ToList();
-                            if (import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne && viableExports.Count != 1)
+                                .Where(export => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne || !prunedOptionalExports.Contains(partsByDefinition[export.PartDefinition])))
                             {
-                                requirementsChanged |= blockedParts.Add(part);
-                                break;
-                            }
-
-                            foreach (var export in viableExports)
-                            {
-                                var exportedPart = partsByDefinition[export.PartDefinition];
                                 int previousBoundaryCount = requiredSharingBoundaries[part].Count;
-                                requiredSharingBoundaries[part].UnionWith(requiredSharingBoundaries[exportedPart]);
+                                requiredSharingBoundaries[part].UnionWith(requiredSharingBoundaries[partsByDefinition[export.PartDefinition]]);
                                 requirementsChanged |= requiredSharingBoundaries[part].Count != previousBoundaryCount;
                             }
                         }
@@ -514,7 +527,7 @@ namespace Microsoft.VisualStudio.Composition
                 foreach (var part in partsList)
                 {
                     string? sharingBoundary = GetEffectiveSharingBoundary(part);
-                    if (!string.IsNullOrEmpty(sharingBoundary) && IsPartReachable(part) == false)
+                    if (!string.IsNullOrEmpty(sharingBoundary) && !IsPartReachable(part))
                     {
                         unreachable.Add(part);
                     }
@@ -522,7 +535,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 return unreachable;
 
-                bool? IsPartReachable(ComposedPart targetPart)
+                bool IsPartReachable(ComposedPart targetPart)
                 {
                     if (blockedParts.Contains(targetPart))
                     {
@@ -567,13 +580,26 @@ namespace Microsoft.VisualStudio.Composition
                         return false;
                     }
 
-                    var reachableScopes = new List<(ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries)>
+                    var pendingScopes = new List<(ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries)>
                     {
                         (ImmutableHashSet<string>.Empty, ImmutableHashSet<string>.Empty),
                     };
-                    for (int scopeIndex = 0; scopeIndex < reachableScopes.Count; scopeIndex++)
+                    var exploredScopes = new List<(ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries)>();
+                    int discoveredScopeCount = 1;
+                    while (pendingScopes.Count > 0)
                     {
-                        var scope = reachableScopes[scopeIndex];
+                        int scopeIndex = 0;
+                        for (int i = 1; i < pendingScopes.Count; i++)
+                        {
+                            if (pendingScopes[i].AllBoundaries.Count > pendingScopes[scopeIndex].AllBoundaries.Count)
+                            {
+                                scopeIndex = i;
+                            }
+                        }
+
+                        var scope = pendingScopes[scopeIndex];
+                        pendingScopes.RemoveAt(scopeIndex);
+                        exploredScopes.Add(scope);
                         if (CanInstantiatePartInScope(targetPart, scope))
                         {
                             return true;
@@ -594,14 +620,21 @@ namespace Microsoft.VisualStudio.Composition
                                 bool hasInstantiableTarget = import.Value
                                     .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
                                     .Any(export => CanInstantiatePartInScope(partsByDefinition[export.PartDefinition], childScope));
-                                if (hasInstantiableTarget && !reachableScopes.Any(existing => existing.AllBoundaries.SetEquals(allBoundaries) && existing.FreshBoundaries.SetEquals(freshBoundaries)))
+                                bool isDominated = pendingScopes.Concat(exploredScopes).Any(existing =>
+                                    existing.FreshBoundaries.SetEquals(freshBoundaries)
+                                    && allBoundaries.IsSubsetOf(existing.AllBoundaries));
+                                if (hasInstantiableTarget && !isDominated)
                                 {
-                                    if (reachableScopes.Count >= MaxScopesPerPart)
+                                    if (discoveredScopeCount >= MaxScopesPerPart)
                                     {
-                                        return null;
+                                        return false;
                                     }
 
-                                    reachableScopes.Add(childScope);
+                                    pendingScopes.RemoveAll(existing =>
+                                        existing.FreshBoundaries.SetEquals(freshBoundaries)
+                                        && existing.AllBoundaries.IsSubsetOf(allBoundaries));
+                                    pendingScopes.Add(childScope);
+                                    discoveredScopeCount++;
                                 }
                             }
                         }

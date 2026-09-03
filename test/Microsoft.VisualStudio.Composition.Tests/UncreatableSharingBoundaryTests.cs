@@ -261,6 +261,43 @@ public class UncreatableSharingBoundaryTests
         Assert.Contains(typeof(ScalePartWithBlockedBoundary), rejectedPartTypes);
     }
 
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithManyBoundaryFactories),
+        typeof(ScaleBoundary0),
+        typeof(ScaleBoundary1),
+        typeof(ScaleBoundary2),
+        typeof(ScaleBoundary3),
+        typeof(ScaleBoundary4),
+        typeof(ScaleBoundary5),
+        typeof(ScaleBoundary6),
+        typeof(ScaleBoundary7),
+        typeof(ScaleBoundary8),
+        typeof(ScaleBoundary9),
+        typeof(ScaleBudgetTarget),
+        typeof(ScaleMissingBoundary),
+        InvalidConfiguration = true)]
+    public void NominalFactoryForImpossiblePartIsPruned(IContainer container)
+    {
+        Assert.Null(container.GetExportedValue<RootWithManyBoundaryFactories>().BudgetFactory);
+    }
+
+    [MefFact(
+        CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+        typeof(RootWithOrderIndependentSalvage),
+        typeof(OrderIndependentServiceA),
+        typeof(OrderIndependentPartX),
+        typeof(OrderIndependentPartY),
+        typeof(OrderIndependentPartZ),
+        typeof(OrderIndependentBadPart),
+        InvalidConfiguration = true)]
+    public void BlockedOptionalExportDoesNotContributeSharingBoundary(IContainer container)
+    {
+        var root = container.GetExportedValue<RootWithOrderIndependentSalvage>();
+        Assert.IsType<OrderIndependentServiceA>(root.FactoryA.CreateExport().Value);
+        Assert.Empty(root.FactoryB.CreateExport().Value.Values);
+    }
+
     public interface IMessageHandler { }
 
     [Export(typeof(IMessageHandler))]
@@ -506,6 +543,9 @@ public class UncreatableSharingBoundaryTests
 
         [Import(AllowDefault = true), SharingBoundary("blockedAtScale")]
         public ExportFactory<BlockedScaleFactoryTarget>? BlockedFactory { get; set; }
+
+        [Import(AllowDefault = true), SharingBoundary("budget")]
+        public ExportFactory<ScaleBudgetTarget>? BudgetFactory { get; set; }
     }
 
     [Export, Shared("scale0")]
@@ -572,6 +612,9 @@ public class UncreatableSharingBoundaryTests
         public ScaleBoundary9 Boundary9 { get; set; } = null!;
     }
 
+    [Export, Shared("scaleMissing")]
+    public class ScaleMissingBoundary { }
+
     [Export, Shared("blockedAtScale")]
     public class BlockedScaleFactoryTarget
     {
@@ -611,5 +654,86 @@ public class UncreatableSharingBoundaryTests
 
         [Import]
         public ScaleBoundary9 Boundary9 { get; set; } = null!;
+    }
+
+    [Export, Shared("budget")]
+    public class ScaleBudgetTarget
+    {
+        [Import]
+        public ScaleBoundary0 Boundary0 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary1 Boundary1 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary2 Boundary2 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary3 Boundary3 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary4 Boundary4 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary5 Boundary5 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary6 Boundary6 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary7 Boundary7 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary8 Boundary8 { get; set; } = null!;
+
+        [Import]
+        public ScaleBoundary9 Boundary9 { get; set; } = null!;
+
+        [Import]
+        public ScaleMissingBoundary MissingBoundary { get; set; } = null!;
+    }
+
+    [Export, Shared]
+    public class RootWithOrderIndependentSalvage
+    {
+        [Import, SharingBoundary("orderA")]
+        public ExportFactory<OrderIndependentServiceA> FactoryA { get; set; } = null!;
+
+        [Import, SharingBoundary("orderB")]
+        public ExportFactory<OrderIndependentPartX> FactoryB { get; set; } = null!;
+    }
+
+    [Export, Shared("orderA")]
+    public class OrderIndependentServiceA { }
+
+    [Export, Shared("orderB")]
+    public class OrderIndependentPartX
+    {
+        [ImportMany]
+        public ICollection<OrderIndependentPartY> Values { get; set; } = null!;
+    }
+
+    [Export]
+    public class OrderIndependentPartY
+    {
+        [Import]
+        public OrderIndependentServiceA ServiceA { get; set; } = null!;
+
+        [Import]
+        public OrderIndependentPartZ PartZ { get; set; } = null!;
+    }
+
+    [Export]
+    public class OrderIndependentPartZ
+    {
+        [Import]
+        public OrderIndependentBadPart BadPart { get; set; } = null!;
+    }
+
+    [Export]
+    public class OrderIndependentBadPart
+    {
+        [Import]
+        public IMissing Missing { get; set; } = null!;
     }
 }
