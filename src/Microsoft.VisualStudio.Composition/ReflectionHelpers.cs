@@ -753,7 +753,21 @@ namespace Microsoft.VisualStudio.Composition
                 _ => throw new NotSupportedException(),
             };
 
-            return Expression.Lambda<Action<object, object?>>(assignment, instance, value).Compile();
+            Expression body = Expression.Block(assignment, Expression.Empty());
+            if (member is PropertyInfo)
+            {
+                var exception = Expression.Parameter(typeof(Exception), "exception");
+                body = Expression.TryCatch(
+                    body,
+                    Expression.Catch(
+                        exception,
+                        Expression.Throw(
+                            Expression.New(
+                                typeof(TargetInvocationException).GetConstructor(new[] { typeof(Exception) })!,
+                                exception))));
+            }
+
+            return Expression.Lambda<Action<object, object?>>(body, instance, value).Compile();
         }
 
         internal static bool TryCompile<TDelegate>(this Expression<TDelegate> expression, [NotNullWhen(true)] out TDelegate? compiledDelegate)

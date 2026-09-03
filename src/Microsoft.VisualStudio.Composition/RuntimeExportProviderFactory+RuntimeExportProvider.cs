@@ -150,7 +150,8 @@ namespace Microsoft.VisualStudio.Composition
 
             private object? GetRuntimeExportedValue(RuntimeExportLookup lookup, Type type, out bool isFullyInitialized)
             {
-                if (!lookup.Part!.IsShared
+                if (this.faultCallback is null
+                    && !lookup.Part!.IsShared
                     && (lookup.TryGetDirectActivationPlan(out DirectActivationPlan? directActivationPlan)
                         || (lookup.Export!.MemberRef is null
                             && this.activationPlanRegistry.IsExpressionCompilationEnabled
@@ -185,7 +186,8 @@ namespace Microsoft.VisualStudio.Composition
             internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
             {
                 RuntimeComposition.RuntimePart part = this.composition.GetPart(partType);
-                if (this.activationPlanRegistry.IsExpressionCompilationEnabled
+                if (this.faultCallback is null
+                    && this.activationPlanRegistry.IsExpressionCompilationEnabled
                     && this.activationPlanRegistry.TryGetDirectActivationPlan(this, part, out DirectActivationPlan? activationPlan))
                 {
                     return nonSharedPartOwner is object
@@ -1632,10 +1634,11 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        object? part = this.OwningExportProvider.activationPlanRegistry.TryGetInstanceFactory(
-                            this.partDefinition,
-                            importingConstructorOrFactoryMethod,
-                            out Func<object?[], object?>? instanceFactory)
+                        object? part = this.OwningExportProvider.faultCallback is null
+                            && this.OwningExportProvider.activationPlanRegistry.TryGetInstanceFactory(
+                                this.partDefinition,
+                                importingConstructorOrFactoryMethod,
+                                out Func<object?[], object?>? instanceFactory)
                             ? instanceFactory!(ctorArgs)
                             : importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
                         Assumes.NotNull(part);

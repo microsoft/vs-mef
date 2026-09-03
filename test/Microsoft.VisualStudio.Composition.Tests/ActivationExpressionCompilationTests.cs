@@ -36,6 +36,47 @@ public class ActivationExpressionCompilationTests
     }
 
     /// <summary>
+    /// Verifies that fault-reporting providers retain callback behavior after repeated activation.
+    /// </summary>
+    [Fact]
+    public void FaultReportingProviderDoesNotUseCompiledActivation()
+    {
+        var factory = (IFaultReportingExportProviderFactory)CreateFactory(
+            ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+            typeof(FaultReportingImporter),
+            typeof(FaultReportingFailingPart));
+        int callbackCount = 0;
+        using ExportProvider provider = factory.CreateExportProvider((exception, import, export) => callbackCount++);
+
+        Assert.Throws<CompositionFailedException>(() => provider.GetExportedValue<FaultReportingImporter>());
+        Assert.Throws<CompositionFailedException>(() => provider.GetExportedValue<FaultReportingImporter>());
+
+        Assert.Equal(2, callbackCount);
+        Assert.Equal(0, GetExpressionCompilationCount(factory));
+    }
+
+    /// <summary>
+    /// Verifies that compiled property setters preserve reflection's exception chain.
+    /// </summary>
+    [Fact]
+    public void CompiledPropertySetterPreservesTargetInvocationException()
+    {
+        IExportProviderFactory factory = CreateFactory(
+            ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+            typeof(ThrowingPropertySetterPart),
+            typeof(ThrowingPropertySetterDependency));
+        using ExportProvider provider = factory.CreateExportProvider();
+
+        CompositionFailedException first = Assert.Throws<CompositionFailedException>(
+            () => provider.GetExportedValue<ThrowingPropertySetterPart>());
+        CompositionFailedException second = Assert.Throws<CompositionFailedException>(
+            () => provider.GetExportedValue<ThrowingPropertySetterPart>());
+
+        Assert.IsType<TargetInvocationException>(first.InnerException);
+        Assert.IsType<TargetInvocationException>(second.InnerException);
+    }
+
+    /// <summary>
     /// Verifies that expression compilation is disabled by default.
     /// </summary>
     [Fact]
@@ -568,6 +609,39 @@ public class ActivationExpressionCompilationTests
 
     [Export]
     private sealed class NonSharedPart
+    {
+    }
+
+    [Export]
+    private sealed class FaultReportingFailingPart
+    {
+        internal FaultReportingFailingPart()
+        {
+            throw new InvalidOperationException();
+        }
+    }
+
+    [Export]
+    private sealed class FaultReportingImporter
+    {
+        [ImportingConstructor]
+        internal FaultReportingImporter(FaultReportingFailingPart failingPart)
+        {
+        }
+    }
+
+    [Export]
+    private sealed class ThrowingPropertySetterPart
+    {
+        [Import]
+        internal ThrowingPropertySetterDependency Dependency
+        {
+            set => throw new InvalidOperationException();
+        }
+    }
+
+    [Export]
+    private sealed class ThrowingPropertySetterDependency
     {
     }
 
