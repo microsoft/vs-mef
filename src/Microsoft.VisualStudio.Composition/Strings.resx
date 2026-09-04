@@ -159,6 +159,9 @@
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Scanning MEF assemblies...</value>
   </data>
+  <data name="SharingBoundaryHasNoExportFactory" xml:space="preserve">
+    <value>The part belongs to sharing boundary "{0}", but no ExportFactory creates that boundary.</value>
+  </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>The type {0} is an unsupported type of metadata view.</value>
     <comment>{0} is the metadata view type.</comment>
