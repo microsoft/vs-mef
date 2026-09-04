@@ -296,6 +296,38 @@ public class ActivationExpressionCompilationTests
     }
 
     /// <summary>
+    /// Verifies that fused property setters preserve reflection's exception chain.
+    /// </summary>
+    [Fact]
+    public void FusedPropertySetterPreservesTargetInvocationException()
+    {
+        IExportProviderFactory factory = CreateFactory(
+            ExportProviderFactoryOptions.EnableActivationExpressionCompilation,
+            typeof(ThrowingPropertySetterFactoryOwner),
+            typeof(ThrowingPropertySetterFactoryRoot),
+            typeof(ThrowingPropertySetterDependency),
+            typeof(FactoryOnlyDependencyA),
+            typeof(FactoryOnlyDependencyB));
+        using ExportProvider provider = factory.CreateExportProvider();
+        ThrowingPropertySetterFactoryOwner owner = provider.GetExportedValue<ThrowingPropertySetterFactoryOwner>();
+
+        CompositionFailedException firstException = Assert.Throws<CompositionFailedException>(
+            () =>
+            {
+                using Export<ThrowingPropertySetterFactoryRoot> first = owner.Factory.CreateExport();
+            });
+        CompositionFailedException secondException = Assert.Throws<CompositionFailedException>(
+            () =>
+            {
+                using Export<ThrowingPropertySetterFactoryRoot> second = owner.Factory.CreateExport();
+            });
+
+        Assert.Equal(1, GetFusedActivationPlanCount(factory));
+        Assert.IsType<TargetInvocationException>(firstException.InnerException);
+        Assert.IsType<TargetInvocationException>(secondException.InnerException);
+    }
+
+    /// <summary>
     /// Verifies that a nested export factory remains deferred while the surrounding island is fused.
     /// </summary>
     [Fact]
@@ -665,6 +697,29 @@ public class ActivationExpressionCompilationTests
     [Export]
     private sealed class ThrowingPropertySetterDependency
     {
+    }
+
+    [Export, Shared]
+    private sealed class ThrowingPropertySetterFactoryOwner
+    {
+        [Import]
+        internal ExportFactory<ThrowingPropertySetterFactoryRoot> Factory { get; set; } = null!;
+    }
+
+    [Export]
+    private sealed class ThrowingPropertySetterFactoryRoot
+    {
+        [Import]
+        internal ThrowingPropertySetterDependency Dependency
+        {
+            set => throw new InvalidOperationException();
+        }
+
+        [Import]
+        internal FactoryOnlyDependencyA DependencyA { get; set; } = null!;
+
+        [Import]
+        internal FactoryOnlyDependencyB DependencyB { get; set; } = null!;
     }
 
     [Export, Shared]

@@ -32,6 +32,10 @@ namespace Microsoft.VisualStudio.Composition
                 nameof(CreateFusedImportAssignmentException),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
+            private static readonly MethodInfo CreateFusedMemberAssignmentExceptionMethod = typeof(RuntimeExportProvider).GetMethod(
+                nameof(CreateFusedMemberAssignmentException),
+                BindingFlags.Static | BindingFlags.NonPublic)!;
+
             private static readonly MethodInfo CreateFusedPartActivationExceptionMethod = typeof(RuntimeExportProvider).GetMethod(
                 nameof(CreateFusedPartActivationException),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -651,8 +655,9 @@ namespace Microsoft.VisualStudio.Composition
                                 assignmentException,
                                 Expression.Throw(
                                     Expression.Call(
-                                        CreateFusedPartActivationExceptionMethod,
+                                        CreateFusedMemberAssignmentExceptionMethod,
                                         Expression.Constant(part),
+                                        Expression.Constant(importingMember),
                                         assignmentException),
                                     importingMemberType))));
 
@@ -1212,6 +1217,16 @@ namespace Microsoft.VisualStudio.Composition
                 return new CompositionFailedException(
                     Strings.FormatExceptionThrownByPartUnderInitialization(part.TypeRef.Resolve().FullName),
                     exception);
+            }
+
+            private static Exception CreateFusedMemberAssignmentException(
+                RuntimeComposition.RuntimePart part,
+                MemberInfo importingMember,
+                Exception exception)
+            {
+                return CreateFusedPartActivationException(
+                    part,
+                    importingMember is PropertyInfo ? new TargetInvocationException(exception) : exception);
             }
 
             private static void SetImportingMember(object part, MemberInfo member, object? value)
