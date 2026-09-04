@@ -14,7 +14,14 @@ using Microsoft.VSDiagnostics;
 [CPUUsageDiagnoser]
 public class ActivationBenchmarks
 {
+    private ExportFactory<BoundaryPart> boundaryFactory = null!;
     private ExportProvider exportProvider = null!;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether expression compilation is enabled.
+    /// </summary>
+    [Params(false, true)]
+    public bool EnableExpressionCompilation { get; set; }
 
     /// <summary>
     /// Creates and warms the export provider used by the activation benchmarks.
@@ -49,12 +56,25 @@ public class ActivationBenchmarks
             typeof(AdapterB),
             typeof(AdapterC),
             typeof(AdapterD),
-            typeof(AdapterE)).GetAwaiter().GetResult();
+            typeof(AdapterE),
+            typeof(BoundaryOwner),
+            typeof(BoundaryPart),
+            typeof(BoundaryLeafA),
+            typeof(BoundaryLeafB),
+            typeof(BoundaryLeafC),
+            typeof(BoundaryLeafD),
+            typeof(BoundaryLeafE),
+            typeof(BoundaryLeafF),
+            typeof(BoundaryDependency)).GetAwaiter().GetResult();
 
         var catalog = ComposableCatalog.Create(resolver).AddParts(discoveredParts);
+        ExportProviderFactoryOptions options = this.EnableExpressionCompilation
+            ? ExportProviderFactoryOptions.EnableActivationExpressionCompilation
+            : ExportProviderFactoryOptions.None;
         this.exportProvider = CompositionConfiguration.Create(catalog)
-            .CreateExportProviderFactory()
+            .CreateExportProviderFactory(options)
             .CreateExportProvider();
+        this.boundaryFactory = this.exportProvider.GetExportedValue<BoundaryOwner>().Factory;
 
         this.Singleton();
         this.Transient();
@@ -62,6 +82,8 @@ public class ActivationBenchmarks
         this.Complex();
         this.Property();
         this.ImportMany();
+        this.Boundary();
+        this.Boundary();
     }
 
     /// <summary>
@@ -140,6 +162,24 @@ public class ActivationBenchmarks
         _ = this.exportProvider.GetExportedValue<ImportManyPart>();
         _ = this.exportProvider.GetExportedValue<ImportManyPart>();
         return this.exportProvider.GetExportedValue<ImportManyPart>();
+    }
+
+    /// <summary>
+    /// Activates and disposes a shared graph in a newly created sharing boundary.
+    /// </summary>
+    /// <returns>The last activated boundary part.</returns>
+    [Benchmark(OperationsPerInvoke = 3)]
+    public object Boundary()
+    {
+        _ = this.CreateBoundaryPart();
+        _ = this.CreateBoundaryPart();
+        return this.CreateBoundaryPart();
+    }
+
+    private object CreateBoundaryPart()
+    {
+        using Export<BoundaryPart> export = this.boundaryFactory.CreateExport();
+        return export.Value;
     }
 
     [Export]
@@ -326,6 +366,90 @@ public class ActivationBenchmarks
 
     [Export(typeof(IAdapter))]
     private sealed class AdapterE : IAdapter
+    {
+    }
+
+    [Export, Shared]
+    private sealed class BoundaryOwner
+    {
+        [Import, SharingBoundary("BenchmarkBoundary")]
+        internal ExportFactory<BoundaryPart> Factory { get; set; } = null!;
+    }
+
+    [Export, Shared("BenchmarkBoundary")]
+    private sealed class BoundaryPart
+    {
+        [ImportingConstructor]
+        internal BoundaryPart(
+            BoundaryLeafA leafA,
+            BoundaryLeafB leafB,
+            BoundaryLeafC leafC,
+            BoundaryLeafD leafD,
+            BoundaryLeafE leafE,
+            BoundaryLeafF leafF)
+        {
+        }
+
+        [Import]
+        internal BoundaryDependency Dependency { get; set; } = null!;
+    }
+
+    [Export]
+    private sealed class BoundaryLeafA
+    {
+        [ImportingConstructor]
+        internal BoundaryLeafA(BoundaryDependency dependency)
+        {
+        }
+    }
+
+    [Export]
+    private sealed class BoundaryLeafB
+    {
+        [ImportingConstructor]
+        internal BoundaryLeafB(BoundaryDependency dependency)
+        {
+        }
+    }
+
+    [Export]
+    private sealed class BoundaryLeafC
+    {
+        [ImportingConstructor]
+        internal BoundaryLeafC(BoundaryDependency dependency)
+        {
+        }
+    }
+
+    [Export]
+    private sealed class BoundaryLeafD
+    {
+        [ImportingConstructor]
+        internal BoundaryLeafD(BoundaryDependency dependency)
+        {
+        }
+    }
+
+    [Export]
+    private sealed class BoundaryLeafE
+    {
+        [ImportingConstructor]
+        internal BoundaryLeafE(BoundaryDependency dependency)
+        {
+        }
+    }
+
+    [Export]
+    private sealed class BoundaryLeafF
+    {
+        [ImportingConstructor]
+        internal BoundaryLeafF(BoundaryDependency dependency)
+        {
+        }
+    }
+
+    [Export, Shared("BenchmarkBoundary")]
+    private sealed class BoundaryDependency
     {
     }
 }

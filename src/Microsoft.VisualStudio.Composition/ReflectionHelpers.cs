@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Runtime.ExceptionServices;
     using System.Runtime.InteropServices;
     using Microsoft.VisualStudio.Composition.Reflection;
 
@@ -699,6 +700,132 @@ namespace Microsoft.VisualStudio.Composition
             {
                 throw ThrowUnsupportedImportingConstructor(ctorOrFactoryMethod);
             }
+        }
+
+        /// <summary>
+        /// Invokes a constructor or static factory method without exposing reflection's invocation wrapper.
+        /// </summary>
+        /// <param name="ctorOrFactoryMethod">The constructor or static factory method to invoke.</param>
+        /// <param name="arguments">The invocation arguments.</param>
+        /// <returns>The constructed value.</returns>
+        internal static object InstantiateWithoutTargetInvocationException(this MethodBase ctorOrFactoryMethod, object?[] arguments)
+        {
+            try
+            {
+                return ctorOrFactoryMethod.Instantiate(arguments);
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException is object)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw Assumes.NotReachable();
+            }
+        }
+
+        /// <summary>
+        /// Creates a delegate that invokes a constructor or static factory method.
+        /// </summary>
+        /// <param name="ctorOrFactoryMethod">The constructor or static factory method to invoke.</param>
+        /// <returns>A delegate that accepts the invocation arguments and returns the constructed value.</returns>
+        internal static Func<object?[], object?> CreateInstanceFactory(this MethodBase ctorOrFactoryMethod)
+        {
+            Requires.NotNull(ctorOrFactoryMethod, nameof(ctorOrFactoryMethod));
+
+            var arguments = Expression.Parameter(typeof(object[]), "arguments");
+            ParameterInfo[] parameters = ctorOrFactoryMethod.GetParameters();
+            var convertedArguments = new Expression[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                Expression argument = Expression.ArrayIndex(arguments, Expression.Constant(i));
+                convertedArguments[i] = ConvertInvocationValue(argument, parameters[i].ParameterType);
+            }
+
+            Expression invocation = ctorOrFactoryMethod switch
+            {
+                ConstructorInfo constructor => Expression.New(constructor, convertedArguments),
+                MethodInfo method when method.IsStatic => Expression.Call(method, convertedArguments),
+                _ => throw ThrowUnsupportedImportingConstructor(ctorOrFactoryMethod),
+            };
+
+            return Expression.Lambda<Func<object?[], object?>>(
+                Expression.Convert(invocation, typeof(object)),
+                arguments).Compile();
+        }
+
+        /// <summary>
+        /// Creates a delegate that assigns a value to an importing field or property.
+        /// </summary>
+        /// <param name="member">The importing field or property.</param>
+        /// <returns>A delegate that assigns an imported value to a part instance.</returns>
+        internal static Action<object, object?> CreateImportingMemberSetter(this MemberInfo member)
+        {
+            Requires.NotNull(member, nameof(member));
+
+            var instance = Expression.Parameter(typeof(object), "instance");
+            var value = Expression.Parameter(typeof(object), "value");
+            Expression assignment = member switch
+            {
+                PropertyInfo property => Expression.Assign(
+                    Expression.Property(Expression.Convert(instance, property.DeclaringType!), property),
+                    ConvertInvocationValue(value, property.PropertyType)),
+                FieldInfo field => Expression.Assign(
+                    Expression.Field(Expression.Convert(instance, field.DeclaringType!), field),
+                    ConvertInvocationValue(value, field.FieldType)),
+                _ => throw new NotSupportedException(),
+            };
+
+            Expression body = Expression.Block(assignment, Expression.Empty());
+            if (member is PropertyInfo)
+            {
+                var exception = Expression.Parameter(typeof(Exception), "exception");
+                body = Expression.TryCatch(
+                    body,
+                    Expression.Catch(
+                        exception,
+                        Expression.Throw(
+                            Expression.New(
+                                typeof(TargetInvocationException).GetConstructor(new[] { typeof(Exception) })!,
+                                exception))));
+            }
+
+            return Expression.Lambda<Action<object, object?>>(body, instance, value).Compile();
+        }
+
+        internal static bool TryCompile<TDelegate>(this Expression<TDelegate> expression, [NotNullWhen(true)] out TDelegate? compiledDelegate)
+            where TDelegate : Delegate
+        {
+            Requires.NotNull(expression, nameof(expression));
+
+            try
+            {
+                compiledDelegate = expression.Compile();
+                return true;
+            }
+            catch (Exception ex) when (ex.IsExpressionCompilationFailure())
+            {
+                compiledDelegate = null;
+                return false;
+            }
+        }
+
+        internal static bool IsExpressionCompilationFailure(this Exception exception)
+        {
+            return exception is ArgumentException
+                or InvalidOperationException
+                or MemberAccessException
+                or NotSupportedException
+                or PlatformNotSupportedException
+                or TypeAccessException
+                or System.Security.SecurityException;
+        }
+
+        private static Expression ConvertInvocationValue(Expression value, Type destinationType)
+        {
+            return destinationType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(destinationType) is null
+                ? Expression.Condition(
+                    Expression.ReferenceEqual(value, Expression.Constant(null)),
+                    Expression.Default(destinationType),
+                    Expression.Convert(value, destinationType))
+                : Expression.Convert(value, destinationType);
         }
 
         [DoesNotReturn]

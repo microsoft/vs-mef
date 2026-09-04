@@ -4,7 +4,7 @@ This document records performance investigations, implemented optimizations, and
 
 ## Activation benchmarks
 
-`test/Microsoft.VisualStudio.Composition.Benchmarks/ActivationBenchmarks.cs` covers six steady-state activation shapes:
+`test/Microsoft.VisualStudio.Composition.Benchmarks/ActivationBenchmarks.cs` covers six steady-state activation shapes with expression compilation both disabled and enabled:
 
 - Retrieval of a shared part.
 - Activation of a non-shared part without imports.
@@ -36,27 +36,39 @@ These changes primarily improve shared export retrieval and simple non-shared ac
 
 The `perf/compiled-activation-plans` branch preserves the expression-compilation work separately. It adds:
 
-- Compiled constructor delegates for repeatedly activated non-shared parts.
+- An explicit `EnableActivationExpressionCompilation` export provider factory option. Compilation is disabled by default.
+- Compiled constructor delegates only for repeatedly activated non-shared parts and parts shared within named sharing boundaries.
+- Factory-scoped activation counts and delegate caches so repeated sharing-boundary instances can amortize compilation.
+- Tiering that keeps the first activation on the reflection path and compiles a constructor only when it is activated again.
+- Factory-scoped, provider-independent activation plans that are reused across repeated sharing-boundary instances.
+- Plan execution against the current provider and lifecycle tracker so boundary-local sharing, cycles, and disposal ownership remain isolated.
+- Weak provider-keyed shared-value lookups so reusable plans do not retain disposed boundary instances.
+- A minimum plan size for named-boundary parts so small graphs remain on the lower-cost constructor-delegate path.
+- Fused construction and member-satisfaction delegates for roots exercised repeatedly through `ExportFactory<T>` or `ExportFactory<T, TMetadata>`.
+- A maximum of 64 constructor/member operations per fused factory island.
 - Compiled property and field setters.
-- Recursive direct activation plans for supported acyclic non-shared graphs.
+- Recursive direct activation plans for supported non-shared subgraphs and named-boundary roots.
 - Direct construction of constructor imports, property imports, and array or `IEnumerable<T>` imports.
 
-Unsupported cases fall back to the normal lifecycle engine. These include cycles, disposable parts, open generic parts, lazy imports, export factories, exported members, custom collections, and `OnImportsSatisfied`.
+Unsupported cases fall back to the normal lifecycle engine. These include non-shared cycles, disposable parts, open generic parts, lazy imports, export factories, exported members, custom collections, and `OnImportsSatisfied`. Shared edges continue through the lifecycle engine, preserving boundary-local sharing and property-import cycles.
 
 The compiled approach substantially improves throughput and allocations, but it also creates many additional generated methods that must be JIT-compiled. A short BenchmarkDotNet run on one machine produced the following indicative results:
 
-| Scenario | Without compiled activation | With compiled activation |
+| Scenario | Compilation disabled | Compilation enabled |
 | --- | ---: | ---: |
-| Shared | 15.62 ns, 0 B | 17.57 ns, 0 B |
-| Simple non-shared | 477.01 ns, 160 B | 30.86 ns, 24 B |
-| Constructor imports | 1,732.26 ns, 712 B | 61.97 ns, 88 B |
-| Complex constructor graph | 7,605.75 ns, 3,176 B | 246.24 ns, 408 B |
-| Property imports | 5,661.30 ns, 2,440 B | 115.68 ns, 136 B |
-| `ImportMany` | 3,772.01 ns, 1,440 B | 227.34 ns, 240 B |
+| Shared | 15.33 ns, 0 B | 15.69 ns, 0 B |
+| Simple non-shared | 472.66 ns, 160 B | 36.32 ns, 24 B |
+| Constructor imports | 1,772.14 ns, 712 B | 69.65 ns, 88 B |
+| Complex constructor graph | 8,022.69 ns, 3,176 B | 258.23 ns, 408 B |
+| Property imports | 5,846.28 ns, 2,440 B | 596.97 ns, 136 B |
+| `ImportMany` | 4,271.04 ns, 1,440 B | 231.00 ns, 240 B |
+| Repeated complex sharing boundary | 12.39 us, 8,992 B | 10.75 us, 6,406 B |
 
-These numbers came from separate BenchmarkDotNet short runs and are intended to show the magnitude of the tradeoff, not to establish release-quality baselines.
+These numbers came from separate BenchmarkDotNet short and medium runs and are intended to show the magnitude of the tradeoff, not to establish release-quality baselines.
 
-Compiling activation for an application-wide shared part is generally unattractive because it increases startup and JIT cost for an operation that normally runs only once. Compilation is more likely to pay for:
+In a medium BenchmarkDotNet run, fusing the representative factory island preserved throughput within measurement noise compared with the separate-delegate implementation (10.68 us versus 10.75 us) while reducing allocations from 6.63 KB to 6.26 KB. The island requires two generated methods for its construction and member-satisfaction phases instead of eight separate constructor and setter methods. One additional small constructor delegate remains for a lifecycle-managed dependency outside the fused island.
+
+Application-wide shared parts are excluded from compilation because they normally activate only once. Compilation is limited to:
 
 - Non-shared parts that may be activated repeatedly.
 - Parts shared within a sharing boundary that is instantiated repeatedly.
@@ -81,13 +93,13 @@ Expression compilation should be restricted to parts with a credible opportunity
 
 Application-wide shared parts should normally remain on the reflection path. Selection may be based on composition metadata and sharing policy rather than compiling every eligible part eagerly.
 
-### 3. Fused eager subgraphs
+### 3. Further fused eager subgraph work
 
-For a repeatedly activated root, build a typed delegate for the eager activation closure that must be created synchronously with that root. This is not the whole application graph. The closure stops at existing shared values, lazy imports, export factories, unsupported lifecycle edges, and other deferred boundaries.
+The experiment now builds typed delegates only for roots exercised repeatedly through an export factory. This is not the whole application graph. The closure stops at existing shared values, lazy imports, nested export factories, unsupported lifecycle edges, and other deferred boundaries.
 
-A fused delegate could use typed locals, direct constructor calls, direct member assignments, and typed collection creation. This can eliminate intermediate `object[]` arrays, recursive `Func<object?>` dispatch, repeated casts, and reflection-based collection assignment.
+The fused delegates use typed locals, direct constructor calls, direct member assignments, and typed collection creation. This eliminates intermediate `object[]` arrays, recursive `Func<object?>` dispatch, repeated casts, and reflection-based collection assignment within the supported island.
 
-Large plans should be segmented at sharing and lifecycle boundaries to avoid very large generated methods. Compilation may also need thresholds based on expected activation count or graph size.
+Further work could segment plans rather than rejecting islands that exceed the current operation budget, and could support more lifecycle edges without expanding the fused method excessively.
 
 ## Required measurements
 

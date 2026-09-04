@@ -251,7 +251,15 @@ namespace Microsoft.VisualStudio.Composition
 
         /// <inheritdoc cref="CreateExportProviderFactory(JoinableTaskFactory?)"/>
         public IExportProviderFactory CreateExportProviderFactory()
-            => this.CreateExportProviderFactory(joinableTaskFactory: null);
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory: null);
+
+        /// <summary>
+        /// Creates an export provider factory with runtime behavior configured by the specified options.
+        /// </summary>
+        /// <param name="options">Options that control export provider runtime behavior.</param>
+        /// <returns>The export provider factory.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options)
+            => this.CreateExportProviderFactory(options, joinableTaskFactory: null);
 
         /// <summary>
         /// Creates an <see cref="IExportProviderFactory"/> for this composition configuration.
@@ -259,9 +267,18 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
         /// <returns>A factory that creates export providers for this composition.</returns>
         public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory? joinableTaskFactory)
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory);
+
+        /// <summary>
+        /// Creates an <see cref="IExportProviderFactory"/> for this composition configuration.
+        /// </summary>
+        /// <param name="options">Options that control export provider runtime behavior.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
+        /// <returns>A factory that creates export providers for this composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
-            return composition.CreateExportProviderFactory(joinableTaskFactory);
+            return composition.CreateExportProviderFactory(options, joinableTaskFactory);
         }
 
         public string? GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)

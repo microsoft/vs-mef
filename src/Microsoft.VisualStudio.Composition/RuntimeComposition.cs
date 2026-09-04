@@ -114,7 +114,30 @@ namespace Microsoft.VisualStudio.Composition
 
         /// <inheritdoc cref="CreateExportProviderFactory(JoinableTaskFactory?)"/>
         public IExportProviderFactory CreateExportProviderFactory()
-            => this.CreateExportProviderFactory(joinableTaskFactory: null);
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory: null);
+
+        /// <summary>
+        /// Creates an export provider factory with optional runtime behavior enabled.
+        /// </summary>
+        /// <param name="options">Options that control export provider behavior.</param>
+        /// <returns>The export provider factory.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options)
+            => this.CreateExportProviderFactory(options, joinableTaskFactory: null);
+
+        /// <summary>
+        /// Creates an <see cref="IExportProviderFactory"/> for this runtime composition.
+        /// </summary>
+        /// <param name="options">Options that control export provider behavior.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
+        /// <returns>A factory that creates export providers for this runtime composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
+        {
+            Requires.Argument(
+                (options & ~ExportProviderFactoryOptions.EnableActivationExpressionCompilation) == 0,
+                nameof(options),
+                "Unsupported export provider factory options.");
+            return new RuntimeExportProviderFactory(this, options, joinableTaskFactory);
+        }
 
         /// <summary>
         /// Creates an <see cref="IExportProviderFactory"/> for this runtime composition.
@@ -122,7 +145,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
         /// <returns>A factory that creates export providers for this runtime composition.</returns>
         public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory? joinableTaskFactory)
-            => new RuntimeExportProviderFactory(this, joinableTaskFactory);
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory);
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {
