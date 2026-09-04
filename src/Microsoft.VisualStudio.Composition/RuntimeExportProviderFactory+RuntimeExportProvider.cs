@@ -798,12 +798,19 @@ namespace Microsoft.VisualStudio.Composition
 
             private static Expression ConvertFusedImportValue(Expression valueExpression, Type destinationType)
             {
-                return destinationType.GetTypeInfo().IsValueType && Nullable.GetUnderlyingType(destinationType) is null
-                    ? Expression.Condition(
-                        Expression.ReferenceEqual(Expression.Convert(valueExpression, typeof(object)), Expression.Constant(null)),
+                if (!destinationType.GetTypeInfo().IsValueType || Nullable.GetUnderlyingType(destinationType) is object)
+                {
+                    return Expression.Convert(valueExpression, destinationType);
+                }
+
+                var valueVariable = Expression.Variable(valueExpression.Type, "value");
+                return Expression.Block(
+                    new[] { valueVariable },
+                    Expression.Assign(valueVariable, valueExpression),
+                    Expression.Condition(
+                        Expression.ReferenceEqual(Expression.Convert(valueVariable, typeof(object)), Expression.Constant(null)),
                         Expression.Default(destinationType),
-                        Expression.Convert(valueExpression, destinationType))
-                    : Expression.Convert(valueExpression, destinationType);
+                        Expression.Convert(valueVariable, destinationType)));
             }
 
             private bool TryCreateDirectImportFactory(

@@ -36,6 +36,28 @@ public class ActivationExpressionCompilationTests
     }
 
     /// <summary>
+    /// Verifies that fused value-type conversion evaluates export resolution once.
+    /// </summary>
+    [Fact]
+    public void FusedValueTypeImportIsEvaluatedOnce()
+    {
+        Type runtimeExportProviderType = typeof(CompositionConfiguration).Assembly.GetType(
+            "Microsoft.VisualStudio.Composition.RuntimeExportProviderFactory+RuntimeExportProvider")!;
+        MethodInfo convertMethod = runtimeExportProviderType.GetMethod(
+            "ConvertFusedImportValue",
+            BindingFlags.Static | BindingFlags.NonPublic)!;
+        var source = new FusedImportValueSource();
+        Expression sourceExpression = Expression.Call(
+            Expression.Constant(source),
+            typeof(FusedImportValueSource).GetMethod(nameof(FusedImportValueSource.GetValue))!);
+        var convertedExpression = (Expression)convertMethod.Invoke(null, new object[] { sourceExpression, typeof(int) })!;
+        Func<int> getter = Expression.Lambda<Func<int>>(convertedExpression).Compile();
+
+        Assert.Equal(1, getter());
+        Assert.Equal(1, source.EvaluationCount);
+    }
+
+    /// <summary>
     /// Verifies that the reflection fallback matches compiled constructor exception behavior.
     /// </summary>
     [Fact]
@@ -1044,5 +1066,12 @@ public class ActivationExpressionCompilationTests
         public override Type Type => typeof(int);
 
         public override Expression Reduce() => throw new PlatformNotSupportedException();
+    }
+
+    private sealed class FusedImportValueSource
+    {
+        internal int EvaluationCount { get; private set; }
+
+        public object GetValue() => ++this.EvaluationCount;
     }
 }
