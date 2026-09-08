@@ -561,6 +561,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";SharingBoundaryHasNoExportFactory" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The part belongs to sharing boundary "{0}", but no ExportFactory creates that boundary.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La parte appartiene al "{0}" di condivisione del limite, ma nessun ExportFactory crea tale limite.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";TypeAlreadyInCatalogAsAnotherPart" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The type {0} already belongs to the catalog as a different ComposablePartDefinition.]]></Val>
