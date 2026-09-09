@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Threading;
     using Xunit;
@@ -66,6 +67,88 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             Assert.False(part.DisposeCalled);
             Assert.True(part.DisposeAsyncCalled);
+        }
+
+        [Fact]
+        public async Task SynchronousDisposalJoinsAsyncPartMainThreadWork()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await TestUtilities.V2Discovery.CreatePartsAsync(typeof(JoinableAsyncDisposablePart)));
+            CompositionConfiguration configuration = CompositionConfiguration.Create(catalog);
+            using var joinableTaskContext = new JoinableTaskContext(Thread.CurrentThread, new NonPumpingSynchronizationContext());
+            ExportProvider exportProvider = configuration.CreateExportProviderFactory(joinableTaskContext.Factory).CreateExportProvider();
+            JoinableAsyncDisposablePart part = exportProvider.GetExportedValue<JoinableAsyncDisposablePart>();
+            part.Initialize(joinableTaskContext);
+
+            exportProvider.Dispose();
+
+            Assert.True(part.DisposeCompleted);
+        }
+
+        [Fact]
+        public async Task SynchronousDisposalJoinsAsyncDisposalStartedByAnotherCaller()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await TestUtilities.V2Discovery.CreatePartsAsync(typeof(JoinableAsyncDisposablePart)));
+            CompositionConfiguration configuration = CompositionConfiguration.Create(catalog);
+            using var joinableTaskContext = new JoinableTaskContext(Thread.CurrentThread, new NonPumpingSynchronizationContext());
+            ExportProvider exportProvider = configuration.CreateExportProviderFactory(joinableTaskContext.Factory).CreateExportProvider();
+            JoinableAsyncDisposablePart part = exportProvider.GetExportedValue<JoinableAsyncDisposablePart>();
+            part.Initialize(joinableTaskContext);
+            using ManualResetEventSlim disposalStarted = part.DisposalStarted;
+
+            Task asynchronousDisposal = Task.Run(async () => await exportProvider.DisposeAsync());
+            Assert.True(disposalStarted.Wait(TestUtilities.UnexpectedTimeout));
+            exportProvider.Dispose();
+
+            Assert.True(part.DisposeCompleted);
+            Assert.True(SpinWait.SpinUntil(() => asynchronousDisposal.IsCompleted, TestUtilities.UnexpectedTimeout));
+            await asynchronousDisposal;
+        }
+
+        [Fact]
+        public async Task AsyncDisposalWithJoinableTaskFactoryDoesNotRequireMainThreadPump()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await TestUtilities.V2Discovery.CreatePartsAsync(typeof(AsyncDisposablePart)));
+            CompositionConfiguration configuration = CompositionConfiguration.Create(catalog);
+            using var joinableTaskContext = new JoinableTaskContext(Thread.CurrentThread, new NonPumpingSynchronizationContext());
+            ExportProvider exportProvider = configuration.CreateExportProviderFactory(joinableTaskContext.Factory).CreateExportProvider();
+            exportProvider.GetExportedValue<AsyncDisposablePart>();
+
+            Task asynchronousDisposal = Task.Run(async () => await exportProvider.DisposeAsync());
+
+            Assert.True(SpinWait.SpinUntil(() => asynchronousDisposal.IsCompleted, TestUtilities.UnexpectedTimeout));
+            await asynchronousDisposal;
+        }
+
+        [Fact]
+        public async Task AsyncDisposalWithoutJoinableTaskFactoryDoesNotRequireCallerContext()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null, typeof(AsyncDisposalGatePart));
+            AsyncDisposalGatePart part = exportProvider.GetExportedValue<AsyncDisposalGatePart>();
+            Exception? disposalException = null;
+            using var disposalCompleted = new ManualResetEventSlim();
+            var disposalThread = new Thread(() =>
+            {
+                SynchronizationContext.SetSynchronizationContext(new NonPumpingSynchronizationContext());
+                try
+                {
+                    exportProvider.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    disposalException = ex;
+                }
+                finally
+                {
+                    disposalCompleted.Set();
+                }
+            });
+            disposalThread.IsBackground = true;
+            disposalThread.Start();
+
+            Assert.True(SpinWait.SpinUntil(() => part.DisposalStarted.Task.IsCompleted, TestUtilities.UnexpectedTimeout));
+            part.AllowDisposalToComplete.SetResult(null);
+            Assert.True(disposalCompleted.Wait(TestUtilities.UnexpectedTimeout));
+            Assert.Null(disposalException);
         }
 
         [Fact]
@@ -138,6 +221,46 @@ namespace Microsoft.VisualStudio.Composition.Tests
             await Assert.ThrowsAsync<InvalidOperationException>(() => exportProvider.DisposeAsync().AsTask());
 
             Assert.True(exportProvider.DisposeAsyncCoreCalled);
+        }
+
+        [Fact]
+        public async Task DisposalStartIsSynchronizedWithPartTracking()
+        {
+            ExportProvider innerExportProvider = await CreateExportProviderAsync(joinableTaskFactory: null);
+            var exportProvider = new PartOwningDelegatingExportProvider(innerExportProvider, new DualDisposablePart());
+            var latePart = new DualDisposablePart();
+            object disposalSyncObject = typeof(ExportProvider)
+                .GetField("disposalSyncObject", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .GetValue(exportProvider)!;
+            using var disposalThreadStarted = new ManualResetEventSlim();
+            Exception? disposalException = null;
+            var disposalThread = new Thread(() =>
+            {
+                disposalThreadStarted.Set();
+                try
+                {
+                    exportProvider.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    disposalException = ex;
+                }
+            });
+            disposalThread.IsBackground = true;
+
+            lock (disposalSyncObject)
+            {
+                disposalThread.Start();
+                Assert.True(disposalThreadStarted.Wait(TestUtilities.UnexpectedTimeout));
+                Assert.True(SpinWait.SpinUntil(
+                    () => (disposalThread.ThreadState & ThreadState.WaitSleepJoin) != 0,
+                    TestUtilities.UnexpectedTimeout));
+                exportProvider.TrackPart(latePart);
+            }
+
+            Assert.True(disposalThread.Join(TestUtilities.UnexpectedTimeout));
+            Assert.Null(disposalException);
+            Assert.True(latePart.DisposeCalled);
         }
 
         [Fact]
@@ -337,13 +460,93 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             internal int DisposalCount { get; private set; }
 
-            public async ValueTask DisposeAsync()
+            public ValueTask DisposeAsync()
             {
                 this.DisposalCount++;
                 this.DisposalStarted.SetResult(null);
-#pragma warning disable VSTHRD003 // This test part intentionally awaits a signal controlled by the test.
-                await this.AllowDisposalToComplete.Task;
+                return new ValueTask(this.AllowDisposalToComplete.Task);
+            }
+        }
+
+        [Export]
+        public class JoinableAsyncDisposablePart : IAsyncDisposable
+        {
+            private readonly TaskCompletionSource<object?> disposalStarted = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly TaskCompletionSource<object?> mainThreadWorkCompleted = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly CancellationTokenSource timeoutSource = new CancellationTokenSource();
+            private JoinableTaskCollection? joinableTaskCollection;
+            private Timer? timeoutTimer;
+
+            internal ManualResetEventSlim DisposalStarted { get; } = new ManualResetEventSlim();
+
+            internal bool DisposeCompleted { get; private set; }
+
+            internal void Initialize(JoinableTaskContext joinableTaskContext)
+            {
+                this.joinableTaskCollection = joinableTaskContext.CreateCollection();
+                JoinableTaskFactory joinableTaskFactory = joinableTaskContext.CreateFactory(this.joinableTaskCollection);
+                this.timeoutTimer = new Timer(
+                    _ =>
+                    {
+                        try
+                        {
+                            this.timeoutSource.Cancel();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // Disposal won the race with the queued timeout callback.
+                        }
+
+                        this.mainThreadWorkCompleted.TrySetException(new TimeoutException("The main-thread work was not joined."));
+                    },
+                    null,
+                    TestUtilities.UnexpectedTimeout,
+                    Timeout.InfiniteTimeSpan);
+
+                joinableTaskFactory.RunAsync(async () =>
+                {
+                    try
+                    {
+#pragma warning disable VSTHRD003 // This test part models work signaled by its disposal operation.
+                        await this.disposalStarted.Task;
 #pragma warning restore VSTHRD003
+                        await joinableTaskFactory.SwitchToMainThreadAsync(this.timeoutSource.Token);
+                        this.mainThreadWorkCompleted.TrySetResult(null);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.mainThreadWorkCompleted.TrySetException(ex);
+                    }
+                }).Task.Forget();
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                Assumes.NotNull(this.joinableTaskCollection);
+                using (this.joinableTaskCollection.Join())
+                {
+                    this.DisposalStarted.Set();
+                    this.disposalStarted.SetResult(null);
+                    try
+                    {
+#pragma warning disable VSTHRD003 // The joined collection contains the work that completes this signal.
+                        await this.mainThreadWorkCompleted.Task;
+#pragma warning restore VSTHRD003
+                        this.DisposeCompleted = true;
+                    }
+                    finally
+                    {
+                        this.timeoutTimer?.Dispose();
+                        this.timeoutSource.Dispose();
+                    }
+                }
+            }
+        }
+
+        private class NonPumpingSynchronizationContext : SynchronizationContext
+        {
+            public override void Post(SendOrPostCallback d, object? state)
+            {
             }
         }
 

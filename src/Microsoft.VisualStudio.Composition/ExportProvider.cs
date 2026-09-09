@@ -22,6 +22,13 @@ namespace Microsoft.VisualStudio.Composition
 
     public abstract partial class ExportProvider : IDisposableObservable, IAsyncDisposable
     {
+        private enum DisposalMode
+        {
+            NotStarted,
+            Synchronous,
+            Asynchronous,
+        }
+
         internal static readonly ExportDefinition ExportProviderExportDefinition = new ExportDefinition(
             ContractNameServices.GetTypeIdentity(typeof(ExportProvider)),
             PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
@@ -107,11 +114,12 @@ namespace Microsoft.VisualStudio.Composition
         /// </remarks>
         private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
 
-        private Task? disposalTask;
+        /// <summary>
+        /// A thread-safe, async or sync way to track disposal.
+        /// </summary>
+        private AsyncLazy<int> disposal;
 
-        private bool disposalStartedSynchronously;
-
-        private bool isDisposed;
+        private int disposalMode;
 
         private ExportProvider(
             Resolver resolver,
@@ -151,6 +159,8 @@ namespace Microsoft.VisualStudio.Composition
             this.metadataViewProviders = inheritedMetadataViewProviders
                 ?? new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>>(
                     this.GetMetadataViewProviderExtensions);
+
+            this.disposal = new AsyncLazy<int>(this.CompleteDisposalAsync, joinableTaskFactory);
         }
 
         private protected ExportProvider(Resolver resolver)
@@ -243,10 +253,7 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        bool IDisposableObservable.IsDisposed
-        {
-            get { return this.isDisposed; }
-        }
+        bool IDisposableObservable.IsDisposed => this.HasDisposalStarted;
 
         /// <summary>
         /// Gets a lazy that creates an instance of DelegatingExportProvider.
@@ -256,6 +263,10 @@ namespace Microsoft.VisualStudio.Composition
         protected ImmutableList<Export> NonDisposableWrapperExportAsListOfOne { get; private set; }
 
         protected internal Resolver Resolver { get; }
+
+        private bool HasDisposalStarted => (DisposalMode)Volatile.Read(ref this.disposalMode) != DisposalMode.NotStarted;
+
+        private bool ShouldDisposeSynchronously => this.joinableTaskFactory is null && (DisposalMode)Volatile.Read(ref this.disposalMode) == DisposalMode.Synchronous;
 
         /// <summary>
         /// Gets the assembly that declares a given export.
@@ -495,7 +506,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Dispose()
         {
-            this.WaitForDisposal(this.GetOrStartDisposalTaskAsync(disposeSynchronously: true));
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -503,9 +514,10 @@ namespace Microsoft.VisualStudio.Composition
         /// Asynchronously disposes composed parts owned by this export provider.
         /// </summary>
         /// <returns>A task that completes when all disposable parts have been disposed.</returns>
-        public async ValueTask DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {
-            await this.GetOrStartDisposalTaskAsync(disposeSynchronously: false).ConfigureAwait(false);
+            this.RecordDisposalMode(disposeSynchronously: false);
+            await this.disposal.GetValueAsync().ConfigureAwait(this.joinableTaskFactory is object);
             GC.SuppressFinalize(this);
         }
 
@@ -513,7 +525,8 @@ namespace Microsoft.VisualStudio.Composition
         {
             if (disposing && !this.invokingDisposeCallback.Value)
             {
-                this.WaitForDisposal(this.GetOrStartDisposalTaskAsync(disposeSynchronously: true));
+                this.RecordDisposalMode(disposeSynchronously: true);
+                this.disposal.GetValue();
             }
         }
 
@@ -525,12 +538,30 @@ namespace Microsoft.VisualStudio.Composition
         {
             List<IDisposable> disposableSnapshot = this.TakeDisposableSnapshot();
 
-            // When a JTF is available, WaitForDisposal joins this whole asynchronous operation once.
-            bool disposeSynchronously = this.disposalStartedSynchronously && this.joinableTaskFactory is null;
-            await DisposeSnapshotAsync(disposableSnapshot, disposeSynchronously).ConfigureAwait(false);
+            // When a JTF is available, the shared JoinableTask preserves its context across each part's disposal.
+            bool continueOnCapturedContext = this.joinableTaskFactory is object;
+            await DisposeSnapshotAsync(disposableSnapshot, this.ShouldDisposeSynchronously, continueOnCapturedContext).ConfigureAwait(continueOnCapturedContext);
         }
 
-        private async Task CompleteDisposalAsync(TaskCompletionSource<object?> completionSource)
+        private void RecordDisposalMode(bool disposeSynchronously)
+        {
+            lock (this.disposalSyncObject)
+            {
+                if ((DisposalMode)this.disposalMode == DisposalMode.NotStarted)
+                {
+                    Volatile.Write(
+                        ref this.disposalMode,
+                        (int)(disposeSynchronously ? DisposalMode.Synchronous : DisposalMode.Asynchronous));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs the meat of the disposal logic. This is only invoked via an AsyncLazy to ensure it is invoked only once,
+        /// and that later calls can block on it.
+        /// </summary>
+        /// <returns>A task that returns a meaningless integer.</returns>
+        private async Task<int> CompleteDisposalAsync()
         {
             Exception? disposeException = null;
             try
@@ -553,32 +584,27 @@ namespace Microsoft.VisualStudio.Composition
             Exception? asyncDisposeException = null;
             try
             {
-                await this.DisposeAsyncCore().ConfigureAwait(false);
+                await this.DisposeAsyncCore().ConfigureAwait(this.joinableTaskFactory is object);
             }
             catch (Exception ex)
             {
                 asyncDisposeException = ex;
             }
 
-            if (disposeException is null && asyncDisposeException is null)
-            {
-                completionSource.SetResult(null);
-            }
-            else if (disposeException is null)
-            {
-                completionSource.SetException(asyncDisposeException!);
-            }
-            else if (asyncDisposeException is null)
-            {
-                completionSource.SetException(disposeException);
-            }
-            else
+            if (disposeException is not null && asyncDisposeException is not null)
             {
                 var exceptions = new List<Exception>();
                 AddFlattenedException(exceptions, disposeException);
                 AddFlattenedException(exceptions, asyncDisposeException);
-                completionSource.SetException(new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions));
+                throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
             }
+
+            if ((asyncDisposeException ?? disposeException) is Exception thrownException)
+            {
+                ExceptionDispatchInfo.Capture(thrownException).Throw();
+            }
+
+            return 0;
         }
 
         private static void AddFlattenedException(List<Exception> exceptions, Exception exception)
@@ -593,48 +619,21 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private Task GetOrStartDisposalTaskAsync(bool disposeSynchronously)
-        {
-            TaskCompletionSource<object?>? completionSource = null;
-            Task result;
-            lock (this.disposalSyncObject)
-            {
-                if (this.disposalTask is null)
-                {
-                    completionSource = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    this.disposalTask = completionSource.Task;
-                    this.disposalStartedSynchronously = disposeSynchronously;
-                    this.isDisposed = true;
-                }
-
-                result = this.disposalTask;
-            }
-
-            if (completionSource is object)
-            {
-                this.CompleteDisposalAsync(completionSource).Forget();
-            }
-
-            return result;
-        }
-
-        private void WaitForDisposal(Task disposalTask)
+        private void WaitForDisposal(IAsyncDisposable asyncDisposable)
         {
             if (this.joinableTaskFactory is JoinableTaskFactory joinableTaskFactory)
             {
-#pragma warning disable VSTHRD003 // The JTF is intentionally joining the shared disposal operation initiated by any caller.
-                joinableTaskFactory.Run(async () => await disposalTask.ConfigureAwait(false));
-#pragma warning restore VSTHRD003
+                joinableTaskFactory.Run(async () => await asyncDisposable.DisposeAsync());
             }
             else
             {
 #pragma warning disable VSTHRD002 // Without a JTF, synchronous disposal must still block until async parts are disposed.
-                disposalTask.GetAwaiter().GetResult();
+                asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002
             }
         }
 
-        private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot, bool disposeSynchronously)
+        private static async ValueTask DisposeSnapshotAsync(List<IDisposable> disposableSnapshot, bool disposeSynchronously, bool continueOnCapturedContext)
         {
             List<Exception>? exceptions = null;
             foreach (IDisposable item in disposableSnapshot)
@@ -643,7 +642,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (!disposeSynchronously && item is IAsyncDisposable asyncDisposable)
                     {
-                        await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                        await asyncDisposable.DisposeAsync().ConfigureAwait(continueOnCapturedContext);
                     }
                     else
                     {
@@ -652,12 +651,11 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 catch (Exception ex)
                 {
-                    exceptions ??= new List<Exception>();
-                    exceptions.Add(ex);
+                    (exceptions ??= []).Add(ex);
                 }
             }
 
-            if (exceptions != null)
+            if (exceptions is not null)
             {
                 throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
             }
@@ -665,8 +663,6 @@ namespace Microsoft.VisualStudio.Composition
 
         private List<IDisposable> TakeDisposableSnapshot()
         {
-            this.isDisposed = true;
-
             // Snapshot the contents of the collection within the lock,
             // then dispose of the values outside the lock to avoid
             // executing arbitrary 3rd-party code within our lock.
@@ -998,7 +994,7 @@ namespace Microsoft.VisualStudio.Composition
             bool disposeImmediately;
             lock (this.disposalSyncObject)
             {
-                disposeImmediately = this.isDisposed;
+                disposeImmediately = this.HasDisposalStarted;
                 if (!disposeImmediately)
                 {
                     if (sharingBoundary is null)
@@ -1027,11 +1023,10 @@ namespace Microsoft.VisualStudio.Composition
 
         private void DisposeLateTrackedValue(IDisposable disposable)
         {
-            bool disposeSynchronously = this.disposalStartedSynchronously && this.joinableTaskFactory is null;
-            if (!disposeSynchronously && disposable is IAsyncDisposable asyncDisposable)
+            if (!this.ShouldDisposeSynchronously && disposable is IAsyncDisposable asyncDisposable)
             {
                 // Disposal must finish before the concurrent activation can expose the part.
-                this.WaitForDisposal(asyncDisposable.DisposeAsync().AsTask());
+                this.WaitForDisposal(asyncDisposable);
             }
             else
             {
@@ -1595,12 +1590,13 @@ namespace Microsoft.VisualStudio.Composition
             public async ValueTask DisposeAsync()
             {
                 (object? value, HashSet<PartLifecycleTracker>? nonSharedChildParts) = this.TakeDisposableValues();
+                bool continueOnCapturedContext = this.OwningExportProvider.joinableTaskFactory is object;
                 List<Exception>? exceptions = null;
                 try
                 {
                     if (value is IAsyncDisposable asyncDisposable)
                     {
-                        await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                        await asyncDisposable.DisposeAsync().ConfigureAwait(continueOnCapturedContext);
                     }
                     else
                     {
@@ -1618,7 +1614,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         try
                         {
-                            await descendant.DisposeAsync().ConfigureAwait(false);
+                            await descendant.DisposeAsync().ConfigureAwait(continueOnCapturedContext);
                         }
                         catch (Exception ex)
                         {
