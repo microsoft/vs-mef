@@ -550,6 +550,35 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 while (requirementsChanged);
 
+                var exportFactories = new List<(ComposedPart Owner, ImmutableHashSet<string> FreshBoundaries, List<ComposedPart> ExportedParts)>();
+                foreach (ComposedPart factoryOwner in partsList)
+                {
+                    if (blockedParts.Contains(factoryOwner))
+                    {
+                        continue;
+                    }
+
+                    foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in factoryOwner.SatisfyingExports)
+                    {
+                        if (!import.Key.IsExportFactory || import.Value.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var exportedParts = new List<ComposedPart>(import.Value.Count);
+                        foreach (ExportDefinitionBinding export in import.Value)
+                        {
+                            if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
+                            {
+                                exportedParts.Add(exportedPart);
+                            }
+                        }
+
+                        var freshBoundaries = ((ImmutableHashSet<string>)import.Key.ImportDefinition.ExportFactorySharingBoundaries).Remove(string.Empty);
+                        exportFactories.Add((factoryOwner, freshBoundaries, exportedParts));
+                    }
+                }
+
                 var unreachable = new HashSet<ComposedPart>();
                 foreach (var part in partsList)
                 {
@@ -574,34 +603,34 @@ namespace Microsoft.VisualStudio.Composition
                     do
                     {
                         relevantBoundariesChanged = false;
-                        foreach (var factoryOwner in partsList.Where(part => !blockedParts.Contains(part)))
+                        foreach (var exportFactory in exportFactories)
                         {
-                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory && import.Value.Count > 0))
+                            if (exportFactory.FreshBoundaries.Overlaps(relevantBoundaries))
                             {
-                                var freshBoundaries = ((ImmutableHashSet<string>)import.Key.ImportDefinition.ExportFactorySharingBoundaries).Remove(string.Empty);
-                                if (freshBoundaries.Overlaps(relevantBoundaries))
+                                int previousBoundaryCount = relevantBoundaries.Count;
+                                relevantBoundaries.UnionWith(requiredSharingBoundaries[exportFactory.Owner]);
+                                foreach (ComposedPart exportedPart in exportFactory.ExportedParts)
                                 {
-                                    int previousBoundaryCount = relevantBoundaries.Count;
-                                    relevantBoundaries.UnionWith(requiredSharingBoundaries[factoryOwner]);
-                                    foreach (var export in import.Value.Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart)))
-                                    {
-                                        relevantBoundaries.UnionWith(requiredSharingBoundaries[partsByDefinition[export.PartDefinition]]);
-                                    }
-
-                                    relevantBoundariesChanged |= relevantBoundaries.Count != previousBoundaryCount;
+                                    relevantBoundaries.UnionWith(requiredSharingBoundaries[exportedPart]);
                                 }
+
+                                relevantBoundariesChanged |= relevantBoundaries.Count != previousBoundaryCount;
                             }
                         }
                     }
                     while (relevantBoundariesChanged);
 
                     string targetSharingBoundary = GetEffectiveSharingBoundary(targetPart)!;
-                    bool targetBoundaryHasFactory = partsList
-                        .Where(part => !blockedParts.Contains(part))
-                        .SelectMany(part => part.SatisfyingExports)
-                        .Where(import => import.Key.IsExportFactory && import.Value.Count > 0)
-                        .Any(import => import.Key.ImportDefinition.ExportFactorySharingBoundaries.Contains(targetSharingBoundary)
-                            && import.Value.Any(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart)));
+                    bool targetBoundaryHasFactory = false;
+                    foreach (var exportFactory in exportFactories)
+                    {
+                        if (exportFactory.FreshBoundaries.Contains(targetSharingBoundary) && exportFactory.ExportedParts.Count > 0)
+                        {
+                            targetBoundaryHasFactory = true;
+                            break;
+                        }
+                    }
+
                     if (!targetBoundaryHasFactory)
                     {
                         return false;
@@ -632,37 +661,76 @@ namespace Microsoft.VisualStudio.Composition
                             return true;
                         }
 
-                        foreach (var factoryOwner in partsList.Where(part => CanInstantiatePartInScope(part, scope)))
+                        foreach (var exportFactory in exportFactories)
                         {
-                            foreach (var import in factoryOwner.SatisfyingExports.Where(import => import.Key.IsExportFactory && import.Value.Count > 0))
+                            if (!CanInstantiatePartInScope(exportFactory.Owner, scope))
                             {
-                                var freshBoundaries = ((ImmutableHashSet<string>)import.Key.ImportDefinition.ExportFactorySharingBoundaries).Remove(string.Empty);
-                                if (freshBoundaries.Count == 0 || !freshBoundaries.Overlaps(relevantBoundaries))
-                                {
-                                    continue;
-                                }
+                                continue;
+                            }
 
-                                var allBoundaries = scope.AllBoundaries.Union(freshBoundaries);
-                                var childScope = (AllBoundaries: allBoundaries, FreshBoundaries: freshBoundaries);
-                                bool hasInstantiableTarget = import.Value
-                                    .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
-                                    .Any(export => CanInstantiatePartInScope(partsByDefinition[export.PartDefinition], childScope));
-                                bool isDominated = pendingScopes.Concat(exploredScopes).Any(existing =>
-                                    existing.FreshBoundaries.SetEquals(freshBoundaries)
-                                    && allBoundaries.IsSubsetOf(existing.AllBoundaries));
-                                if (hasInstantiableTarget && !isDominated)
+                            ImmutableHashSet<string> freshBoundaries = exportFactory.FreshBoundaries;
+                            if (freshBoundaries.Count == 0 || !freshBoundaries.Overlaps(relevantBoundaries))
+                            {
+                                continue;
+                            }
+
+                            var allBoundaries = scope.AllBoundaries.Union(freshBoundaries);
+                            var childScope = (AllBoundaries: allBoundaries, FreshBoundaries: freshBoundaries);
+                            bool hasInstantiableTarget = false;
+                            foreach (ComposedPart exportedPart in exportFactory.ExportedParts)
+                            {
+                                if (CanInstantiatePartInScope(exportedPart, childScope))
                                 {
-                                    if (discoveredScopeCount >= MaxScopesPerPart)
+                                    hasInstantiableTarget = true;
+                                    break;
+                                }
+                            }
+
+                            if (!hasInstantiableTarget)
+                            {
+                                continue;
+                            }
+
+                            bool isDominated = false;
+                            foreach (var existing in pendingScopes)
+                            {
+                                if (existing.FreshBoundaries.SetEquals(freshBoundaries) && allBoundaries.IsSubsetOf(existing.AllBoundaries))
+                                {
+                                    isDominated = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isDominated)
+                            {
+                                foreach (var existing in exploredScopes)
+                                {
+                                    if (existing.FreshBoundaries.SetEquals(freshBoundaries) && allBoundaries.IsSubsetOf(existing.AllBoundaries))
                                     {
-                                        return false;
+                                        isDominated = true;
+                                        break;
                                     }
-
-                                    pendingScopes.RemoveAll(existing =>
-                                        existing.FreshBoundaries.SetEquals(freshBoundaries)
-                                        && existing.AllBoundaries.IsSubsetOf(allBoundaries));
-                                    pendingScopes.Add(childScope);
-                                    discoveredScopeCount++;
                                 }
+                            }
+
+                            if (!isDominated)
+                            {
+                                if (discoveredScopeCount >= MaxScopesPerPart)
+                                {
+                                    return false;
+                                }
+
+                                for (int i = pendingScopes.Count - 1; i >= 0; i--)
+                                {
+                                    var existing = pendingScopes[i];
+                                    if (existing.FreshBoundaries.SetEquals(freshBoundaries) && existing.AllBoundaries.IsSubsetOf(allBoundaries))
+                                    {
+                                        pendingScopes.RemoveAt(i);
+                                    }
+                                }
+
+                                pendingScopes.Add(childScope);
+                                discoveredScopeCount++;
                             }
                         }
                     }
