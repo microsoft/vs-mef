@@ -424,14 +424,34 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(sharingBoundaryOverrides, nameof(sharingBoundaryOverrides));
 
-            var partsList = parts.ToList();
-            if (!partsList.Any(part => !string.IsNullOrEmpty(GetEffectiveSharingBoundary(part))))
+            var partsList = new List<ComposedPart>(parts);
+            bool hasSharingBoundary = false;
+            foreach (ComposedPart part in partsList)
+            {
+                if (!string.IsNullOrEmpty(GetEffectiveSharingBoundary(part)))
+                {
+                    hasSharingBoundary = true;
+                    break;
+                }
+            }
+
+            if (!hasSharingBoundary)
             {
                 yield break;
             }
 
-            var partsByDefinition = partsList.ToDictionary(part => part.Definition, ReferenceEquality<ComposablePartDefinition>.Default);
+            var partsByDefinition = new Dictionary<ComposablePartDefinition, ComposedPart>(partsList.Count, ReferenceEquality<ComposablePartDefinition>.Default);
+            foreach (ComposedPart part in partsList)
+            {
+                partsByDefinition.Add(part.Definition, part);
+            }
+
             var pessimisticUnreachableParts = AnalyzeUnreachableParts(ImmutableHashSet<ComposedPart>.Empty);
+            if (pessimisticUnreachableParts.Count == 0)
+            {
+                yield break;
+            }
+
             var unreachableParts = AnalyzeUnreachableParts(pessimisticUnreachableParts);
             while (true)
             {
@@ -444,19 +464,41 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Reject terminal groups first. Parts that merely depend on a rejected optional export
                 // are reconsidered after that export is removed from the graph.
-                var optionalDependencies = currentlyUnreachableParts.ToDictionary(
-                    part => part,
-                    part => new HashSet<ComposedPart>(part.SatisfyingExports
-                        .Where(import => import.Key.ImportDefinition.Cardinality != ImportCardinality.ExactlyOne
+                var optionalDependencies = new Dictionary<ComposedPart, HashSet<ComposedPart>>(currentlyUnreachableParts.Count);
+                foreach (ComposedPart part in currentlyUnreachableParts)
+                {
+                    var dependencies = new HashSet<ComposedPart>();
+                    foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
+                    {
+                        if (import.Key.ImportDefinition.Cardinality != ImportCardinality.ExactlyOne
                             && (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
-                        .SelectMany(import => import.Value)
-                        .Select(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) ? exportedPart : null)
-                        .OfType<ComposedPart>()
-                        .Where(currentlyUnreachableParts.Contains)));
-                var reachableDependenciesByPart = currentlyUnreachableParts.ToDictionary(part => part, GetReachableDependencies);
+                        {
+                            AddOptionalDependencies(import.Value, dependencies, partsByDefinition, currentlyUnreachableParts);
+                        }
+                    }
+
+                    optionalDependencies.Add(part, dependencies);
+                }
+
+                var reachableDependenciesByPart = new Dictionary<ComposedPart, HashSet<ComposedPart>>(currentlyUnreachableParts.Count);
+                foreach (ComposedPart part in currentlyUnreachableParts)
+                {
+                    reachableDependenciesByPart.Add(part, GetReachableDependencies(part));
+                }
+
                 foreach (var part in currentlyUnreachableParts)
                 {
-                    if (reachableDependenciesByPart[part].All(dependency => reachableDependenciesByPart[dependency].Contains(part)))
+                    bool isTerminalGroup = true;
+                    foreach (ComposedPart dependency in reachableDependenciesByPart[part])
+                    {
+                        if (!reachableDependenciesByPart[dependency].Contains(part))
+                        {
+                            isTerminalGroup = false;
+                            break;
+                        }
+                    }
+
+                    if (isTerminalGroup)
                     {
                         unreachableParts.Add(part);
                     }
@@ -498,15 +540,18 @@ namespace Microsoft.VisualStudio.Composition
                 do
                 {
                     blockedPartsChanged = false;
-                    foreach (var part in partsList.Where(part => !blockedParts.Contains(part)))
+                    foreach (ComposedPart part in partsList)
                     {
-                        foreach (var import in part.SatisfyingExports.Where(import => !import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
+                        if (blockedParts.Contains(part))
                         {
-                            var viableExports = import.Value
-                                .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
-                                .Where(export => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne || !prunedOptionalExports.Contains(partsByDefinition[export.PartDefinition]))
-                                .ToList();
-                            if (import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne && viableExports.Count != 1)
+                            continue;
+                        }
+
+                        foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
+                        {
+                            if (import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne
+                                && (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0)
+                                && !HasExactlyOneViableExport(import.Value, partsByDefinition, blockedParts, prunedOptionalExports))
                             {
                                 blockedPartsChanged |= blockedParts.Add(part);
                                 break;
@@ -516,34 +561,42 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 while (blockedPartsChanged);
 
-                var requiredSharingBoundaries = partsList.ToDictionary(
-                    part => part,
-                    part =>
+                var requiredSharingBoundaries = new Dictionary<ComposedPart, HashSet<string>>(partsList.Count);
+                foreach (ComposedPart part in partsList)
+                {
+                    var boundaries = new HashSet<string>();
+                    string? sharingBoundary = GetEffectiveSharingBoundary(part);
+                    if (!string.IsNullOrEmpty(sharingBoundary))
                     {
-                        var boundaries = new HashSet<string>();
-                        string? sharingBoundary = GetEffectiveSharingBoundary(part);
-                        if (!string.IsNullOrEmpty(sharingBoundary))
-                        {
-                            boundaries.Add(sharingBoundary!);
-                        }
+                        boundaries.Add(sharingBoundary!);
+                    }
 
-                        return boundaries;
-                    });
+                    requiredSharingBoundaries.Add(part, boundaries);
+                }
+
                 bool requirementsChanged;
                 do
                 {
                     requirementsChanged = false;
-                    foreach (var part in partsList.Where(part => !blockedParts.Contains(part)))
+                    foreach (ComposedPart part in partsList)
                     {
-                        foreach (var import in part.SatisfyingExports.Where(import => !import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
+                        if (blockedParts.Contains(part))
                         {
-                            foreach (var export in import.Value
-                                .Where(export => partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
-                                .Where(export => import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne || !prunedOptionalExports.Contains(partsByDefinition[export.PartDefinition])))
+                            continue;
+                        }
+
+                        foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
+                        {
+                            if (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0)
                             {
-                                int previousBoundaryCount = requiredSharingBoundaries[part].Count;
-                                requiredSharingBoundaries[part].UnionWith(requiredSharingBoundaries[partsByDefinition[export.PartDefinition]]);
-                                requirementsChanged |= requiredSharingBoundaries[part].Count != previousBoundaryCount;
+                                requirementsChanged |= AddViableExportBoundaries(
+                                    import.Value,
+                                    import.Key.ImportDefinition.Cardinality,
+                                    requiredSharingBoundaries[part],
+                                    partsByDefinition,
+                                    blockedParts,
+                                    prunedOptionalExports,
+                                    requiredSharingBoundaries);
                             }
                         }
                     }
@@ -558,7 +611,7 @@ namespace Microsoft.VisualStudio.Composition
                         continue;
                     }
 
-                    foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in factoryOwner.SatisfyingExports)
+                    foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in factoryOwner.SatisfyingExportsByImport)
                     {
                         if (!import.Key.IsExportFactory || import.Value.Count == 0)
                         {
@@ -566,13 +619,7 @@ namespace Microsoft.VisualStudio.Composition
                         }
 
                         var exportedParts = new List<ComposedPart>(import.Value.Count);
-                        foreach (ExportDefinitionBinding export in import.Value)
-                        {
-                            if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart) && !blockedParts.Contains(exportedPart))
-                            {
-                                exportedParts.Add(exportedPart);
-                            }
-                        }
+                        AddAvailableExportedParts(import.Value, exportedParts, partsByDefinition, blockedParts);
 
                         var freshBoundaries = ((ImmutableHashSet<string>)import.Key.ImportDefinition.ExportFactorySharingBoundaries).Remove(string.Empty);
                         exportFactories.Add((factoryOwner, freshBoundaries, exportedParts));
@@ -605,16 +652,13 @@ namespace Microsoft.VisualStudio.Composition
                         relevantBoundariesChanged = false;
                         foreach (var exportFactory in exportFactories)
                         {
-                            if (exportFactory.FreshBoundaries.Overlaps(relevantBoundaries))
+                            if (Overlaps(exportFactory.FreshBoundaries, relevantBoundaries))
                             {
-                                int previousBoundaryCount = relevantBoundaries.Count;
-                                relevantBoundaries.UnionWith(requiredSharingBoundaries[exportFactory.Owner]);
+                                relevantBoundariesChanged |= AddAll(relevantBoundaries, requiredSharingBoundaries[exportFactory.Owner]);
                                 foreach (ComposedPart exportedPart in exportFactory.ExportedParts)
                                 {
-                                    relevantBoundaries.UnionWith(requiredSharingBoundaries[exportedPart]);
+                                    relevantBoundariesChanged |= AddAll(relevantBoundaries, requiredSharingBoundaries[exportedPart]);
                                 }
-
-                                relevantBoundariesChanged |= relevantBoundaries.Count != previousBoundaryCount;
                             }
                         }
                     }
@@ -669,7 +713,7 @@ namespace Microsoft.VisualStudio.Composition
                             }
 
                             ImmutableHashSet<string> freshBoundaries = exportFactory.FreshBoundaries;
-                            if (freshBoundaries.Count == 0 || !freshBoundaries.Overlaps(relevantBoundaries))
+                            if (freshBoundaries.Count == 0 || !Overlaps(freshBoundaries, relevantBoundaries))
                             {
                                 continue;
                             }
@@ -742,7 +786,7 @@ namespace Microsoft.VisualStudio.Composition
                     ComposedPart part,
                     (ImmutableHashSet<string> AllBoundaries, ImmutableHashSet<string> FreshBoundaries) scope)
                 {
-                    if (blockedParts.Contains(part) || !requiredSharingBoundaries[part].IsSubsetOf(scope.AllBoundaries))
+                    if (blockedParts.Contains(part) || !IsSubsetOf(requiredSharingBoundaries[part], scope.AllBoundaries))
                     {
                         return false;
                     }
@@ -770,6 +814,204 @@ namespace Microsoft.VisualStudio.Composition
                     ? effectiveSharingBoundary
                     : part.Definition.SharingBoundary;
             }
+        }
+
+        private static void AddOptionalDependencies(
+            IReadOnlyList<ExportDefinitionBinding> exports,
+            HashSet<ComposedPart> dependencies,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> candidateDependencies)
+        {
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
+            {
+                foreach (ExportDefinitionBinding export in immutableExports)
+                {
+                    AddOptionalDependency(export);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    AddOptionalDependency(exports[i]);
+                }
+            }
+
+            void AddOptionalDependency(ExportDefinitionBinding export)
+            {
+                if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart)
+                    && candidateDependencies.Contains(exportedPart))
+                {
+                    dependencies.Add(exportedPart);
+                }
+            }
+        }
+
+        private static bool HasExactlyOneViableExport(
+            IReadOnlyList<ExportDefinitionBinding> exports,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts,
+            IReadOnlyCollection<ComposedPart> prunedOptionalExports)
+        {
+            int viableExportCount = 0;
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
+            {
+                foreach (ExportDefinitionBinding export in immutableExports)
+                {
+                    if (IsViableExport(export, partsByDefinition, blockedParts, prunedOptionalExports) && ++viableExportCount > 1)
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    if (IsViableExport(exports[i], partsByDefinition, blockedParts, prunedOptionalExports) && ++viableExportCount > 1)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return viableExportCount == 1;
+        }
+
+        private static bool AddViableExportBoundaries(
+            IReadOnlyList<ExportDefinitionBinding> exports,
+            ImportCardinality cardinality,
+            HashSet<string> boundaries,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts,
+            IReadOnlyCollection<ComposedPart> prunedOptionalExports,
+            Dictionary<ComposedPart, HashSet<string>> requiredSharingBoundaries)
+        {
+            bool changed = false;
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
+            {
+                foreach (ExportDefinitionBinding export in immutableExports)
+                {
+                    AddExportBoundaries(export);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    AddExportBoundaries(exports[i]);
+                }
+            }
+
+            return changed;
+
+            void AddExportBoundaries(ExportDefinitionBinding export)
+            {
+                if (IsViableExport(export, cardinality, partsByDefinition, blockedParts, prunedOptionalExports, out ComposedPart? exportedPart))
+                {
+                    changed |= AddAll(boundaries, requiredSharingBoundaries[exportedPart!]);
+                }
+            }
+        }
+
+        private static void AddAvailableExportedParts(
+            IReadOnlyList<ExportDefinitionBinding> exports,
+            List<ComposedPart> exportedParts,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts)
+        {
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
+            {
+                foreach (ExportDefinitionBinding export in immutableExports)
+                {
+                    AddExportedPart(export);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    AddExportedPart(exports[i]);
+                }
+            }
+
+            void AddExportedPart(ExportDefinitionBinding export)
+            {
+                if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart)
+                    && !blockedParts.Contains(exportedPart))
+                {
+                    exportedParts.Add(exportedPart);
+                }
+            }
+        }
+
+        private static bool IsViableExport(
+            ExportDefinitionBinding export,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts,
+            IReadOnlyCollection<ComposedPart> prunedOptionalExports)
+        {
+            return IsViableExport(export, ImportCardinality.ExactlyOne, partsByDefinition, blockedParts, prunedOptionalExports, out _);
+        }
+
+        private static bool IsViableExport(
+            ExportDefinitionBinding export,
+            ImportCardinality cardinality,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts,
+            IReadOnlyCollection<ComposedPart> prunedOptionalExports,
+            out ComposedPart? exportedPart)
+        {
+            return partsByDefinition.TryGetValue(export.PartDefinition, out exportedPart)
+                && !blockedParts.Contains(exportedPart)
+                && (cardinality == ImportCardinality.ExactlyOne || !ContainsPart(prunedOptionalExports, exportedPart));
+        }
+
+        private static bool ContainsPart(IReadOnlyCollection<ComposedPart> parts, ComposedPart part)
+        {
+            return parts switch
+            {
+                HashSet<ComposedPart> hashSet => hashSet.Contains(part),
+                ImmutableHashSet<ComposedPart> immutableHashSet => immutableHashSet.Contains(part),
+                _ => Enumerable.Contains(parts, part),
+            };
+        }
+
+        private static bool AddAll(HashSet<string> target, HashSet<string> source)
+        {
+            bool changed = false;
+            foreach (string value in source)
+            {
+                changed |= target.Add(value);
+            }
+
+            return changed;
+        }
+
+        private static bool Overlaps(ImmutableHashSet<string> first, HashSet<string> second)
+        {
+            foreach (string value in first)
+            {
+                if (second.Contains(value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsSubsetOf(HashSet<string> first, ImmutableHashSet<string> second)
+        {
+            foreach (string value in first)
+            {
+                if (!second.Contains(value))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
