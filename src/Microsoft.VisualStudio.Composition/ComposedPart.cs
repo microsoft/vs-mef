@@ -17,7 +17,8 @@ namespace Microsoft.VisualStudio.Composition
     [DebuggerDisplay("{" + nameof(Definition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
     public class ComposedPart
     {
-        private ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports;
+        private ImmutableDictionary<ImportDefinitionBinding, ImmutableList<ExportDefinitionBinding>> satisfyingExports;
+        private ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExportsView;
 
         public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
@@ -32,7 +33,12 @@ namespace Microsoft.VisualStudio.Composition
 #endif
 
             this.Definition = definition;
-            this.satisfyingExports = ImmutableDictionary.CreateRange(satisfyingExports);
+            this.satisfyingExports = satisfyingExports.ToImmutableDictionary(
+                pair => pair.Key,
+                pair => pair.Value.ToImmutableList());
+            this.satisfyingExportsView = this.satisfyingExports.ToImmutableDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyList<ExportDefinitionBinding>)pair.Value);
             this.RequiredSharingBoundaries = requiredSharingBoundaries;
         }
 
@@ -41,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets a map of this part's imports, and the exports which satisfy them.
         /// </summary>
-        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports => this.satisfyingExports;
+        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports => this.satisfyingExportsView;
 
         /// <summary>
         /// Gets the set of sharing boundaries that this part must be instantiated within.
@@ -51,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the concrete map of this part's imports and their satisfying exports for allocation-sensitive internal use.
         /// </summary>
-        internal ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExportsByImport => this.satisfyingExports;
+        internal ImmutableDictionary<ImportDefinitionBinding, ImmutableList<ExportDefinitionBinding>> SatisfyingExportsByImport => this.satisfyingExports;
 
         internal Resolver Resolver => this.Definition.TypeRef.Resolver;
 
@@ -208,8 +214,9 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (invalidExports is not null)
                 {
-                    var validExports = this.satisfyingExports[pair.Key].Where(exp => !invalidExports.Contains(exp)).ToList();
+                    ImmutableList<ExportDefinitionBinding> validExports = this.satisfyingExports[pair.Key].Where(exp => !invalidExports.Contains(exp)).ToImmutableList();
                     this.satisfyingExports = this.satisfyingExports.SetItem(pair.Key, validExports);
+                    this.satisfyingExportsView = this.satisfyingExportsView.SetItem(pair.Key, validExports);
                 }
             }
 
