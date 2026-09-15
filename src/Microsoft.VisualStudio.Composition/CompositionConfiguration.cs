@@ -459,7 +459,7 @@ namespace Microsoft.VisualStudio.Composition
                 foreach (ComposedPart part in currentlyUnreachableParts)
                 {
                     var dependencies = new HashSet<ComposedPart>();
-                    foreach (KeyValuePair<ImportDefinitionBinding, ImmutableList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
+                    foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
                     {
                         if (import.Key.ImportDefinition.Cardinality != ImportCardinality.ExactlyOne
                             && (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0))
@@ -528,7 +528,7 @@ namespace Microsoft.VisualStudio.Composition
                             continue;
                         }
 
-                        foreach (KeyValuePair<ImportDefinitionBinding, ImmutableList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
+                        foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
                         {
                             if (import.Key.ImportDefinition.Cardinality == ImportCardinality.ExactlyOne
                                 && (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0)
@@ -566,7 +566,7 @@ namespace Microsoft.VisualStudio.Composition
                             continue;
                         }
 
-                        foreach (KeyValuePair<ImportDefinitionBinding, ImmutableList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
+                        foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in part.SatisfyingExportsByImport)
                         {
                             if (!import.Key.IsExportFactory || import.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0)
                             {
@@ -592,7 +592,7 @@ namespace Microsoft.VisualStudio.Composition
                         continue;
                     }
 
-                    foreach (KeyValuePair<ImportDefinitionBinding, ImmutableList<ExportDefinitionBinding>> import in factoryOwner.SatisfyingExportsByImport)
+                    foreach (KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> import in factoryOwner.SatisfyingExportsByImport)
                     {
                         if (!import.Key.IsExportFactory || import.Value.Count == 0)
                         {
@@ -832,33 +832,65 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         private static void AddOptionalDependencies(
-            ImmutableList<ExportDefinitionBinding> exports,
+            IReadOnlyList<ExportDefinitionBinding> exports,
             HashSet<ComposedPart> dependencies,
             Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
             HashSet<ComposedPart> candidateDependencies)
         {
-            foreach (ExportDefinitionBinding export in exports)
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
             {
-                if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart)
-                    && candidateDependencies.Contains(exportedPart))
+                foreach (ExportDefinitionBinding export in immutableExports)
                 {
-                    dependencies.Add(exportedPart);
+                    AddOptionalDependency(export, dependencies, partsByDefinition, candidateDependencies);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    AddOptionalDependency(exports[i], dependencies, partsByDefinition, candidateDependencies);
                 }
             }
         }
 
+        private static void AddOptionalDependency(
+            ExportDefinitionBinding export,
+            HashSet<ComposedPart> dependencies,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> candidateDependencies)
+        {
+            if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart)
+                && candidateDependencies.Contains(exportedPart))
+            {
+                dependencies.Add(exportedPart);
+            }
+        }
+
         private static bool HasExactlyOneViableExport(
-            ImmutableList<ExportDefinitionBinding> exports,
+            IReadOnlyList<ExportDefinitionBinding> exports,
             Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
             HashSet<ComposedPart> blockedParts,
             IReadOnlyCollection<ComposedPart> prunedOptionalExports)
         {
             int viableExportCount = 0;
-            foreach (ExportDefinitionBinding export in exports)
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
             {
-                if (IsViableExport(export, partsByDefinition, blockedParts, prunedOptionalExports) && ++viableExportCount > 1)
+                foreach (ExportDefinitionBinding export in immutableExports)
                 {
-                    return false;
+                    if (IsViableExport(export, partsByDefinition, blockedParts, prunedOptionalExports) && ++viableExportCount > 1)
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    if (IsViableExport(exports[i], partsByDefinition, blockedParts, prunedOptionalExports) && ++viableExportCount > 1)
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -866,7 +898,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         private static bool AddViableExportBoundaries(
-            ImmutableList<ExportDefinitionBinding> exports,
+            IReadOnlyList<ExportDefinitionBinding> exports,
             ImportCardinality cardinality,
             HashSet<string> boundaries,
             Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
@@ -875,30 +907,83 @@ namespace Microsoft.VisualStudio.Composition
             Dictionary<ComposedPart, HashSet<string>> requiredSharingBoundaries)
         {
             bool changed = false;
-            foreach (ExportDefinitionBinding export in exports)
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
             {
-                if (IsViableExport(export, cardinality, partsByDefinition, blockedParts, prunedOptionalExports, out ComposedPart? exportedPart))
+                foreach (ExportDefinitionBinding export in immutableExports)
                 {
-                    changed |= AddAll(boundaries, requiredSharingBoundaries[exportedPart]);
+                    changed |= AddViableExportBoundaries(
+                        export,
+                        cardinality,
+                        boundaries,
+                        partsByDefinition,
+                        blockedParts,
+                        prunedOptionalExports,
+                        requiredSharingBoundaries);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    changed |= AddViableExportBoundaries(
+                        exports[i],
+                        cardinality,
+                        boundaries,
+                        partsByDefinition,
+                        blockedParts,
+                        prunedOptionalExports,
+                        requiredSharingBoundaries);
                 }
             }
 
             return changed;
         }
 
+        private static bool AddViableExportBoundaries(
+            ExportDefinitionBinding export,
+            ImportCardinality cardinality,
+            HashSet<string> boundaries,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts,
+            IReadOnlyCollection<ComposedPart> prunedOptionalExports,
+            Dictionary<ComposedPart, HashSet<string>> requiredSharingBoundaries)
+        {
+            return IsViableExport(export, cardinality, partsByDefinition, blockedParts, prunedOptionalExports, out ComposedPart? exportedPart)
+                && AddAll(boundaries, requiredSharingBoundaries[exportedPart]);
+        }
+
         private static void AddAvailableExportedParts(
-            ImmutableList<ExportDefinitionBinding> exports,
+            IReadOnlyList<ExportDefinitionBinding> exports,
             List<ComposedPart> exportedParts,
             Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
             HashSet<ComposedPart> blockedParts)
         {
-            foreach (ExportDefinitionBinding export in exports)
+            if (exports is ImmutableList<ExportDefinitionBinding> immutableExports)
             {
-                if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart)
-                    && !blockedParts.Contains(exportedPart))
+                foreach (ExportDefinitionBinding export in immutableExports)
                 {
-                    exportedParts.Add(exportedPart);
+                    AddAvailableExportedPart(export, exportedParts, partsByDefinition, blockedParts);
                 }
+            }
+            else
+            {
+                for (int i = 0; i < exports.Count; i++)
+                {
+                    AddAvailableExportedPart(exports[i], exportedParts, partsByDefinition, blockedParts);
+                }
+            }
+        }
+
+        private static void AddAvailableExportedPart(
+            ExportDefinitionBinding export,
+            List<ComposedPart> exportedParts,
+            Dictionary<ComposablePartDefinition, ComposedPart> partsByDefinition,
+            HashSet<ComposedPart> blockedParts)
+        {
+            if (partsByDefinition.TryGetValue(export.PartDefinition, out ComposedPart? exportedPart)
+                && !blockedParts.Contains(exportedPart))
+            {
+                exportedParts.Add(exportedPart);
             }
         }
 
