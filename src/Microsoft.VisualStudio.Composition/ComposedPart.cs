@@ -48,6 +48,11 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
+        /// <summary>
+        /// Gets the concrete map of this part's imports and their satisfying exports for allocation-sensitive internal use.
+        /// </summary>
+        internal ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExportsByImport => this.satisfyingExports;
+
         internal Resolver Resolver => this.Definition.TypeRef.Resolver;
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
