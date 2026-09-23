@@ -401,10 +401,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null);
             ExportProvider exported = exportProvider.GetExportedValue<ExportProvider>();
             ExportProvider exportedByContract = exportProvider.GetExportedValue<ExportProvider>(contractName: null);
+            ExportProvider exportedByGetExport = exportProvider.GetExport<ExportProvider>().Value;
 
             Assert.NotSame(exportProvider, exported);
             Assert.Same(exported, exportedByContract);
-            Assert.Same(exportProvider.GetExport<ExportProvider>().Value, exported);
+            Assert.Same(exportedByGetExport, exported);
             Assert.Throws<InvalidOperationException>(() => exported.Dispose());
 
             exportProvider.Dispose();
