@@ -395,6 +395,41 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, AsyncDisposablePart.DisposalCount);
         }
 
+        [Fact]
+        public async Task GetExportedValueOfExportProviderDoesNotFailContainerDisposal()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null);
+            ExportProvider exported = exportProvider.GetExportedValue<ExportProvider>();
+            ExportProvider exportedByContract = exportProvider.GetExportedValue<ExportProvider>(contractName: null);
+            ExportProvider exportedByGetExport = exportProvider.GetExport<ExportProvider>().Value;
+
+            Assert.NotSame(exportProvider, exported);
+            Assert.Same(exported, exportedByContract);
+            Assert.Same(exportedByGetExport, exported);
+            Assert.Throws<InvalidOperationException>(() => exported.Dispose());
+
+            exportProvider.Dispose();
+        }
+
+        [Fact]
+        public async Task GetExportedValueOfExportProviderDoesNotFailAsyncContainerDisposalAsync()
+        {
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskFactory: null);
+            _ = exportProvider.GetExportedValue<ExportProvider>();
+
+            await exportProvider.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task GetExportedValueOfExportProviderDoesNotFailJoinableContainerDisposal()
+        {
+            using var joinableTaskContext = new JoinableTaskContext();
+            ExportProvider exportProvider = await CreateExportProviderAsync(joinableTaskContext.Factory);
+            _ = exportProvider.GetExportedValue<ExportProvider>();
+
+            exportProvider.Dispose();
+        }
+
         private static async Task<ExportProvider> CreateExportProviderAsync(JoinableTaskFactory? joinableTaskFactory, params Type[] partTypes)
         {
             return await CreateExportProviderAsync(TestUtilities.V2Discovery, joinableTaskFactory, partTypes);

@@ -231,6 +231,14 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 RuntimeComposition.RuntimePart part = this.composition.GetPart(matchingExport);
+
+                // The synthesized ExportProvider export is a non-owning wrapper. Routing it through
+                // part-lifecycle tracking would dispose that wrapper when the container shuts down.
+                if (part.TypeRef.Equals(ExportProviderPartDefinition.TypeRef))
+                {
+                    return RuntimeExportLookup.Unsupported;
+                }
+
                 return part.TypeRef.IsGenericTypeDefinition
                     ? RuntimeExportLookup.Unsupported
                     : new RuntimeExportLookup(part, matchingExport);
