@@ -635,6 +635,50 @@ namespace Microsoft.VisualStudio.Composition
             return Expression.GetDelegateType(parameterTypes);
         }
 
+        /// <summary>
+        /// Replaces the generic type parameters of a generic type that appear within a type with the corresponding
+        /// type arguments, e.g. turns <c>List&lt;IFoo&lt;TOptions&gt;&gt;</c> into <c>List&lt;IFoo&lt;MyOptions&gt;&gt;</c>.
+        /// </summary>
+        /// <param name="type">The type that may refer to generic type parameters.</param>
+        /// <param name="typeArguments">The type arguments, indexed by <see cref="Type.GenericParameterPosition"/>.</param>
+        /// <returns>The type with every generic type parameter replaced. Generic method parameters are left unchanged.</returns>
+        internal static Type SubstituteGenericTypeParameters(Type type, IReadOnlyList<Type> typeArguments)
+        {
+            Requires.NotNull(type, nameof(type));
+            Requires.NotNull(typeArguments, nameof(typeArguments));
+
+            if (!type.ContainsGenericParameters)
+            {
+                return type;
+            }
+
+            if (type.IsGenericParameter)
+            {
+                return type.DeclaringMethod is null ? typeArguments[type.GenericParameterPosition] : type;
+            }
+
+            if (type.IsArray)
+            {
+                Type elementType = SubstituteGenericTypeParameters(type.GetElementType()!, typeArguments);
+                return type.GetArrayRank() == 1 && type == type.GetElementType()!.MakeArrayType()
+                    ? elementType.MakeArrayType()
+                    : elementType.MakeArrayType(type.GetArrayRank());
+            }
+
+            if (type.IsGenericType)
+            {
+                Type[] genericArguments = type.GetGenericArguments();
+                for (int i = 0; i < genericArguments.Length; i++)
+                {
+                    genericArguments[i] = SubstituteGenericTypeParameters(genericArguments[i], typeArguments);
+                }
+
+                return type.GetGenericTypeDefinition().MakeGenericType(genericArguments);
+            }
+
+            return type;
+        }
+
         internal static MethodBase? MapOpenGenericMemberToClosedGeneric(MethodBase method, TypeInfo closedGeneric)
         {
             ParameterInfo[] parameters = method.GetParameters();

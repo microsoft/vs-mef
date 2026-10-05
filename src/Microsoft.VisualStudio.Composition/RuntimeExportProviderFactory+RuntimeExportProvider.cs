@@ -916,72 +916,25 @@ namespace Microsoft.VisualStudio.Composition
                 Type effectiveImportSiteType = import.ImportingSiteType;
                 Func<AssemblyName, Func<object?>, object, object>? lazyFactory = import.LazyFactory;
 
-                var effectiveImportMetadata = GetEffectiveImportMetadata(import.Metadata, importingPartTracker);
-                if (effectiveImportMetadata != import.Metadata)
+                if (TryGetClosedImportingSiteType(import, importingPartTracker, out Type? closedImportingSiteType))
                 {
-                    var bare = LazyMetadataWrapper.TryUnwrap(effectiveImportMetadata);
-                    if (bare.TryGetValue(CompositionConstants.GenericParametersMetadataName, out var typeArgsObj) && typeArgsObj is Type[] typeArgs)
+                    // Derive the collection element and contract types from the closed import site, rather than
+                    // rebuilding the import site around the contract type, so that every other type argument of a
+                    // collection or wrapper type is carried over: a custom collection may have more type arguments
+                    // than its element type (e.g. CustomCollection<Lazy<IFoo<TOptions>>, string>) or be parameterized
+                    // by something other than its element type (e.g. OptionsCollection<TOptions> : ICollection<IFoo<TOptions>>),
+                    // and a Lazy may carry a metadata type argument (e.g. Lazy<IFoo<TOptions>, TMetadata>).
+                    bool importMany = import.Cardinality == ImportCardinality.ZeroOrMore;
+                    effectiveImportSiteType = closedImportingSiteType;
+                    effectiveImportSiteWithoutCollection = importMany ? PartDiscovery.GetElementTypeFromMany(closedImportingSiteType) : closedImportingSiteType;
+                    effectiveElementType = PartDiscovery.GetTypeIdentityFromImportingType(closedImportingSiteType, importMany);
+
+                    if (import.IsLazy)
                     {
-                        Type openElement = import.ImportingSiteElementType;
-
-                        // Normalize to the generic type definition: TypeRef stores the type as it appears at
-                        // the declaration site (e.g. IFoo<TOptions>), but we need IFoo<> to call MakeGenericType.
-                        if (openElement.IsConstructedGenericType && openElement.GetGenericArguments().All(a => a.IsGenericParameter))
-                        {
-                            openElement = openElement.GetGenericTypeDefinition();
-                        }
-
-                        if (openElement.IsGenericTypeDefinition)
-                        {
-                            effectiveElementType = openElement.MakeGenericType(typeArgs);
-
-                            // Reconstruct effectiveImportSiteWithoutCollection based on whether import has a wrapper
-                            if (import.IsLazy || import.IsExportFactory)
-                            {
-                                // ImportingSiteTypeWithoutCollection is the wrapper type: Lazy<IFoo<TOptions>> or ExportFactory<IFoo<TOptions>>
-                                // Reconstruct it as Lazy<IFoo<MyOptions>> or ExportFactory<IFoo<MyOptions>>, substituting only
-                                // the contract type argument so that a metadata type argument (as in Lazy<IFoo<TOptions>, TMetadata>)
-                                // is carried over.
-                                Type[] wrapperTypeArguments = import.ImportingSiteTypeWithoutCollection.GetGenericArguments();
-                                wrapperTypeArguments[0] = effectiveElementType;
-                                effectiveImportSiteWithoutCollection = import.ImportingSiteTypeWithoutCollection
-                                    .GetGenericTypeDefinition()
-                                    .MakeGenericType(wrapperTypeArguments);
-                            }
-                            else
-                            {
-                                // Direct import or ImportMany collection: TypeWithoutCollection == element type
-                                effectiveImportSiteWithoutCollection = effectiveElementType;
-                            }
-
-                            // The collection is built around the element type as it appears in the collection
-                            // (e.g. Lazy<IFoo<MyOptions>> for IEnumerable<Lazy<IFoo<TOptions>>>), not around the
-                            // unwrapped contract type.
-                            Type outerType = import.ImportingSiteType;
-                            if (import.Cardinality != ImportCardinality.ZeroOrMore)
-                            {
-                                effectiveImportSiteType = effectiveImportSiteWithoutCollection;
-                            }
-                            else if (outerType.IsArray)
-                            {
-                                effectiveImportSiteType = effectiveImportSiteWithoutCollection.MakeArrayType();
-                            }
-                            else if (outerType.IsGenericType)
-                            {
-                                effectiveImportSiteType = outerType.GetGenericTypeDefinition().MakeGenericType(effectiveImportSiteWithoutCollection);
-                            }
-                            else
-                            {
-                                effectiveImportSiteType = effectiveImportSiteWithoutCollection;
-                            }
-
-                            if (import.IsLazy)
-                            {
-                                lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(
-                                    effectiveElementType,
-                                    import.MetadataType);
-                            }
-                        }
+                        Type[] lazyTypeArguments = effectiveImportSiteWithoutCollection.GenericTypeArguments;
+                        lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(
+                            effectiveElementType,
+                            lazyTypeArguments.Length > 1 ? lazyTypeArguments[1] : null);
                     }
                 }
 
@@ -1232,6 +1185,40 @@ namespace Microsoft.VisualStudio.Composition
                     importMetadataOverride,
                     nonSharedInstanceRequired,
                     nonSharedPartOwner);
+            }
+
+            /// <summary>
+            /// For parameterized generic imports (those with <see cref="CompositionConstants.GenericParameterIndexesMetadataName"/>),
+            /// gets the type of the import site as declared on the open generic part (e.g. <c>List&lt;Lazy&lt;IFoo&lt;TOptions&gt;&gt;&gt;</c>),
+            /// closed over the importing part's concrete type arguments (e.g. <c>List&lt;Lazy&lt;IFoo&lt;MyOptions&gt;&gt;&gt;</c>).
+            /// </summary>
+            /// <param name="import">The import.</param>
+            /// <param name="importingPartTracker">The tracker of the closed generic part that declares the import.</param>
+            /// <param name="closedImportingSiteType">Receives the closed type of the import site.</param>
+            /// <returns><see langword="true"/> if <paramref name="import"/> is a parameterized generic import of a closed generic part; otherwise <see langword="false"/>.</returns>
+            private static bool TryGetClosedImportingSiteType(
+                RuntimeComposition.RuntimeImport import,
+                RuntimePartLifecycleTracker importingPartTracker,
+                [NotNullWhen(true)] out Type? closedImportingSiteType)
+            {
+                closedImportingSiteType = null;
+                if (!import.Metadata.ContainsKey(CompositionConstants.GenericParameterIndexesMetadataName)
+                    || !importingPartTracker.ImportMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out var partTypeArgsObj)
+                    || partTypeArgsObj is not Type[] partTypeArgs)
+                {
+                    return false;
+                }
+
+                Type? declaredImportingSiteType = import.ImportingMember is MemberInfo importingMember
+                    ? ReflectionHelpers.GetMemberType(importingMember)
+                    : import.ImportingParameter?.ParameterType;
+                if (declaredImportingSiteType is null)
+                {
+                    return false;
+                }
+
+                closedImportingSiteType = ReflectionHelpers.SubstituteGenericTypeParameters(declaredImportingSiteType, partTypeArgs);
+                return true;
             }
 
             /// <summary>
