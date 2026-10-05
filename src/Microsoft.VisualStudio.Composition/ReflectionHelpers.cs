@@ -688,35 +688,34 @@ namespace Microsoft.VisualStudio.Composition
                 parameterTypes[i] = parameters[i].ParameterType;
             }
 
-            if (method is ConstructorInfo)
-            {
-                // Fast path: if none of the parameter types contain generic parameters, the existing lookup works.
-                if (!parameterTypes.Any(t => t.ContainsGenericParameters))
-                {
-                    return closedGeneric.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
-                }
-
-                // Slow path: the open generic constructor has parameters whose types contain generic type
-                // parameters (e.g. IFoo<TOptions> on OptionsManager<TOptions>).  Type.GetConstructor cannot
-                // match those against the closed form (IFoo<MyOptions>), so find it by metadata token.
-                foreach (ConstructorInfo closedConstructor in closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
-                {
-                    if (closedConstructor.MetadataToken == method.MetadataToken)
-                    {
-                        return closedConstructor;
-                    }
-                }
-
-                return null;
-            }
-            else if (method is MethodInfo)
-            {
-                return closedGeneric.GetMethod(method.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
-            }
-            else
+            if (method is not ConstructorInfo and not MethodInfo)
             {
                 throw ThrowUnsupportedImportingConstructor(method);
             }
+
+            // Fast path: if none of the parameter types contain generic parameters, the existing lookup works.
+            if (!parameterTypes.Any(t => t.ContainsGenericParameters))
+            {
+                return method is ConstructorInfo
+                    ? closedGeneric.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>())
+                    : closedGeneric.GetMethod(method.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
+            }
+
+            // Slow path: the open generic constructor or factory method has parameters whose types contain generic
+            // type parameters (e.g. IFoo<TOptions> on OptionsManager<TOptions>).  Type.GetConstructor and Type.GetMethod
+            // cannot match those against the closed form (IFoo<MyOptions>), so find it by metadata token.
+            IEnumerable<MethodBase> closedMembers = method is ConstructorInfo
+                ? closedGeneric.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                : closedGeneric.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            foreach (MethodBase closedMember in closedMembers)
+            {
+                if (closedMember.MetadataToken == method.MetadataToken)
+                {
+                    return closedMember;
+                }
+            }
+
+            return null;
         }
 
         internal static Attribute Instantiate(this CustomAttributeData attributeData)

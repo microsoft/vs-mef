@@ -29,23 +29,62 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discoverer = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
             var someOtherExportPart = discoverer.CreatePart(typeof(SomeOtherExport))!;
-            var staticFactoryPart = discoverer.CreatePart(typeof(MEFPartWithStaticFactoryMethod))!;
-            var staticFactoryMethodRef = MethodRef.Get(typeof(MEFPartWithStaticFactoryMethod).GetTypeInfo().DeclaredMethods.Single(m => m.Name == nameof(MEFPartWithStaticFactoryMethod.Create)), Resolver.DefaultInstance);
-            staticFactoryPart = new ComposablePartDefinition(
-                staticFactoryPart.TypeRef,
-                staticFactoryPart.Metadata,
-                staticFactoryPart.ExportedTypes,
-                staticFactoryPart.ExportingMembers,
-                staticFactoryPart.ImportingMembers,
-                staticFactoryPart.SharingBoundary,
-                staticFactoryPart.OnImportsSatisfiedMethodRefs,
-                staticFactoryMethodRef,
-                staticFactoryPart.ImportingConstructorImports?.Take(1).ToList(),
-                staticFactoryPart.CreationPolicy,
-                staticFactoryPart.IsSharingBoundaryInferred);
+            var staticFactoryPart = WithStaticFactoryMethod(discoverer.CreatePart(typeof(MEFPartWithStaticFactoryMethod))!, nameof(MEFPartWithStaticFactoryMethod.Create));
 
-            var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
-                .AddParts(new[] { someOtherExportPart, staticFactoryPart });
+            var container = await this.CreateContainerAsync(someOtherExportPart, staticFactoryPart);
+
+            SomeOtherExport anotherExport = container.GetExportedValue<SomeOtherExport>();
+            MEFPartWithStaticFactoryMethod mefPart = container.GetExportedValue<MEFPartWithStaticFactoryMethod>();
+
+            Assert.NotNull(mefPart.SomeOtherExport);
+            Assert.Same(anotherExport, mefPart.SomeOtherExport);
+            Assert.True(mefPart.AnotherRandomValue);
+        }
+
+        /// <summary>
+        /// Verifies that a static factory method of an open generic part whose parameter refers to the part's
+        /// type parameter (<c>Create(IFoo&lt;T&gt;)</c>) is mapped to the closed generic part when activated.
+        /// </summary>
+        [Fact]
+        public async Task StaticFactoryMethodCanCreateGenericMEFPartWithParameterizedGenericImport()
+        {
+            var discoverer = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
+            var factoryPart = discoverer.CreatePart(typeof(GenericOptionsFactory<>))!;
+            var appPart = discoverer.CreatePart(typeof(GenericMEFPartWithStaticFactoryMethodApp))!;
+            var staticFactoryPart = WithStaticFactoryMethod(discoverer.CreatePart(typeof(GenericMEFPartWithStaticFactoryMethod<>))!, nameof(GenericMEFPartWithStaticFactoryMethod<object>.Create));
+
+            var container = await this.CreateContainerAsync(factoryPart, appPart, staticFactoryPart);
+
+            GenericMEFPartWithStaticFactoryMethodApp app = container.GetExportedValue<GenericMEFPartWithStaticFactoryMethodApp>();
+
+            Assert.IsType<GenericOptionsFactory<SomeOtherExport>>(app.Part.Factory);
+            Assert.True(app.Part.AnotherRandomValue);
+        }
+
+        /// <summary>
+        /// Replaces the importing constructor of a part with one of its static factory methods, which takes the
+        /// leading parameters of the importing constructor.
+        /// </summary>
+        private static ComposablePartDefinition WithStaticFactoryMethod(ComposablePartDefinition part, string factoryMethodName)
+        {
+            MethodInfo factoryMethod = part.Type.GetTypeInfo().DeclaredMethods.Single(m => m.Name == factoryMethodName);
+            return new ComposablePartDefinition(
+                part.TypeRef,
+                part.Metadata,
+                part.ExportedTypes,
+                part.ExportingMembers,
+                part.ImportingMembers,
+                part.SharingBoundary,
+                part.OnImportsSatisfiedMethodRefs,
+                MethodRef.Get(factoryMethod, Resolver.DefaultInstance),
+                part.ImportingConstructorImports?.Take(factoryMethod.GetParameters().Length).ToList(),
+                part.CreationPolicy,
+                part.IsSharingBoundaryInferred);
+        }
+
+        private async Task<ExportProvider> CreateContainerAsync(params ComposablePartDefinition[] parts)
+        {
+            var catalog = ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
             var configuration = CompositionConfiguration.Create(catalog);
             if (!configuration.CompositionErrors.IsEmpty)
             {
@@ -57,14 +96,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 configuration.ThrowOnErrors();
             }
 
-            var container = await configuration.CreateContainerAsync(this.logger);
-
-            SomeOtherExport anotherExport = container.GetExportedValue<SomeOtherExport>();
-            MEFPartWithStaticFactoryMethod mefPart = container.GetExportedValue<MEFPartWithStaticFactoryMethod>();
-
-            Assert.NotNull(mefPart.SomeOtherExport);
-            Assert.Same(anotherExport, mefPart.SomeOtherExport);
-            Assert.True(mefPart.AnotherRandomValue);
+            return await configuration.CreateContainerAsync(this.logger);
         }
 
         [Export]
@@ -90,6 +122,42 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export, Shared]
         private class SomeOtherExport
         {
+        }
+
+        private interface IGenericOptionsFactory<T>
+        {
+        }
+
+        [Export(typeof(IGenericOptionsFactory<>)), Shared]
+        private class GenericOptionsFactory<T> : IGenericOptionsFactory<T>
+        {
+        }
+
+        [Export]
+        private class GenericMEFPartWithStaticFactoryMethod<T>
+        {
+            [ImportingConstructor] // This is so we can 'transfer' it to the static factory method in the test.
+            private GenericMEFPartWithStaticFactoryMethod(IGenericOptionsFactory<T> factory, bool anotherRandomValue)
+            {
+                this.Factory = factory;
+                this.AnotherRandomValue = anotherRandomValue;
+            }
+
+            public IGenericOptionsFactory<T> Factory { get; }
+
+            public bool AnotherRandomValue { get; }
+
+            public static GenericMEFPartWithStaticFactoryMethod<T> Create(IGenericOptionsFactory<T> factory)
+            {
+                return new GenericMEFPartWithStaticFactoryMethod<T>(factory, true);
+            }
+        }
+
+        [Export]
+        private class GenericMEFPartWithStaticFactoryMethodApp
+        {
+            [Import]
+            public GenericMEFPartWithStaticFactoryMethod<SomeOtherExport> Part { get; set; } = null!;
         }
     }
 }
