@@ -23,4 +23,5 @@
     <PackageReference Include="Nerdbank.MSBuildExtension" PrivateAssets="all" />
   </ItemGroup>
   <Import Project="Microsoft.VisualStudio.Composition.AppHost.targets" />
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 </Project>

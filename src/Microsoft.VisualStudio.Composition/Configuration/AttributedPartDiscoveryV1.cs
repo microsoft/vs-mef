@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.Composition
 
             var allLocalMembers = declaredMethods.Concat<MemberInfo>(declaredProperties).Concat(declaredFields);
             var exportingMembers = from member in allLocalMembers
+#if NETFRAMEWORK
+                                   // On .NET Framework, GetCustomAttributes allocates an empty result when no matching attributes exist.
+                                   // IsDefined avoids that allocation; on modern .NET the empty path is allocation-free and the extra lookup is slower.
+                                   where member.IsAttributeDefined<ExportAttribute>()
+#endif
                                    from export in member.GetAttributes<ExportAttribute>()
                                    select new KeyValuePair<MemberInfo, ExportAttribute>(member, export);
             var exportedTypes = from export in partTypeInfo.GetAttributes<ExportAttribute>()
@@ -112,9 +117,10 @@ namespace Microsoft.VisualStudio.Composition
             var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
             var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportDefinitions = ImmutableList.CreateBuilder<KeyValuePair<MemberInfo, ExportDefinition>>();
+            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>(ByValueEquality.AssemblyName);
             foreach (var export in exportsByMember)
             {
-                var memberExportMetadata = allExportsMetadata.AddRange(GetExportMetadata(export.Key));
+                var memberExportMetadata = allExportsMetadata.AddRange(GetExportMetadata(export.Key, assemblyNamesForMetadataAttributes));
 
                 if (export.Key is MethodInfo method)
                 {
@@ -197,12 +203,6 @@ namespace Microsoft.VisualStudio.Composition
                                     where !(kv.Key is TypeInfo)
                                     group kv.Value by kv.Key into byMember
                                     select byMember).ToDictionary(g => MemberRef.Get(g.Key, this.Resolver), g => (IReadOnlyCollection<ExportDefinition>)g.ToArray());
-
-            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>(ByValueEquality.AssemblyName);
-            foreach (var export in exportsByMember)
-            {
-                GetAssemblyNamesFromMetadataAttributes<MetadataAttributeAttribute>(export.Key, assemblyNamesForMetadataAttributes);
-            }
 
             return new ComposablePartDefinition(
                 TypeRef.Get(partType, this.Resolver),
@@ -358,13 +358,21 @@ namespace Microsoft.VisualStudio.Composition
                 TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, parameter.ParameterType), this.Resolver));
         }
 
-        private static IReadOnlyDictionary<string, object?> GetExportMetadata(MemberInfo member)
+        private static IReadOnlyDictionary<string, object?> GetExportMetadata(MemberInfo member, ImmutableHashSet<AssemblyName>.Builder assemblyNamesForMetadataAttributes)
         {
             Requires.NotNull(member, nameof(member));
+            Requires.NotNull(assemblyNamesForMetadataAttributes, nameof(assemblyNamesForMetadataAttributes));
 
             var result = ImmutableDictionary.CreateBuilder<string, object?>();
             foreach (var attribute in member.GetAttributes<Attribute>())
             {
+                Type attrType = attribute.GetType();
+                bool isMetadataAttribute = attrType.GetTypeInfo().IsAttributeDefined<MetadataAttributeAttribute>(true);
+                if (isMetadataAttribute)
+                {
+                    assemblyNamesForMetadataAttributes.Add(attrType.GetTypeInfo().Assembly.GetName());
+                }
+
                 var exportMetadataAttribute = attribute as ExportMetadataAttribute;
                 if (exportMetadataAttribute != null)
                 {
@@ -379,10 +387,8 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 else
                 {
-                    Type attrType = attribute.GetType();
-
                     // Perf optimization, relies on short circuit evaluation, often a property attribute is an ExportAttribute
-                    if (attrType != typeof(ExportAttribute) && attrType.GetTypeInfo().IsAttributeDefined<MetadataAttributeAttribute>(true))
+                    if (attrType != typeof(ExportAttribute) && isMetadataAttribute)
                     {
                         var usage = attrType.GetTypeInfo().GetFirstAttribute<AttributeUsageAttribute>(true);
                         var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);

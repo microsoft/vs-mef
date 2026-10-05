@@ -162,8 +162,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Import]
             public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; } = null!;
 
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [MefV1.Import]
             public MefV1.ExportFactory<NonSharedPart, IMetadata> FactoryWithTMetadata { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefV1.Export]

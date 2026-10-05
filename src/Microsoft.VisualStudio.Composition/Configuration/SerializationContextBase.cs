@@ -58,6 +58,12 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly object BoxedTrue = true;
         private static readonly object BoxedFalse = false;
+        private static readonly object BoxedCreationPolicyAny = CreationPolicy.Any;
+        private static readonly object BoxedCreationPolicyShared = CreationPolicy.Shared;
+        private static readonly object BoxedCreationPolicyNonShared = CreationPolicy.NonShared;
+        private static readonly object BoxedInt32Zero = 0;
+        private static readonly object BoxedInt32One = 1;
+        private static readonly object BoxedInt32NegativeOne = -1;
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -751,6 +757,39 @@ namespace Microsoft.VisualStudio.Composition
                     throw new NotSupportedException();
                 }
 
+                if (elementType == typeof(object))
+                {
+                    var array = new object?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = itemReader();
+                    }
+
+                    return array;
+                }
+
+                if (elementType == typeof(string))
+                {
+                    var array = new string?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (string?)itemReader();
+                    }
+
+                    return array;
+                }
+
+                if (elementType == typeof(Type))
+                {
+                    var array = new Type?[(int)count];
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        array[i] = (Type?)itemReader();
+                    }
+
+                    return array;
+                }
+
                 var list = Array.CreateInstance(elementType, (int)count);
                 for (int i = 0; i < list.Length; i++)
                 {
@@ -824,23 +863,27 @@ namespace Microsoft.VisualStudio.Composition
                 // access of any of its contents, we'll do a just-in-time deserialization,
                 // and perhaps only of the requested values.
                 uint count = this.ReadCompressedUInt();
-                var metadata = ImmutableDictionary<string, object?>.Empty;
-
-                if (count > 0)
+                if (count == 0)
                 {
-                    var builder = this.metadataBuilder; // reuse builder to save on GC pressure
-                    for (int i = 0; i < count; i++)
-                    {
-                        string? key = this.ReadString();
-                        object? value = this.ReadObject();
-                        builder.Add(key, value);
-                    }
-
-                    metadata = builder.ToImmutable();
-                    builder.Clear(); // clean up for the next user.
+                    return ImmutableDictionary<string, object?>.Empty;
                 }
 
-                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver);
+                bool requiresValueSubstitution = false;
+                var builder = this.metadataBuilder; // reuse builder to save on GC pressure
+                for (int i = 0; i < count; i++)
+                {
+                    string? key = this.ReadString();
+                    object? value = this.ReadObject();
+                    requiresValueSubstitution |= value is LazyMetadataWrapper.ISubstitutedValue;
+                    builder.Add(key, value);
+                }
+
+                ImmutableDictionary<string, object?> metadata = builder.ToImmutable();
+                builder.Clear(); // clean up for the next user.
+
+                return requiresValueSubstitution
+                    ? new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver)
+                    : metadata;
             }
         }
 
@@ -1093,7 +1136,14 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.UInt64:
                         return this.reader.ReadUInt64();
                     case ObjectType.Int32:
-                        return this.reader.ReadInt32();
+                        int int32Value = this.reader.ReadInt32();
+                        return int32Value switch
+                        {
+                            0 => BoxedInt32Zero,
+                            1 => BoxedInt32One,
+                            -1 => BoxedInt32NegativeOne,
+                            _ => int32Value,
+                        };
                     case ObjectType.UInt32:
                         return this.reader.ReadUInt32();
                     case ObjectType.Int16:
@@ -1115,7 +1165,13 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Guid:
                         return this.ReadGuid();
                     case ObjectType.CreationPolicy:
-                        return (CreationPolicy)this.reader.ReadByte();
+                        return this.reader.ReadByte() switch
+                        {
+                            (byte)CreationPolicy.Any => BoxedCreationPolicyAny,
+                            (byte)CreationPolicy.Shared => BoxedCreationPolicyShared,
+                            (byte)CreationPolicy.NonShared => BoxedCreationPolicyNonShared,
+                            byte value => (CreationPolicy)value,
+                        };
                     case ObjectType.Type:
                         return this.ReadTypeRef().Resolve();
                     case ObjectType.TypeRef:

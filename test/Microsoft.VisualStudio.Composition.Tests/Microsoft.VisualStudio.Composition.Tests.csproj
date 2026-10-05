@@ -10,6 +10,7 @@
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Only" />
     <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="xunit.runner.console" />
     <PackageReference Include="xunit.runner.visualstudio" />
@@ -58,4 +59,6 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition=" '%(FileName)' == 'Microsoft.VisualStudio.Composition.MissingAssemblyTests' " />
     </ItemGroup>
   </Target>
+
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 </Project>

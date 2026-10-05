@@ -1,0 +1,2 @@
+[*.cs]
+dotnet_diagnostic.VSMEF002.severity = suggestion

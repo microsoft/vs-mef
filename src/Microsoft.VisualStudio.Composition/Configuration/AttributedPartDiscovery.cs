@@ -64,6 +64,11 @@ namespace Microsoft.VisualStudio.Composition
             BindingFlags instanceLocal = BindingFlags.DeclaredOnly | BindingFlags.Instance | this.PublicVsNonPublicFlags;
             var declaredProperties = partTypeInfo.GetProperties(instanceLocal);
             var exportingProperties = from member in declaredProperties
+#if NETFRAMEWORK
+                                      // On .NET Framework, GetCustomAttributes allocates an empty result when no matching attributes exist.
+                                      // IsDefined avoids that allocation; on modern .NET the empty path is allocation-free and the extra lookup is slower.
+                                      where member.IsAttributeDefined<ExportAttribute>()
+#endif
                                       from export in member.GetAttributes<ExportAttribute>()
                                       where member.GetMethod != null // MEFv2 quietly omits exporting properties with no getter
                                       select new KeyValuePair<MemberInfo, ExportAttribute>(member, export);
@@ -108,11 +113,12 @@ namespace Microsoft.VisualStudio.Composition
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
+            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>(ByValueEquality.AssemblyName);
 
             foreach (var export in exportsByMember)
             {
                 var member = export.Key;
-                var memberExportMetadata = allExportsMetadata.AddRange(this.GetExportMetadata(member));
+                var memberExportMetadata = allExportsMetadata.AddRange(this.GetExportMetadata(member, assemblyNamesForMetadataAttributes));
 
                 if (member is TypeInfo)
                 {
@@ -160,7 +166,13 @@ namespace Microsoft.VisualStudio.Composition
 
                         var importConstraints = GetImportConstraints(member);
                         ImportDefinition? importDefinition;
-                        if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
+                        if (this.TryCreateImportDefinition(
+                            ReflectionHelpers.GetMemberType(member),
+                            member,
+                            importAttribute,
+                            importManyAttribute,
+                            importConstraints,
+                            out importDefinition))
                         {
                             var importDefinitionBinding = new ImportDefinitionBinding(
                                 importDefinition,
@@ -222,12 +234,6 @@ namespace Microsoft.VisualStudio.Composition
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
             }
 
-            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>(ByValueEquality.AssemblyName);
-            foreach (var export in exportsByMember)
-            {
-                GetAssemblyNamesFromMetadataAttributes<MetadataAttributeAttribute>(export.Key, assemblyNamesForMetadataAttributes);
-            }
-
             return new ComposablePartDefinition(
                 TypeRef.Get(partType, this.Resolver),
                 partMetadata.ToImmutable(),
@@ -266,15 +272,22 @@ namespace Microsoft.VisualStudio.Composition
             return this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes();
         }
 
-        private ImmutableDictionary<string, object?> GetExportMetadata(ICustomAttributeProvider member)
+        private ImmutableDictionary<string, object?> GetExportMetadata(ICustomAttributeProvider member, ImmutableHashSet<AssemblyName>.Builder assemblyNamesForMetadataAttributes)
         {
             Requires.NotNull(member, nameof(member));
+            Requires.NotNull(assemblyNamesForMetadataAttributes, nameof(assemblyNamesForMetadataAttributes));
 
             var result = ImmutableDictionary.CreateBuilder<string, object?>();
             var namesOfMetadataWithMultipleValues = new HashSet<string>(StringComparer.Ordinal);
             foreach (var attribute in member.GetAttributes<Attribute>())
             {
                 var attrType = attribute.GetType().GetTypeInfo();
+                bool isMetadataAttribute = attrType.IsAttributeDefined<MetadataAttributeAttribute>(inherit: true);
+                if (isMetadataAttribute)
+                {
+                    assemblyNamesForMetadataAttributes.Add(attrType.Assembly.GetName());
+                }
+
                 var exportMetadataAttribute = attribute as ExportMetadataAttribute;
                 if (exportMetadataAttribute != null)
                 {
@@ -283,7 +296,7 @@ namespace Microsoft.VisualStudio.Composition
                 else
                 {
                     // Perf optimization, relies on short circuit evaluation, often a property attribute is an ExportAttribute
-                    if (attrType != typeof(ExportAttribute).GetTypeInfo() && attrType.IsAttributeDefined<MetadataAttributeAttribute>(inherit: true))
+                    if (attrType != typeof(ExportAttribute).GetTypeInfo() && isMetadataAttribute)
                     {
                         var properties = attrType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
@@ -317,13 +330,16 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, [NotNullWhen(true)] out ImportDefinition? importDefinition)
+        private bool TryCreateImportDefinition(
+            Type importingType,
+            ICustomAttributeProvider member,
+            ImportAttribute? importAttribute,
+            ImportManyAttribute? importManyAttribute,
+            ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints,
+            [NotNullWhen(true)] out ImportDefinition? importDefinition)
         {
             Requires.NotNull(importingType, nameof(importingType));
             Requires.NotNull(member, nameof(member));
-
-            var importAttribute = member.GetFirstAttribute<ImportAttribute>();
-            var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
 
             // Importing constructors get implied attributes on their parameters.
             if (importAttribute == null && importManyAttribute == null && member is ParameterInfo)
@@ -392,7 +408,16 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
-            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out ImportDefinition? importDefinition));
+            var importAttribute = parameter.GetFirstAttribute<ImportAttribute>();
+            var importManyAttribute = parameter.GetFirstAttribute<ImportManyAttribute>();
+            Assumes.True(
+                this.TryCreateImportDefinition(
+                    parameter.ParameterType,
+                    parameter,
+                    importAttribute,
+                    importManyAttribute,
+                    importConstraints,
+                    out ImportDefinition? importDefinition));
             return new ImportDefinitionBinding(
                 importDefinition,
                 TypeRef.Get(parameter.Member.DeclaringType!, this.Resolver),

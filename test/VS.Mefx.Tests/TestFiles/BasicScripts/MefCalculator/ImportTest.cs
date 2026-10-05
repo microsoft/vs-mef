@@ -10,10 +10,10 @@ namespace MefCalculator
     public class ImportTest
     {
         [Import("MissingField")]
-        private string? FailingField { get; set; }
+        private string FailingField { get; set; } = null!;
 
         [ImportMany]
-        public IEnumerable<IOperation>? Operations { get; set; }
+        public IEnumerable<IOperation> Operations { get; set; } = null!;
 
         [Import]
         public int? IntInput { get; set; }

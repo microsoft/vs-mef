@@ -59,7 +59,10 @@ $runtimeVersions = @()
 $windowsDesktopRuntimeVersions = @()
 $aspnetRuntimeVersions = @()
 if (!$SdkOnly) {
-    Get-ChildItem "$PSScriptRoot\..\src\*.*proj", "$PSScriptRoot\..\test\*.*proj", "$PSScriptRoot\..\Directory.Build.props" -Recurse | % {
+    $projFiles = Get-ChildItem "$PSScriptRoot\..\src\*.*proj", "$PSScriptRoot\..\test\*.*proj" -Recurse
+    $projFiles += Get-ChildItem "$PSScriptRoot\..\src\Directory.Build.props", "$PSScriptRoot\..\test\Directory.Build.props" -Recurse
+    $projFiles += Get-Item -LiteralPath "$PSScriptRoot\..\Directory.Build.props"
+    $projFiles | % {
         $projXml = [xml](Get-Content -LiteralPath $_)
         $pg = $projXml.Project.PropertyGroup
         if ($pg) {
@@ -96,9 +99,9 @@ if (!$IncludeAspNetCore) {
     $aspnetRuntimeVersions = @()
 }
 
-Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
+Function Get-FileFromWeb([Uri]$Uri, $OutDir, [switch]$Force) {
     $OutFile = Join-Path $OutDir $Uri.Segments[-1]
-    if (!(Test-Path $OutFile)) {
+    if ($Force -or !(Test-Path $OutFile)) {
         Write-Verbose "Downloading $Uri..."
         if (!(Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out-Null }
         try {
@@ -131,38 +134,49 @@ Function Get-InstallerExe(
 
     $majorMinor = "$($TypedVersion.Major).$($TypedVersion.Minor)"
     $ReleasesFile = Join-Path $DotNetInstallScriptRoot "$majorMinor\releases.json"
-    if (!(Test-Path $ReleasesFile)) {
-        Get-FileFromWeb -Uri "https://builds.dotnet.microsoft.com/dotnet/release-metadata/$majorMinor/releases.json" -OutDir (Split-Path $ReleasesFile) | Out-Null
+    $ReleasesFileWasCached = Test-Path $ReleasesFile
+    $ReleasesUri = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/$majorMinor/releases.json"
+    if (!$ReleasesFileWasCached) {
+        Get-FileFromWeb -Uri $ReleasesUri -OutDir (Split-Path $ReleasesFile) | Out-Null
     }
 
-    $releases = Get-Content $ReleasesFile | ConvertFrom-Json
     $url = $null
-    foreach ($release in $releases.releases) {
-        $filesElement = $null
-        if ($release.$sku.version -eq $Version) {
-            $filesElement = $release.$sku.files
-        }
-        if (!$filesElement -and ($sku -eq 'sdk') -and $release.sdks) {
-            foreach ($sdk in $release.sdks) {
-                if ($sdk.version -eq $Version) {
-                    $filesElement = $sdk.files
-                    break
+    for ($attempt = 0; $attempt -lt 2; $attempt++) {
+        $releases = Get-Content $ReleasesFile | ConvertFrom-Json
+        foreach ($release in $releases.releases) {
+            $filesElement = $null
+            if ($release.$sku.version -eq $Version) {
+                $filesElement = $release.$sku.files
+            }
+            if (!$filesElement -and ($sku -eq 'sdk') -and $release.sdks) {
+                foreach ($sdk in $release.sdks) {
+                    if ($sdk.version -eq $Version) {
+                        $filesElement = $sdk.files
+                        break
+                    }
                 }
             }
-        }
 
-        if ($filesElement) {
-            foreach ($file in $filesElement) {
-                if ($file.rid -eq "win-$Architecture") {
-                    $url = $file.url
+            if ($filesElement) {
+                foreach ($file in $filesElement) {
+                    if ($file.rid -eq "win-$Architecture") {
+                        $url = $file.url
+                        Break
+                    }
+                }
+
+                if ($url) {
                     Break
                 }
             }
-
-            if ($url) {
-                Break
-            }
         }
+
+        if ($url -or !$ReleasesFileWasCached -or $attempt -gt 0) {
+            break
+        }
+
+        Write-Verbose "Release not found in cached metadata. Refreshing $ReleasesUri..."
+        Get-FileFromWeb -Uri $ReleasesUri -OutDir (Split-Path $ReleasesFile) -Force | Out-Null
     }
 
     if ($url) {
@@ -281,17 +295,22 @@ if ($IncludeX86) {
 }
 
 if ($IsMacOS -or $IsLinux) {
-    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/a3fbd0fd625032bac207f1f590e5353fe26faa59/src/dotnet-install.sh"
-    $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.sh"
+    $DotNetInstallScriptPath = "$PSScriptRoot/dotnet-install.sh"
 } else {
-    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/a3fbd0fd625032bac207f1f590e5353fe26faa59/src/dotnet-install.ps1"
-    $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.ps1"
+    $DotNetInstallScriptPath = "$PSScriptRoot/dotnet-install.ps1"
 }
 
+# Verify the cached script exists
 if (-not (Test-Path $DotNetInstallScriptPath)) {
-    Invoke-WebRequest -Uri $DownloadUri -OutFile $DotNetInstallScriptPath -UseBasicParsing
-    if ($IsMacOS -or $IsLinux) {
-        chmod +x $DotNetInstallScriptPath
+    Write-Error "Cached dotnet-install script not found at $DotNetInstallScriptPath. Run tools/Update-DotNetInstallScript.ps1 to download it."
+    exit 1
+}
+
+if ($IsMacOS -or $IsLinux) {
+    & chmod +x $DotNetInstallScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to mark $DotNetInstallScriptPath as executable."
+        exit $LASTEXITCODE
     }
 }
 

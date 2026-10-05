@@ -16,6 +16,6 @@ namespace ExtendedOperations
         }
 
         [Import]
-        public ChainOne? AddInput { get; set; }
+        public ChainOne AddInput { get; set; } = null!;
     }
 }

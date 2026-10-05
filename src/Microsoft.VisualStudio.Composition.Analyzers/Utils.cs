@@ -154,6 +154,19 @@ internal static class Utils
         return false;
     }
 
+    internal static bool HasInheritedExportAttribute(ISymbol symbol)
+    {
+        foreach (AttributeData attribute in symbol.GetAttributes())
+        {
+            if (IsInheritedExportAttribute(attribute.AttributeClass))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Determines whether the specified type has any instance-level MEF exports.
     /// </summary>
@@ -166,8 +179,8 @@ internal static class Utils
     /// </remarks>
     internal static bool HasInstanceExports(INamedTypeSymbol symbol)
     {
-        // Check the type itself for Export attributes
-        if (HasExportAttribute(symbol))
+        // Check the type itself for Export or InheritedExport attributes
+        if (HasExportAttribute(symbol) || HasInheritedExportAttribute(symbol))
         {
             return true;
         }
@@ -282,6 +295,18 @@ internal static class Utils
     internal static AttributeData? GetImportAttribute(ImmutableArray<AttributeData> attributes)
     {
         return attributes.FirstOrDefault(attr => IsImportAttribute(attr.AttributeClass));
+    }
+
+    internal static bool IsFieldImportAttribute(INamedTypeSymbol? attributeType)
+    {
+        if (attributeType is null)
+        {
+            return false;
+        }
+
+        // MEFv2 attributes don't support field imports, so only check MEFv1 Import and ImportMany attributes.
+        return IsAttributeOfType(attributeType, "ImportAttribute", MefV1AttributeNamespace.AsSpan()) ||
+               IsAttributeOfType(attributeType, "ImportManyAttribute", MefV1AttributeNamespace.AsSpan());
     }
 
     internal static bool IsImportAttribute(INamedTypeSymbol? attributeType)

@@ -93,6 +93,106 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Throws<MefV1.CompositionException>(() => part.PropertyImportingMember.Value);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
+        public void StaticFieldExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+
+            string value = container.GetExports<string>("StaticField").Single().Value;
+
+            Assert.Equal("StaticFieldValue", value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
+        public void StaticPropertyExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+
+            string value = container.GetExports<string>("StaticProperty").Single().Value;
+
+            Assert.Equal("StaticPropertyValue", value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports))]
+        public void StaticMethodExportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+
+            Func<string> value = container.GetExports<Func<string>>("StaticMethod").Single().Value;
+
+            Assert.Equal("StaticMethodValue", value());
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports), typeof(PartImportingStaticProperty))]
+        public void StaticMemberImportDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+
+            var importingPart = container.GetExportedValue<PartImportingStaticProperty>();
+
+            Assert.Equal("StaticPropertyValue", importingPart.Value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithStaticMemberExports), typeof(PartImportingStaticPropertyFactory))]
+        public void ExportFactoryOfStaticMemberDoesNotInstantiateClass(IContainer container)
+        {
+            ClassWithStaticMemberExports.ConstructorCalled = false;
+            var importingPart = container.GetExportedValue<PartImportingStaticPropertyFactory>();
+
+            using MefV1.ExportLifetimeContext<string> export = importingPart.Factory.CreateExport();
+
+            Assert.Equal("StaticPropertyValue", export.Value);
+            Assert.False(ClassWithStaticMemberExports.ConstructorCalled);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports), typeof(PartImportingStaticPropertyFactory), NoCompatGoal = true)]
+        public void ExportFactoryOfStaticMemberThrowsAfterContainerDisposal(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartImportingStaticPropertyFactory>();
+            container.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => importingPart.Factory.CreateExport());
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticDisposableMemberExports), NoCompatGoal = true)]
+        public void ExportFactoryOfStaticMemberDoesNotDisposeExportedValue(IContainer container)
+        {
+            ClassWithStaticDisposableMemberExports.ExportedValue.Disposed = false;
+            var v3Container = (TestUtilities.V3ContainerWrapper)container;
+            using var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            var importingPart = new PartImportingStaticDisposableMemberFactory();
+            MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, importingPart);
+
+            MefV1.ExportLifetimeContext<DisposableExportedValue> export = importingPart.Factory.CreateExport();
+            export.Dispose();
+
+            Assert.False(ClassWithStaticDisposableMemberExports.ExportedValue.Disposed);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ClassWithStaticMemberExports), typeof(PartImportingLazyStaticProperty), NoCompatGoal = true)]
+        public void LazyStaticMemberImportThrowsAfterContainerDisposal(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartImportingLazyStaticProperty>();
+            container.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => importingPart.Value.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ClassWithMixedExports))]
+        public void InstanceMemberExportInstantiatesClass(IContainer container)
+        {
+            ClassWithMixedExports.ConstructorCalled = false;
+
+            string value = container.GetExports<string>("InstanceProperty").Single().Value;
+
+            Assert.Equal("InstanceValue", value);
+            Assert.True(ClassWithMixedExports.ConstructorCalled);
+        }
+
         public class PartWithStaticExports
         {
             [MefV1.Export("Property")]
@@ -193,6 +293,83 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [MefV1.ImportMany("Property")]
             public List<Lazy<string, IDictionary<string, object>>> ImportingMember { get; set; } = null!;
+        }
+
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ClassWithStaticMemberExports
+        {
+            public static bool ConstructorCalled { get; set; }
+
+            public ClassWithStaticMemberExports()
+            {
+                ConstructorCalled = true;
+            }
+
+            [MefV1.Export("StaticField")]
+            public static string StaticField = "StaticFieldValue";
+
+            [MefV1.Export("StaticProperty")]
+            public static string StaticProperty => "StaticPropertyValue";
+
+            [MefV1.Export("StaticMethod")]
+            public static string StaticMethod() => "StaticMethodValue";
+        }
+
+        [MefV1.Export]
+        public class PartImportingStaticProperty
+        {
+            [MefV1.Import("StaticProperty")]
+            public string Value { get; set; } = null!;
+        }
+
+        [MefV1.Export]
+        public class PartImportingStaticPropertyFactory
+        {
+            [MefV1.Import("StaticProperty")]
+            public MefV1.ExportFactory<string> Factory { get; set; } = null!;
+        }
+
+        [MefV1.Export]
+        public class PartImportingLazyStaticProperty
+        {
+            [MefV1.Import("StaticProperty")]
+            public Lazy<string> Value { get; set; } = null!;
+        }
+
+        public class PartImportingStaticDisposableMemberFactory
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<DisposableExportedValue> Factory { get; set; } = null!;
+        }
+
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ClassWithStaticDisposableMemberExports
+        {
+            [MefV1.Export]
+            public static DisposableExportedValue ExportedValue { get; } = new DisposableExportedValue();
+        }
+
+        public class DisposableExportedValue : IDisposable
+        {
+            public bool Disposed { get; set; }
+
+            public void Dispose()
+            {
+                this.Disposed = true;
+            }
+        }
+
+        public class ClassWithMixedExports
+        {
+            public static bool ConstructorCalled { get; set; }
+
+            public ClassWithMixedExports()
+            {
+                ConstructorCalled = true;
+            }
+
+            [MefV1.Export("InstanceProperty")]
+            public string InstanceProperty => "InstanceValue";
         }
     }
 }

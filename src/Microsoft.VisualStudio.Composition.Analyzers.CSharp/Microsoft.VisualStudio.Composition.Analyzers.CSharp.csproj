@@ -5,6 +5,7 @@
     <IsAnalyzerProject>true</IsAnalyzerProject>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
+    <NoWarn>$(NoWarn);RS2008</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />

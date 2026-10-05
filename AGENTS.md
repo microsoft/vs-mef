@@ -20,6 +20,15 @@
 - Tests use xunit v3 with Microsoft.Testing.Platform (MTP v2). Traditional VSTest `--filter` syntax does NOT work.
 - Some tests are known to be unstable. When running tests, you should skip the unstable ones by using `-- --filter-not-trait "FailsInCloudTest=true"`.
 
+## Analyzer documentation
+
+- When adding or renumbering an analyzer or diagnostic suppressor, update the analyzer package catalog in `src/Microsoft.VisualStudio.Composition.Analyzers/README.md`.
+- Add or update the DocFX analyzer docs in `docfx/analyzers/`:
+  - add a per-ID page such as `docfx/analyzers/VSMEF018.md`
+  - update `docfx/analyzers/index.md`
+  - update `docfx/analyzers/toc.yml`
+- Before assigning a new `VSMEF###` identifier, check the existing analyzer and suppressor docs so the new ID does not collide with an existing one.
+
 ### Running Tests
 
 **Run all tests**:

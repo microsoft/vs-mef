@@ -393,6 +393,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";VSMEF013_Justification" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fields with [Import]5D; or [ImportMany]5D; attributes are assigned at runtime via reflection and cannot be made readonly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pola z atrybutami [Import]5D; lub [ImportMany]5D; są przypisywane w czasie wykonywania za pomocą odbicia i nie można ich wprowadzać tylko do odczytu.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";VSMEF014_Justification" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Importing members on exported MEF parts are initialized after construction unless AllowDefault = true is specified.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Importowanie elementów członkowskich w wyeksportowanych częściach MEF jest inicjowane po konstrukcji, chyba że określono wartość AllowDefault = true.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">

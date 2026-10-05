@@ -1,0 +1,91 @@
+{
+  "properties": {
+    "helpUri": "https://eng.ms/docs/microsoft-security/security/azure-security/cloudai-security-fundamentals-engineering/security-integration/guardian-wiki/microsoft-guardian/general/baselines"
+  },
+  "version": "1.0.0",
+  "baselines": {
+    "default": {
+      "name": "default",
+      "createdDate": "2026-05-14 03:44:43Z",
+      "lastUpdatedDate": "2026-05-14 03:44:43Z"
+    }
+  },
+  "results": {
+    "8fef8ab76d8212e3ad8e0ab040d042bbd6e7a935c4fe5a9790aee4350fb8ea8b": {
+      "signature": "8fef8ab76d8212e3ad8e0ab040d042bbd6e7a935c4fe5a9790aee4350fb8ea8b",
+      "alternativeSignatures": [
+        "d1f9250d92f82cf4a68beb2a205353f36b25ec519eb34fff45f23b992452891d",
+        "7e2f32e903bfdc8d8bd2fddc34772fc0b6a04e6a82d7fdb5ee8b58608835ba29",
+        "2e113bf0714e5bfa327a57c1d42118bb057f4051ccbe25b7d37b01c57d4f2a3a"
+      ],
+      "target": "src/Microsoft.VisualStudio.Composition.VSMefx/GraphCreator.cs",
+      "line": 45,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1305",
+      "createdDate": "2026-05-14 03:44:43Z",
+      "expirationDate": "2026-10-31 04:28:09Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-05-14 04:28:09Z"
+    },
+    "705e091bbcaf4fd83b2adb91ae8d0087556c957f866d6cf7d15daef663b8fcb7": {
+      "signature": "705e091bbcaf4fd83b2adb91ae8d0087556c957f866d6cf7d15daef663b8fcb7",
+      "alternativeSignatures": [
+        "5bcb6548c5ca9db0c31b7ec2ec5b0ef1eed59d2d577d4f0dc40dc1dfc1f08aeb",
+        "ac9b527c350b475d314a3f248762c86ec3cec1232102f50b8b125ddba9269949",
+        "de7ab8a6f42c975acf72370c6cf453d822ec6b1c303f6c9a7ba13bed37584ae7"
+      ],
+      "target": "src/Microsoft.VisualStudio.Composition.VSMefx/GraphCreator.cs",
+      "line": 145,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1305",
+      "createdDate": "2026-05-14 03:44:43Z",
+      "expirationDate": "2026-10-31 04:28:09Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-05-14 04:28:09Z"
+    },
+    "dd5d0aa8081110531b56d90aa34519bd17fb0727741bf9ec34b03db81aefd064": {
+      "signature": "dd5d0aa8081110531b56d90aa34519bd17fb0727741bf9ec34b03db81aefd064",
+      "alternativeSignatures": [
+        "c11e6b3edb06e5d2c19d1b0e449b57fd76acda9db45193c9c8f07c356e8d1b52",
+        "bd8d0a62057a32b211558f154b274ee15543ab690fccd2e6b726e06cdd59ccf0",
+        "e81bb88e271aea8a37238c6019ea29f9b959cc4313ebfc2f3cb7e25e90732923"
+      ],
+      "target": "src/Microsoft.VisualStudio.Composition.VSMefx/Commands/MatchChecker.cs",
+      "line": 347,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-05-14 03:44:43Z",
+      "expirationDate": "2026-10-31 04:28:09Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-05-14 04:28:09Z"
+    },
+    "4c2eea625af869f7ded9c57397c304418d35ce926fffe258ac12453984523c47": {
+      "signature": "4c2eea625af869f7ded9c57397c304418d35ce926fffe258ac12453984523c47",
+      "alternativeSignatures": [
+        "3690f9e9bf149073215685a7cb75ee3f9d37bb5410e3c61aa37fa8478b552af2",
+        "9bf25f1d1689bcd78bd5410b100fd812260f4145048a9e3adbbec462d803cb2b",
+        "9e626dfd5cef06274670dd1e82023f70cd74d98ee68cbfadb5670533f234edcc"
+      ],
+      "target": "src/Microsoft.VisualStudio.Composition.VSMefx/Commands/MatchChecker.cs",
+      "line": 379,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "roslynanalyzers",
+      "ruleId": "CA1310",
+      "createdDate": "2026-05-14 03:44:43Z",
+      "expirationDate": "2026-10-31 04:28:09Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-05-14 04:28:09Z"
+    }
+  }
+}

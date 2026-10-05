@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition;
@@ -740,6 +741,71 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             public ChildSiblingExport Export { get; set; } = null!;
+        }
+
+        #endregion
+
+        #region Reentrant shared part publication
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ReentrantSharedPart))]
+        public async Task ReentrantSharedPartIsNotPublishedBeforeOnImportsSatisfiedCompletes(IContainer container)
+        {
+            ExportProvider exportProvider = container.GetExportedValue<ExportProvider>();
+            var control = new ReentrantSharedPartControl();
+            Assert.True(ReentrantSharedPart.Controls.TryAdd(exportProvider, control));
+
+            Task<ReentrantSharedPart> firstRequest = Task.Run(() => exportProvider.GetExportedValue<ReentrantSharedPart>());
+            Task<ReentrantSharedPart>? concurrentRequest = null;
+            try
+            {
+                Assert.True(control.ReentrantQueryCompleted.Wait(TestUtilities.UnexpectedTimeout));
+                concurrentRequest = Task.Run(() =>
+                {
+                    control.ConcurrentRequestStarted.Set();
+                    return exportProvider.GetExportedValue<ReentrantSharedPart>();
+                });
+
+                Assert.True(control.ConcurrentRequestStarted.Wait(TestUtilities.UnexpectedTimeout));
+                await Task.Delay(TestUtilities.ExpectedTimeout);
+                Assert.False(concurrentRequest.IsCompleted);
+            }
+            finally
+            {
+                control.AllowOnImportsSatisfiedToComplete.Set();
+                ReentrantSharedPart.Controls.TryRemove(exportProvider, out _);
+            }
+
+            ReentrantSharedPart firstResult = await firstRequest;
+            ReentrantSharedPart concurrentResult = await concurrentRequest;
+            Assert.Same(firstResult, concurrentResult);
+        }
+
+        [Export, Shared]
+        public class ReentrantSharedPart
+        {
+            internal static readonly ConcurrentDictionary<ExportProvider, ReentrantSharedPartControl> Controls = new ConcurrentDictionary<ExportProvider, ReentrantSharedPartControl>();
+
+            [Import]
+            public ExportProvider ExportProvider { get; set; } = null!;
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                ReentrantSharedPartControl control = Controls[this.ExportProvider];
+                ReentrantSharedPart self = this.ExportProvider.GetExportedValue<ReentrantSharedPart>();
+                Assert.Same(this, self);
+                control.ReentrantQueryCompleted.Set();
+                Assert.True(control.AllowOnImportsSatisfiedToComplete.Wait(TestUtilities.UnexpectedTimeout));
+            }
+        }
+
+        internal sealed class ReentrantSharedPartControl
+        {
+            internal ManualResetEventSlim ReentrantQueryCompleted { get; } = new ManualResetEventSlim();
+
+            internal ManualResetEventSlim ConcurrentRequestStarted { get; } = new ManualResetEventSlim();
+
+            internal ManualResetEventSlim AllowOnImportsSatisfiedToComplete { get; } = new ManualResetEventSlim();
         }
 
         #endregion

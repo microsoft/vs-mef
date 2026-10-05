@@ -42,6 +42,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(2, unfilteredResults.Count());
         }
 
+        [Fact]
+        public void DelegatingExportProviderRejectsNullInnerProvider()
+        {
+            Assert.Throws<ArgumentNullException>(() => new FilteringExportProvider(null!));
+        }
+
         public class ExportingPart
         {
             [Export]

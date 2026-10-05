@@ -125,6 +125,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(part.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportUsingDerivedExportAttributeOnProperty), typeof(PartThatImportsDerivedExportAttributeOnProperty))]
+        public void DerivedExportAttributeOnProperty(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsDerivedExportAttributeOnProperty>();
+
+            Assert.Equal("ExportedValue", part.ImportingProperty.Value);
+            Assert.Equal("SomePropertyValue", part.ImportingProperty.Metadata["SomeProperty"]);
+        }
+
         [MefFact(CompositionEngines.V2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata), NoCompatGoal = true)]
         public void BasePropertiesAreIgnoredInMefV2(IContainer container)
         {
@@ -281,11 +290,25 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1DerivedFromExportAttribute("SomePropertyValue")]
         public class ExportUsingDerivedExportAttribute { }
 
+        public class ExportUsingDerivedExportAttributeOnProperty
+        {
+            [DerivedFromExportAttribute("SomePropertyValue")]
+            [MefV1DerivedFromExportAttribute("SomePropertyValue")]
+            public string ExportingProperty => "ExportedValue";
+        }
+
         [Export, MefV1.Export]
         public class PartThatImportsSingleDerivedExportAttributes
         {
             [Import, MefV1.Import]
             public Lazy<ExportUsingDerivedExportAttribute, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
+        }
+
+        [Export, MefV1.Export]
+        public class PartThatImportsDerivedExportAttributeOnProperty
+        {
+            [Import, MefV1.Import]
+            public Lazy<string, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
         }
 
         [FirstAttributeWithIdenticalProperties("SomeValue")]

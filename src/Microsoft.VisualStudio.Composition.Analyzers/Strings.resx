@@ -274,4 +274,12 @@
     <value>MEFv2 attribute "{0}" is not allowed. Use the MEFv1 equivalent from System.ComponentModel.Composition.</value>
     <comment>{Locked="MEFv1","MEFv2","System.ComponentModel.Composition"}</comment>
   </data>
+  <data name="VSMEF013_Justification" xml:space="preserve">
+    <value>Fields with [Import] or [ImportMany] attributes are assigned at runtime via reflection and cannot be made readonly.</value>
+    <comment>{Locked="[Import]"} {Locked="[ImportMany]"} The attribute names in brackets should not be localized.</comment>
+  </data>
+  <data name="VSMEF014_Justification" xml:space="preserve">
+    <value>Importing members on exported MEF parts are initialized after construction unless AllowDefault = true is specified.</value>
+    <comment>{Locked="AllowDefault"} {Locked="true"} The property name and value should not be localized.</comment>
+  </data>
 </root>

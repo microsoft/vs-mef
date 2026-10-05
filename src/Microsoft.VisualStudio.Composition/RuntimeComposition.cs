@@ -6,14 +6,13 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Microsoft.VisualStudio.Threading;
+    using IAsyncDisposable = System.IAsyncDisposable;
 
     public class RuntimeComposition : IEquatable<RuntimeComposition>
     {
@@ -52,15 +51,7 @@ namespace Microsoft.VisualStudio.Composition
             this.Resolver = resolver;
 
             this.partsByType = this.parts.ToDictionary(p => p.TypeRef, this.parts.Count);
-
-            var exports =
-                from part in this.parts
-                from export in part.Exports
-                group export by export.ContractName into exportsByContract
-                select exportsByContract;
-            this.exportsByContractName = exports.ToDictionary(
-                e => e.Key,
-                e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
+            this.exportsByContractName = CreateExportsByContractName(this.parts);
         }
 
         public IReadOnlyCollection<RuntimePart> Parts
@@ -74,6 +65,33 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         internal Resolver Resolver { get; }
+
+        private static IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> CreateExportsByContractName(ImmutableHashSet<RuntimePart> parts)
+        {
+            var exportsByContractName = new Dictionary<string, List<RuntimeExport>>(StringComparer.Ordinal);
+            foreach (RuntimePart part in parts)
+            {
+                for (int i = 0; i < part.Exports.Count; i++)
+                {
+                    RuntimeExport export = part.Exports[i];
+                    if (!exportsByContractName.TryGetValue(export.ContractName, out List<RuntimeExport>? exports))
+                    {
+                        exports = new List<RuntimeExport>(capacity: 1);
+                        exportsByContractName.Add(export.ContractName, exports);
+                    }
+
+                    exports.Add(export);
+                }
+            }
+
+            var immutableExportsByContractName = new Dictionary<string, IReadOnlyCollection<RuntimeExport>>(exportsByContractName.Count, StringComparer.Ordinal);
+            foreach (KeyValuePair<string, List<RuntimeExport>> entry in exportsByContractName)
+            {
+                immutableExportsByContractName.Add(entry.Key, entry.Value.ToImmutableArray());
+            }
+
+            return immutableExportsByContractName;
+        }
 
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
@@ -94,10 +112,40 @@ namespace Microsoft.VisualStudio.Composition
             return new RuntimeComposition(parts, metadataViewsAndProviders, resolver);
         }
 
+        /// <inheritdoc cref="CreateExportProviderFactory(JoinableTaskFactory?)"/>
         public IExportProviderFactory CreateExportProviderFactory()
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory: null);
+
+        /// <summary>
+        /// Creates an export provider factory with optional runtime behavior enabled.
+        /// </summary>
+        /// <param name="options">Options that control export provider behavior.</param>
+        /// <returns>The export provider factory.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options)
+            => this.CreateExportProviderFactory(options, joinableTaskFactory: null);
+
+        /// <summary>
+        /// Creates an <see cref="IExportProviderFactory"/> for this runtime composition.
+        /// </summary>
+        /// <param name="options">Options that control export provider behavior.</param>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
+        /// <returns>A factory that creates export providers for this runtime composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(ExportProviderFactoryOptions options, JoinableTaskFactory? joinableTaskFactory)
         {
-            return new RuntimeExportProviderFactory(this);
+            Requires.Argument(
+                (options & ~ExportProviderFactoryOptions.EnableActivationExpressionCompilation) == 0,
+                nameof(options),
+                "Unsupported export provider factory options.");
+            return new RuntimeExportProviderFactory(this, options, joinableTaskFactory);
         }
+
+        /// <summary>
+        /// Creates an <see cref="IExportProviderFactory"/> for this runtime composition.
+        /// </summary>
+        /// <param name="joinableTaskFactory">The joinable task factory to use when synchronously disposing parts that implement <see cref="IAsyncDisposable"/>. May be <see langword="null"/>.</param>
+        /// <returns>A factory that creates export providers for this runtime composition.</returns>
+        public IExportProviderFactory CreateExportProviderFactory(JoinableTaskFactory? joinableTaskFactory)
+            => this.CreateExportProviderFactory(ExportProviderFactoryOptions.None, joinableTaskFactory);
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {

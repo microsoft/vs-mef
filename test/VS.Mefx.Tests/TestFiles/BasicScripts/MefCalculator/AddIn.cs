@@ -9,6 +9,6 @@ namespace MefCalculator
     public class AddIn
     {
         [Import("ChainOne")]
-        public string? FieldOne { get; set; }
+        public string FieldOne { get; set; } = null!;
     }
 }

@@ -1,6 +1,6 @@
-# Analyzers
+# Analyzers and suppressors
 
-The following analyzers are included in the
+The following analyzers and suppressors are included in the
 `Microsoft.VisualStudio.Composition.Analyzers` package
 to help you avoid common mistakes while authoring MEF parts.
 
@@ -18,3 +18,9 @@ ID | Title
 [VSMEF010](VSMEF010.md) | ImportMany with unsupported collection type in constructor
 [VSMEF011](VSMEF011.md) | Both Import and ImportMany applied to same member
 [VSMEF012](VSMEF012.md) | Disallow MEF attribute version
+[VSMEF013](VSMEF013.md) | Suppress IDE0044 for MEF imported fields
+[VSMEF014](VSMEF014.md) | Suppress CS8618 for MEF importing members on exported parts
+[VSMEF015](VSMEF015.md) | Metadata view interface should be source-generated
+[VSMEF016](VSMEF016.md) | Referenced metadata view interface should be source-generated
+[VSMEF017](VSMEF017.md) | Invalid [MetadataView] usage
+[VSMEF018](VSMEF018.md) | Suppress CS0649 for MEF imported fields on exported parts

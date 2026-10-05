@@ -6,13 +6,10 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class ComposableCatalog : IEquatable<ComposableCatalog>
@@ -239,11 +236,57 @@ namespace Microsoft.VisualStudio.Composition
                     select export.CloseGenericExport(genericTypeArguments));
             }
 
-            var filteredExports = from export in exports
-                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
-                                  select export;
+            IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints = importDefinition.ExportConstraints;
+            if (constraints.Count == 0)
+            {
+                // No constraints: every matching export qualifies.
+                return exports;
+            }
 
-            return ImmutableList.CreateRange(filteredExports);
+            int exportIndex = 0;
+            foreach (ExportDefinitionBinding export in exports)
+            {
+                if (!IsExportSatisfiedByAllConstraints(constraints, export.ExportDefinition))
+                {
+                    // Remove the non-qualifying export.
+                    // We're enumerating an ImmutableList<T> and mutating it is a copy-on-write operation,
+                    // so it's safe to create a new collection with the export removed and continue enumerating the old collection.
+                    // In doing so, we do NOT increment exportIndex, since exportIndex will point at the next one implicitly after removal.
+                    exports = exports.RemoveAt(exportIndex);
+                }
+                else
+                {
+                    exportIndex++;
+                }
+            }
+
+            return exports;
+        }
+
+        private static bool IsExportSatisfiedByAllConstraints(IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints, ExportDefinition exportDefinition)
+        {
+            if (constraints is ImmutableList<IImportSatisfiabilityConstraint> list)
+            {
+                foreach (IImportSatisfiabilityConstraint constraint in list)
+                {
+                    if (!constraint.IsSatisfiedBy(exportDefinition))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            foreach (IImportSatisfiabilityConstraint constraint in constraints)
+            {
+                if (!constraint.IsSatisfiedBy(exportDefinition))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, [NotNullWhen(true)] out string? contractName, [NotNullWhen(true)] out Type[]? typeArguments)

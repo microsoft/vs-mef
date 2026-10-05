@@ -6,4 +6,5 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
+  <Import Project="$(RepoRootPath)src\AnalyzerUser.targets" />
 </Project>

@@ -35,6 +35,7 @@
     <Project Path="test/Microsoft.VisualStudio.Composition.AppDomainTests2/Microsoft.VisualStudio.Composition.AppDomainTests2.csproj" />
     <Project Path="test/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj" />
     <Project Path="test/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2/Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj" />
+    <Project Path="test/Microsoft.VisualStudio.Composition.Benchmarks/Microsoft.VisualStudio.Composition.Benchmarks.csproj" />
     <Project Path="test/Microsoft.VisualStudio.Composition.BrokenAssemblyTests/Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj" />
     <Project Path="test/Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver/Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj" />
     <Project Path="test/Microsoft.VisualStudio.Composition.MissingAssemblyTests/Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj" />

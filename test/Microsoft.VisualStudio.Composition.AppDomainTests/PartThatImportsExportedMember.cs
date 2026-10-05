@@ -15,4 +15,20 @@ namespace Microsoft.VisualStudio.Composition.AppDomainTests
         [Import]
         public MemberTypeToExport ImportingProperty { get; set; } = null!;
     }
+
+    /// <summary>
+    /// A part with an importing constructor used to verify lazy assembly loading while reporting composition errors.
+    /// </summary>
+    [Export]
+    public class PartThatImportsExportedMemberThroughConstructor
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PartThatImportsExportedMemberThroughConstructor"/> class.
+        /// </summary>
+        /// <param name="import">The imported value.</param>
+        [ImportingConstructor]
+        public PartThatImportsExportedMemberThroughConstructor(MemberTypeToExport import)
+        {
+        }
+    }
 }

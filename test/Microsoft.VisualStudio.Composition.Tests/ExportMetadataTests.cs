@@ -8,13 +8,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.ComponentModel;
     using System.Composition;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.Reflection;
+    using Microsoft.VisualStudio.Composition;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Metadata", "")]
-    public class ExportMetadataTests
+    public partial class ExportMetadataTests
     {
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void ImportWithMetadataDictionary(IContainer container)
@@ -254,15 +254,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class ImportingPartOfObjectWithMetadataInterface
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [MefV1.Import("ExportWithMetadata")]
             public Lazy<object, IMetadata> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefV1.Export]
         public class ImportManyPartOfObjectWithMetadataInterface
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [MefV1.ImportMany("ExportWithMetadata")]
             public IEnumerable<Lazy<object, IMetadata>> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefV1.Export("ExportWithMetadata", typeof(object))]
@@ -298,6 +302,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Contains(typeof(string), metadataValue);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ExportWithMultipleMetadata), typeof(ImportOfMultipleMetadata))]
+        public void UnattributedMetadataInterface_UsesRuntimeGeneratedImplementation(IContainer container)
+        {
+            Assert.Null(typeof(IMetadataViewForMultipleValues).GetTypeInfo().GetCustomAttribute<MefV1.MetadataViewImplementationAttribute>());
+
+            var part = container.GetExportedValue<ImportOfMultipleMetadata>();
+            Assert.False(typeof(MetadataView).GetTypeInfo().IsAssignableFrom(part.ImportingProperty.Metadata.GetType().GetTypeInfo()));
+        }
+
         public interface IMetadataViewForMultipleValues
         {
             IEnumerable<Type> Name { get; }
@@ -311,8 +324,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class ImportOfMultipleMetadata
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [MefV1.Import]
             public Lazy<ExportWithMultipleMetadata, IMetadataViewForMultipleValues> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         #endregion
@@ -361,10 +376,35 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export, MefV1.ExportMetadata("Names", null, IsMultiple = true), MefV1.ExportMetadata("Names", null, IsMultiple = true)]
         public class PartWithMultipleNullMetadata { }
 
-        public interface INamedMetadata
+        [MetadataView]
+        public partial interface INamedMetadata
         {
             [DefaultValue(null)]
             IEnumerable<string> Names { get; }
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(PartImportingExportsWithMultipleNullMetadata), typeof(PartWithMultipleNullMetadata))]
+        public void PartialMetadataInterface_UsesSourceGeneratedImplementation(IContainer container)
+        {
+            Type? implementationType = GetDirectMetadataViewImplementationType(typeof(INamedMetadata));
+            Assert.NotNull(implementationType);
+
+            var part = container.GetExportedValue<PartImportingExportsWithMultipleNullMetadata>();
+            Assert.True(typeof(MetadataView).GetTypeInfo().IsAssignableFrom(implementationType!.GetTypeInfo()));
+            Assert.IsType(implementationType, part.ImportingPropertyWithInterface.Metadata);
+            Assert.Null(part.ImportingPropertyWithInterface.Metadata.Names);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(NestedPartialMetadataViewContainer.ImportingPart), typeof(NestedPartialMetadataViewContainer.ExportingPart))]
+        public void NestedPartialMetadataInterface_UsesSourceGeneratedInterfaceImplementation(IContainer container)
+        {
+            Type? implementationType = GetDirectMetadataViewImplementationType(typeof(NestedPartialMetadataViewContainer.INestedPartialMetadata));
+            Assert.NotNull(implementationType);
+
+            var importingPart = container.GetExportedValue<NestedPartialMetadataViewContainer.ImportingPart>();
+            Assert.True(typeof(MetadataView).GetTypeInfo().IsAssignableFrom(implementationType.GetTypeInfo()));
+            Assert.IsType(implementationType, importingPart.ImportingProperty.Metadata);
+            Assert.Equal("b", importingPart.ImportingProperty.Metadata.Name);
         }
 
         [Export]
@@ -406,9 +446,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class PartImportingExportsWithSingleNullMetadata
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [Import]
             [MefV1.Import]
             public Lazy<PartWithSingleNullMetadata, ISingleNameMetadata> ImportingPropertyWithInterface { get; set; } = null!;
+#pragma warning restore VSMEF015
 
             [Import]
             [MefV1.Import]
@@ -551,6 +593,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         #endregion
 
+        private static Type? GetDirectMetadataViewImplementationType(Type metadataViewType)
+        {
+            MefV1.MetadataViewImplementationAttribute? attribute = metadataViewType.GetTypeInfo().GetCustomAttribute<MefV1.MetadataViewImplementationAttribute>();
+            Assert.NotNull(attribute);
+            return attribute!.ImplementationType;
+        }
+
         #region Extreme values tests
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartImportingExtremeValues), typeof(PartWithExtremeValues))]
@@ -644,8 +693,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export]
         public class ImportingPartWithMetadataInterface
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [Import, MefV1.Import]
             public Lazy<PartWithExportMetadata, IMetadata> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -676,16 +727,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export]
         public class ImportManyPartWithMetadataInterface
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [ImportMany, MefV1.ImportMany]
             public IEnumerable<Lazy<PartWithExportMetadata, IMetadata>> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [Export]
         public class ImportManyPartWithInternalMetadataInterface
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [ImportMany, MefV1.ImportMany]
             internal IEnumerable<Lazy<PartWithExportMetadata, IMetadataInternal>> ImportingProperty { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -946,5 +1001,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         #endregion
+    }
+
+    public partial class NestedPartialMetadataViewContainer
+    {
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [MefV1.ExportMetadata("Name", "b")]
+        [Export]
+        [ExportMetadata("Name", "b")]
+        public class ExportingPart { }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
+        public class ImportingPart
+        {
+            [Import, MefV1.Import]
+            public Lazy<ExportingPart, INestedPartialMetadata> ImportingProperty { get; set; } = null!;
+        }
+
+        [MetadataView]
+        public partial interface INestedPartialMetadata
+        {
+            string Name { get; }
+        }
     }
 }

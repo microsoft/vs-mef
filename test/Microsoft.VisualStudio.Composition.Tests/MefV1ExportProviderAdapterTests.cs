@@ -360,8 +360,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private class SatisfyImportsOnceWithExportFactoryTMetadataReceiver
         {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
             [MefV1.Import]
             public MefV1.ExportFactory<Tree, IMetadata> TreeFactory { get; set; } = null!;
+#pragma warning restore VSMEF015
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]

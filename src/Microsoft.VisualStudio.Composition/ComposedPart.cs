@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -49,6 +48,11 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
+        /// <summary>
+        /// Gets the concrete map of this part's imports and their satisfying exports for allocation-sensitive internal use.
+        /// </summary>
+        internal ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExportsByImport => this.satisfyingExports;
+
         internal Resolver Resolver => this.Definition.TypeRef.Resolver;
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
@@ -71,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition
             if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
                 !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
             {
-                yield return new ComposedPartDiagnostic(this, Strings.ExportOfExportProviderNotAllowed, this.Definition.Type.FullName);
+                yield return new ComposedPartDiagnostic(this, Strings.ExportOfExportProviderNotAllowed, this.Definition.TypeRef.FullName);
             }
 
             var importsWithGenericTypeParameters = this.Definition.Imports
@@ -148,7 +152,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameterRef != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameterRef.Resolve().ParameterType))
+                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameterRef != null && !IsAllowedImportManyParameterType(pair.Key.ImportingSiteTypeRef))
                 {
                     yield return new ComposedPartDiagnostic(this, Strings.ImportingCtorHasUnsupportedParameterTypeForImportMany);
                 }
@@ -237,13 +241,13 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(import, nameof(import));
 
-            var memberName = import.ImportingParameter is object ? ("ctor(" + import.ImportingParameter.Name + ")") :
+            var memberName = import.ImportingParameterRef is object ? $"ctor(parameter #{import.ImportingParameterRef.ParameterIndex + 1})" :
                              import.ImportingMemberRef is object ? import.ImportingMemberRef.Name :
                              "(unknown)";
             return string.Format(
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
-                import.ComposablePartType.FullName,
+                import.ComposablePartTypeRef.FullName,
                 memberName);
         }
 
@@ -256,13 +260,13 @@ namespace Microsoft.VisualStudio.Composition
                 return string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.TypeNameWithAssemblyLocation,
-                    export.PartDefinition.Type.FullName,
+                    export.PartDefinition.TypeRef.FullName,
                     export.ExportingMemberRef.Name,
-                    export.PartDefinition.Type.GetTypeInfo().Assembly.FullName);
+                    export.PartDefinition.TypeRef.AssemblyName.FullName);
             }
             else
             {
-                return export.PartDefinition.Type.FullName;
+                return export.PartDefinition.TypeRef.FullName;
             }
         }
 
@@ -275,7 +279,7 @@ namespace Microsoft.VisualStudio.Composition
                 : string.Empty;
         }
 
-        private static bool IsAllowedImportManyParameterType(Type importSiteType)
+        private static bool IsAllowedImportManyParameterType(TypeRef importSiteType)
         {
             Requires.NotNull(importSiteType, nameof(importSiteType));
             if (importSiteType.IsArray)
@@ -283,7 +287,7 @@ namespace Microsoft.VisualStudio.Composition
                 return true;
             }
 
-            if (importSiteType.GetTypeInfo().IsGenericType && importSiteType.GetTypeInfo().GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>)))
+            if (importSiteType.IsGenericType && importSiteType.FullName == typeof(IEnumerable<>).FullName)
             {
                 return true;
             }
