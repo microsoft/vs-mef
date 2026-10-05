@@ -122,6 +122,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 // Such a type is rejected below, when the generic parameter argument is turned into a TypeRef.
                 Type[] genericTypeArguments = arrayElementType.GenericTypeArguments ?? Type.EmptyTypes;
                 bool allGenericTypeArgumentsAreGenericParameters = genericTypeArguments.Length > 0 && genericTypeArguments.All(t => t.IsGenericParameter);
+                if (allGenericTypeArgumentsAreGenericParameters)
+                {
+                    // Describe the generic type definition consistently: with its arity, and resolving to it
+                    // just as this instance would after being serialized and deserialized.
+                    Type genericTypeDefinition = arrayElementType.GetGenericTypeDefinition();
+                    this.GenericTypeParameterCount = genericTypeDefinition.GetTypeInfo().GenericTypeParameters.Length;
+                    this.resolvedType = type.IsArray ? genericTypeDefinition.MakeArrayType() : genericTypeDefinition;
+                }
+
                 this.GenericTypeArguments = genericTypeArguments.Length > 0
                     ? genericTypeArguments.Where(t => !((shallow || allGenericTypeArgumentsAreGenericParameters) && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
                     : ImmutableArray<TypeRef>.Empty;

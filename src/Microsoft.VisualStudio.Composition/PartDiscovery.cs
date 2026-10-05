@@ -207,7 +207,10 @@ namespace Microsoft.VisualStudio.Composition
                 typeRef = typeRef.ElementTypeRef;
             }
 
-            if (typeRef.IsAnyLazyType() || typeRef.IsExportFactoryTypeV1() || typeRef.IsExportFactoryTypeV2())
+            // A wrapper around a generic type parameter (e.g. Lazy<T> on an open generic part) is represented by
+            // the wrapper's generic type definition, without type arguments. There is no type argument to unwrap
+            // then, so return the wrapper, which is reported as an import that uses generic type parameters.
+            if ((typeRef.IsAnyLazyType() || typeRef.IsExportFactoryTypeV1() || typeRef.IsExportFactoryTypeV2()) && !typeRef.IsGenericTypeDefinition)
             {
                 return typeRef.GenericTypeArguments[0];
             }

@@ -88,11 +88,35 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         [Fact]
         public void Get_FullyOpenConstructedGenericType()
         {
-            Type[] genericParameters = typeof(GenericTypeWithTwoParameters<,>).GetGenericArguments();
+            // Use the generic parameters of another type, since closing a generic type definition over its own
+            // generic parameters just yields the generic type definition again.
+            Type[] genericParameters = typeof(Dictionary<,>).GetGenericArguments();
             Type fullyOpen = typeof(GenericTypeWithTwoParameters<,>).MakeGenericType(genericParameters[0], genericParameters[1]);
+            Assert.False(fullyOpen.IsGenericTypeDefinition);
 
             TypeRef typeRef = TypeRef.Get(fullyOpen, TestUtilities.Resolver);
             Assert.Empty(typeRef.GenericTypeArguments);
+            Assert.Equal(2, typeRef.GenericTypeParameterCount);
+            Assert.True(typeRef.IsGenericType);
+            Assert.True(typeRef.IsGenericTypeDefinition);
+            Assert.Same(typeof(GenericTypeWithTwoParameters<,>), typeRef.Resolve());
+            Assert.Equal(TypeRef.Get(typeof(GenericTypeWithTwoParameters<,>), TestUtilities.Resolver), typeRef);
+        }
+
+        /// <summary>
+        /// Verifies that an array of a constructed generic type whose type arguments are all generic parameters
+        /// is represented as an array of the generic type definition.
+        /// </summary>
+        [Fact]
+        public void Get_ArrayOfFullyOpenConstructedGenericType()
+        {
+            Type[] genericParameters = typeof(Dictionary<,>).GetGenericArguments();
+            Type fullyOpenArray = typeof(GenericTypeWithTwoParameters<,>).MakeGenericType(genericParameters[0], genericParameters[1]).MakeArrayType();
+
+            TypeRef typeRef = TypeRef.Get(fullyOpenArray, TestUtilities.Resolver);
+            Assert.True(typeRef.IsArray);
+            Assert.Equal(2, typeRef.GenericTypeParameterCount);
+            Assert.Same(typeof(GenericTypeWithTwoParameters<,>).MakeArrayType(), typeRef.Resolve());
         }
 
         /// <summary>
