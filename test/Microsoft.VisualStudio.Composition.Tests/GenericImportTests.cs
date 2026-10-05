@@ -378,6 +378,95 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         /// <summary>
+        /// Verifies that a parameterized generic import wrapped in <see cref="Lazy{T, TMetadata}"/> whose metadata view
+        /// interface refers to the part's type parameter (<c>Lazy&lt;IFoo&lt;TOptions&gt;, IMetadata&lt;TOptions&gt;&gt;</c>)
+        /// resolves, since the metadata view must be closed along with the import.
+        /// </summary>
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V3EmulatingV1, typeof(ParameterizedGenericImport_OptionsFactory13<>), typeof(ParameterizedGenericImport_OptionsManager_LazyWithGenericMetadataView<>), typeof(ParameterizedGenericImport_App_LazyWithGenericMetadataView))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_LazyWithGenericMetadataView(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_LazyWithGenericMetadataView>();
+            Assert.NotNull(app.Manager);
+            Assert.Equal("Factory13", app.Manager.Factory.Metadata.Name);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory13<ParameterizedGenericImport_MyOptions>>(app.Manager.Factory.Value);
+            var factory = Assert.Single(app.Manager.Factories);
+            Assert.Equal("Factory13", factory.Metadata.Name);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory13<ParameterizedGenericImport_MyOptions>>(factory.Value);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory13<T> { }
+
+        public interface IParameterizedGenericImport_OptionsFactory13Metadata<T>
+        {
+            string Name { get; }
+        }
+
+        [MefV1.Export(typeof(IParameterizedGenericImport_OptionsFactory13<>)), MefV1.ExportMetadata("Name", "Factory13")]
+        public class ParameterizedGenericImport_OptionsFactory13<T> : IParameterizedGenericImport_OptionsFactory13<T> { }
+
+        [MefV1.Export]
+        public class ParameterizedGenericImport_OptionsManager_LazyWithGenericMetadataView<TOptions>
+        {
+#pragma warning disable VSMEF015 // Exercise the runtime-generated metadata view path in this test.
+            [MefV1.Import]
+            public Lazy<IParameterizedGenericImport_OptionsFactory13<TOptions>, IParameterizedGenericImport_OptionsFactory13Metadata<TOptions>> Factory { get; set; } = null!;
+
+            [MefV1.ImportMany]
+            public IEnumerable<Lazy<IParameterizedGenericImport_OptionsFactory13<TOptions>, IParameterizedGenericImport_OptionsFactory13Metadata<TOptions>>> Factories { get; set; } = null!;
+#pragma warning restore VSMEF015
+        }
+
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_LazyWithGenericMetadataView
+        {
+            [MefV1.Import]
+            public ParameterizedGenericImport_OptionsManager_LazyWithGenericMetadataView<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import wrapped in <see cref="Lazy{T, TMetadata}"/> whose metadata view
+        /// class refers to the part's type parameter (<c>Lazy&lt;IFoo&lt;TOptions&gt;, Metadata&lt;TOptions&gt;&gt;</c>) resolves.
+        /// </summary>
+        [MefFact(CompositionEngines.V2 | CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_OptionsFactory14<>), typeof(ParameterizedGenericImport_OptionsManager_LazyWithGenericMetadataClass<>), typeof(ParameterizedGenericImport_App_LazyWithGenericMetadataClass))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_LazyWithGenericMetadataClass(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_LazyWithGenericMetadataClass>();
+            Assert.NotNull(app.Manager);
+            Assert.Equal("Factory14", app.Manager.Factory.Metadata.Name);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory14<ParameterizedGenericImport_MyOptions>>(app.Manager.Factory.Value);
+            var factory = Assert.Single(app.Manager.Factories);
+            Assert.Equal("Factory14", factory.Metadata.Name);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory14<ParameterizedGenericImport_MyOptions>>(factory.Value);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory14<T> { }
+
+        public class ParameterizedGenericImport_OptionsFactory14Metadata<T>
+        {
+            public string Name { get; set; } = null!;
+        }
+
+        [Export(typeof(IParameterizedGenericImport_OptionsFactory14<>)), ExportMetadata("Name", "Factory14"), Shared]
+        public class ParameterizedGenericImport_OptionsFactory14<T> : IParameterizedGenericImport_OptionsFactory14<T> { }
+
+        [Export, Shared]
+        public class ParameterizedGenericImport_OptionsManager_LazyWithGenericMetadataClass<TOptions>
+        {
+            [Import]
+            public Lazy<IParameterizedGenericImport_OptionsFactory14<TOptions>, ParameterizedGenericImport_OptionsFactory14Metadata<TOptions>> Factory { get; set; } = null!;
+
+            [ImportMany]
+            public IEnumerable<Lazy<IParameterizedGenericImport_OptionsFactory14<TOptions>, ParameterizedGenericImport_OptionsFactory14Metadata<TOptions>>> Factories { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        public class ParameterizedGenericImport_App_LazyWithGenericMetadataClass
+        {
+            [Import]
+            public ParameterizedGenericImport_OptionsManager_LazyWithGenericMetadataClass<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
         /// Verifies that a parameterized generic import wrapped in <see cref="ExportFactory{T, TMetadata}"/>
         /// resolves, since the effective closed wrapper type must preserve the metadata type argument.
         /// </summary>

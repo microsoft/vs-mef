@@ -915,6 +915,7 @@ namespace Microsoft.VisualStudio.Composition
                 Type effectiveImportSiteWithoutCollection = import.ImportingSiteTypeWithoutCollection;
                 Type effectiveImportSiteType = import.ImportingSiteType;
                 Func<AssemblyName, Func<object?>, object, object>? lazyFactory = import.LazyFactory;
+                Type? effectiveMetadataType = import.MetadataType;
 
                 if (TryGetClosedImportingSiteType(import, importingPartTracker, out Type? closedImportingSiteType))
                 {
@@ -931,10 +932,10 @@ namespace Microsoft.VisualStudio.Composition
 
                     if (import.IsLazy)
                     {
+                        // The metadata view may refer to the part's type parameters too (e.g. Lazy<IFoo<TOptions>, IMetadata<TOptions>>).
                         Type[] lazyTypeArguments = effectiveImportSiteWithoutCollection.GenericTypeArguments;
-                        lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(
-                            effectiveElementType,
-                            lazyTypeArguments.Length > 1 ? lazyTypeArguments[1] : null);
+                        effectiveMetadataType = lazyTypeArguments.Length > 1 ? lazyTypeArguments[1] : null;
+                        lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(effectiveElementType, effectiveMetadataType);
                     }
                 }
 
@@ -950,7 +951,7 @@ namespace Microsoft.VisualStudio.Composition
                             foreach (var export in exports)
                             {
                                 intArray.Value[0] = i++;
-                                var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveElementType, effectiveImportSiteWithoutCollection);
+                                var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveMetadataType, effectiveElementType, effectiveImportSiteWithoutCollection);
                                 this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue, effectiveImportSiteWithoutCollection);
                                 array.SetValue(exportedValue, intArray.Value);
                             }
@@ -1010,7 +1011,7 @@ namespace Microsoft.VisualStudio.Composition
 
                         foreach (var export in exports)
                         {
-                            var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveElementType, effectiveImportSiteWithoutCollection);
+                            var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveMetadataType, effectiveElementType, effectiveImportSiteWithoutCollection);
                             this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue, effectiveImportSiteWithoutCollection);
                             collectionAccessor.Add(exportedValue);
                         }
@@ -1026,13 +1027,13 @@ namespace Microsoft.VisualStudio.Composition
                         return new ValueForImportSite(null);
                     }
 
-                    var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveElementType, effectiveImportSiteWithoutCollection);
+                    var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveMetadataType, effectiveElementType, effectiveImportSiteWithoutCollection);
                     this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue, effectiveImportSiteWithoutCollection);
                     return new ValueForImportSite(exportedValue);
                 }
             }
 
-            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<AssemblyName, Func<object?>, object, object>? lazyFactory, Type effectiveImportSiteElementType, Type effectiveImportSiteTypeWithoutCollection)
+            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<AssemblyName, Func<object?>, object, object>? lazyFactory, Type? metadataType, Type effectiveImportSiteElementType, Type effectiveImportSiteTypeWithoutCollection)
             {
                 if (import.IsExportFactory)
                 {
@@ -1050,13 +1051,13 @@ namespace Microsoft.VisualStudio.Composition
                         // This is importing itself.
                         object? part = importingPartTracker.Value;
                         object? value = import.IsLazy
-                            ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, () => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                            ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, () => part, this.GetStrongTypedMetadata(export.Metadata, metadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                         return value;
                     }
 
                     object? importedValue = import.IsLazy
-                        ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                        ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, metadataType ?? LazyServices.DefaultMetadataViewType))
                         : this.GetExportedValue(import, export, importingPartTracker, out _);
                     return importedValue;
                 }
