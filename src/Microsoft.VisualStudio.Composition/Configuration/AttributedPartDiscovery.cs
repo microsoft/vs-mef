@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.Composition
                     .Union(this.GetMetadataViewConstraints(importingType, importMany: false))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
-                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
+                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetImportContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
                     GetImportMetadataForGenericTypeImport(contractType),
                     importConstraints,
@@ -392,7 +392,7 @@ namespace Microsoft.VisualStudio.Composition
                     .Union(this.GetMetadataViewConstraints(importingType, importMany: true))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
-                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
+                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetImportContractName(contractType) : importManyAttribute.ContractName,
                     ImportCardinality.ZeroOrMore,
                     GetImportMetadataForGenericTypeImport(contractType),
                     importConstraints,

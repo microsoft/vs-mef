@@ -579,5 +579,131 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Import]
             public PartiallyOpenGenericImport_Manager<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
         }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import of a type parameter other than the part's first one
+        /// (<c>IFoo&lt;TOptions&gt;</c> on <c>Manager&lt;TOther, TOptions&gt;</c>) matches the open generic export,
+        /// whose contract name refers to the export's own type parameter positions.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_OptionsFactory11<>), typeof(ParameterizedGenericImport_OptionsManager_SecondTypeParameter<,>), typeof(ParameterizedGenericImport_App_SecondTypeParameter))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_SecondTypeParameter(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_SecondTypeParameter>();
+            Assert.NotNull(app.Manager);
+            Assert.IsType<ParameterizedGenericImport_OptionsFactory11<ParameterizedGenericImport_MyOptions>>(app.Manager.Factory);
+        }
+
+        public interface IParameterizedGenericImport_OptionsFactory11<T> { }
+
+        [Export(typeof(IParameterizedGenericImport_OptionsFactory11<>)), Shared]
+        [MefV1.Export(typeof(IParameterizedGenericImport_OptionsFactory11<>))]
+        public class ParameterizedGenericImport_OptionsFactory11<T> : IParameterizedGenericImport_OptionsFactory11<T> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_OptionsManager_SecondTypeParameter<TOther, TOptions>
+        {
+            [Import]
+            [MefV1.Import]
+            public IParameterizedGenericImport_OptionsFactory11<TOptions> Factory { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_SecondTypeParameter
+        {
+            [Import]
+            [MefV1.Import]
+            public ParameterizedGenericImport_OptionsManager_SecondTypeParameter<string, ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import whose type arguments are the part's type parameters in a
+        /// different order (<c>IPair&lt;TB, TA&gt;</c> on <c>Manager&lt;TA, TB&gt;</c>) is closed with the type arguments
+        /// in the import's order.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ParameterizedGenericImport_Pair<,>), typeof(ParameterizedGenericImport_PairManager_Reordered<,>), typeof(ParameterizedGenericImport_App_Reordered))]
+        public void GenericPartImportsParameterizedGenericMatchingOpenGenericExport_ReorderedTypeParameters(IContainer container)
+        {
+            var app = container.GetExportedValue<ParameterizedGenericImport_App_Reordered>();
+            Assert.NotNull(app.Manager);
+            Assert.IsType<ParameterizedGenericImport_Pair<int, string>>(app.Manager.Pair);
+        }
+
+        public interface IParameterizedGenericImport_Pair<T1, T2> { }
+
+        [Export(typeof(IParameterizedGenericImport_Pair<,>)), Shared]
+        [MefV1.Export(typeof(IParameterizedGenericImport_Pair<,>))]
+        public class ParameterizedGenericImport_Pair<T1, T2> : IParameterizedGenericImport_Pair<T1, T2> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_PairManager_Reordered<TA, TB>
+        {
+            [Import]
+            [MefV1.Import]
+            public IParameterizedGenericImport_Pair<TB, TA> Pair { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_Reordered
+        {
+            [Import]
+            [MefV1.Import]
+            public ParameterizedGenericImport_PairManager_Reordered<string, int> Manager { get; set; } = null!;
+        }
+
+        /// <summary>
+        /// Verifies that a parameterized generic import keeps its type-identity constraint, so that an export which
+        /// merely uses the open generic contract name, but exports an unrelated type, does not satisfy it.
+        /// </summary>
+        /// <param name="attributesDiscovery">The discovery engine to test.</param>
+        [Theory]
+        [InlineData(CompositionEngines.V1)]
+        [InlineData(CompositionEngines.V2)]
+        public async Task ParameterizedGenericImportRejectsExportOfUnrelatedTypeWithMatchingContractName(CompositionEngines attributesDiscovery)
+        {
+            PartDiscovery discovery = attributesDiscovery == CompositionEngines.V1 ? TestUtilities.V1Discovery : TestUtilities.V2Discovery;
+            DiscoveredParts parts = await discovery.CreatePartsAsync(
+                typeof(ParameterizedGenericImport_UnrelatedExportWithFactoryContractName),
+                typeof(ParameterizedGenericImport_OptionsManager_UnrelatedExport<>),
+                typeof(ParameterizedGenericImport_App_UnrelatedExport));
+            Assert.Empty(parts.DiscoveryErrors);
+
+            ComposablePartDefinition managerPart = parts.Parts.Single(p => p.Type == typeof(ParameterizedGenericImport_OptionsManager_UnrelatedExport<>));
+            ImportDefinition import = Assert.Single(managerPart.Imports).ImportDefinition;
+            Assert.Equal(UnrelatedExportContractName, import.ContractName);
+            Assert.Contains(import.ExportConstraints, c => c is ExportTypeIdentityConstraint);
+
+            CompositionConfiguration configuration = CompositionConfiguration.Create(TestUtilities.EmptyCatalog.AddParts(parts));
+            Assert.NotEmpty(configuration.CompositionErrors);
+        }
+
+        private const string UnrelatedExportContractName = "Microsoft.VisualStudio.Composition.Tests.GenericImportTests+IParameterizedGenericImport_OptionsFactory12({0})";
+
+        public interface IParameterizedGenericImport_OptionsFactory12<T> { }
+
+        [Export(UnrelatedExportContractName), Shared]
+        [MefV1.Export(UnrelatedExportContractName)]
+        public class ParameterizedGenericImport_UnrelatedExportWithFactoryContractName { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_OptionsManager_UnrelatedExport<TOptions>
+        {
+            [Import]
+            [MefV1.Import]
+            public IParameterizedGenericImport_OptionsFactory12<TOptions> Factory { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class ParameterizedGenericImport_App_UnrelatedExport
+        {
+            [Import]
+            [MefV1.Import]
+            public ParameterizedGenericImport_OptionsManager_UnrelatedExport<ParameterizedGenericImport_MyOptions> Manager { get; set; } = null!;
+        }
     }
 }

@@ -339,15 +339,31 @@ namespace Microsoft.VisualStudio.Composition
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
 
-            // Add a static type-identity constraint except for `object` (which matches anything) and a
-            // parameterized generic import (e.g. IOptionsFactory<TOptions>), whose open generic export
-            // carries a format-string identity such a constraint would not match.
-            if (!contractType.IsEquivalentTo(typeof(object)) && !IsParameterizedGenericImportContract(contractType))
+            // Add a static type-identity constraint except for `object` (which matches anything).
+            // A parameterized generic import (e.g. IOptionsFactory<TOptions>) is satisfied by an open generic
+            // export, so it is constrained to the identity of the generic type definition (IOptionsFactory<>).
+            Type identityType = GetImportContractIdentityType(contractType);
+            if (!identityType.IsEquivalentTo(typeof(object)))
             {
-                constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
+                constraints = constraints.Add(new ExportTypeIdentityConstraint(identityType));
             }
 
             return constraints;
+        }
+
+        /// <summary>
+        /// Gets the contract name of an import whose contract type is <paramref name="contractType"/>.
+        /// </summary>
+        /// <param name="contractType">The contract type of the import.</param>
+        /// <returns>
+        /// The contract name of <paramref name="contractType"/>, or of its generic type definition for a parameterized
+        /// generic import (e.g. <c>IOptionsFactory&lt;TOptions&gt;</c>), so that the contract name matches the open generic
+        /// export regardless of the positions of the part's type parameters in the import.
+        /// </returns>
+        protected internal static string GetImportContractName(Type contractType)
+        {
+            Requires.NotNull(contractType, nameof(contractType));
+            return GetContractName(GetImportContractIdentityType(contractType));
         }
 
         protected internal static ImmutableDictionary<string, object?> GetImportMetadataForGenericTypeImport(Type contractType)
@@ -388,6 +404,15 @@ namespace Microsoft.VisualStudio.Composition
         {
             return contractType.IsConstructedGenericType
                 && contractType.GetGenericArguments().All(arg => arg.IsGenericParameter);
+        }
+
+        /// <summary>
+        /// Gets the type whose contract name and type identity an import of <paramref name="contractType"/> uses:
+        /// the generic type definition for a parameterized generic import, otherwise <paramref name="contractType"/> itself.
+        /// </summary>
+        private static Type GetImportContractIdentityType(Type contractType)
+        {
+            return IsParameterizedGenericImportContract(contractType) ? contractType.GetGenericTypeDefinition() : contractType;
         }
 
         /// <summary>
