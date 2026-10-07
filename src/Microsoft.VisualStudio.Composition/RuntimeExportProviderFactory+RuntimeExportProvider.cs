@@ -883,14 +883,14 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object? exportedValue)
+            private void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object? exportedValue, Type effectiveImportSiteWithoutCollection)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
 
                 if (exportedValue != null)
                 {
-                    if (!import.ImportingSiteTypeWithoutCollection.GetTypeInfo().IsAssignableFrom(exportedValue.GetType()))
+                    if (!effectiveImportSiteWithoutCollection.GetTypeInfo().IsAssignableFrom(exportedValue.GetType()))
                     {
                         throw new CompositionFailedException(
                             string.Format(
@@ -906,21 +906,53 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Requires.NotNull(import, nameof(import));
 
+                // For parameterized generic imports (those with GenericParameterIndexesMetadataName),
+                // the import site TypeRefs resolve to open generic forms (e.g. IOptionsFactory<>).
+                // Compute effective closed types from the declaring part's concrete type arguments
+                // so that Lazy wrapping, ExportFactory construction, and ImportMany collection creation
+                // use the correct concrete types (e.g. IOptionsFactory<MyOptions>).
+                Type effectiveElementType = import.ImportingSiteElementType;
+                Type effectiveImportSiteWithoutCollection = import.ImportingSiteTypeWithoutCollection;
+                Type effectiveImportSiteType = import.ImportingSiteType;
                 Func<AssemblyName, Func<object?>, object, object>? lazyFactory = import.LazyFactory;
+                Type? effectiveMetadataType = import.MetadataType;
+
+                if (TryGetClosedImportingSiteType(import, importingPartTracker, out Type? closedImportingSiteType))
+                {
+                    // Derive the collection element and contract types from the closed import site, rather than
+                    // rebuilding the import site around the contract type, so that every other type argument of a
+                    // collection or wrapper type is carried over: a custom collection may have more type arguments
+                    // than its element type (e.g. CustomCollection<Lazy<IFoo<TOptions>>, string>) or be parameterized
+                    // by something other than its element type (e.g. OptionsCollection<TOptions> : ICollection<IFoo<TOptions>>),
+                    // and a Lazy may carry a metadata type argument (e.g. Lazy<IFoo<TOptions>, TMetadata>).
+                    bool importMany = import.Cardinality == ImportCardinality.ZeroOrMore;
+                    effectiveImportSiteType = closedImportingSiteType;
+                    effectiveImportSiteWithoutCollection = importMany ? PartDiscovery.GetElementTypeFromMany(closedImportingSiteType) : closedImportingSiteType;
+                    effectiveElementType = PartDiscovery.GetTypeIdentityFromImportingType(closedImportingSiteType, importMany);
+
+                    if (import.IsLazy)
+                    {
+                        // The metadata view may refer to the part's type parameters too (e.g. Lazy<IFoo<TOptions>, IMetadata<TOptions>>).
+                        Type[] lazyTypeArguments = effectiveImportSiteWithoutCollection.GenericTypeArguments;
+                        effectiveMetadataType = lazyTypeArguments.Length > 1 ? lazyTypeArguments[1] : null;
+                        lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(effectiveElementType, effectiveMetadataType);
+                    }
+                }
+
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
-                    if (import.ImportingSiteType.IsArray || (import.ImportingSiteType.GetTypeInfo().IsGenericType && import.ImportingSiteType.GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>))))
+                    if (effectiveImportSiteType.IsArray || (effectiveImportSiteType.GetTypeInfo().IsGenericType && effectiveImportSiteType.GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>))))
                     {
-                        Array array = Array.CreateInstance(import.ImportingSiteTypeWithoutCollection, exports.Count);
+                        Array array = Array.CreateInstance(effectiveImportSiteWithoutCollection, exports.Count);
                         using (var intArray = ArrayRental<int>.Get(1))
                         {
                             int i = 0;
                             foreach (var export in exports)
                             {
                                 intArray.Value[0] = i++;
-                                var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                                this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
+                                var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveMetadataType, effectiveElementType, effectiveImportSiteWithoutCollection);
+                                this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue, effectiveImportSiteWithoutCollection);
                                 array.SetValue(exportedValue, intArray.Value);
                             }
                         }
@@ -940,19 +972,19 @@ namespace Microsoft.VisualStudio.Composition
                         bool preexistingInstance = collectionObject != null;
                         if (!preexistingInstance)
                         {
-                            if (PartDiscovery.IsImportManyCollectionTypeCreateable(import.ImportingSiteType, import.ImportingSiteTypeWithoutCollection))
+                            if (PartDiscovery.IsImportManyCollectionTypeCreateable(effectiveImportSiteType, effectiveImportSiteWithoutCollection))
                             {
                                 using (var typeArgs = ArrayRental<Type>.Get(1))
                                 {
-                                    typeArgs.Value[0] = import.ImportingSiteTypeWithoutCollection;
+                                    typeArgs.Value[0] = effectiveImportSiteWithoutCollection;
                                     Type listType = typeof(List<>).MakeGenericType(typeArgs.Value);
-                                    if (import.ImportingSiteType.GetTypeInfo().IsAssignableFrom(listType.GetTypeInfo()))
+                                    if (effectiveImportSiteType.GetTypeInfo().IsAssignableFrom(listType.GetTypeInfo()))
                                     {
                                         collectionObject = Activator.CreateInstance(listType)!;
                                     }
                                     else
                                     {
-                                        collectionObject = Activator.CreateInstance(import.ImportingSiteType)!;
+                                        collectionObject = Activator.CreateInstance(effectiveImportSiteType)!;
                                     }
                                 }
 
@@ -966,12 +998,12 @@ namespace Microsoft.VisualStudio.Composition
                                     string.Format(
                                         CultureInfo.CurrentCulture,
                                         Strings.UnableToInstantiateCustomImportCollectionType,
-                                        import.ImportingSiteType.FullName,
+                                        effectiveImportSiteType.FullName,
                                         $"{import.DeclaringTypeRef.FullName}.{import.ImportingMemberRef?.Name}"));
                             }
                         }
 
-                        var collectionAccessor = CollectionServices.GetCollectionWrapper(import.ImportingSiteTypeWithoutCollection, collectionObject!);
+                        var collectionAccessor = CollectionServices.GetCollectionWrapper(effectiveImportSiteWithoutCollection, collectionObject!);
                         if (preexistingInstance)
                         {
                             collectionAccessor.Clear();
@@ -979,8 +1011,8 @@ namespace Microsoft.VisualStudio.Composition
 
                         foreach (var export in exports)
                         {
-                            var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                            this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
+                            var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveMetadataType, effectiveElementType, effectiveImportSiteWithoutCollection);
+                            this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue, effectiveImportSiteWithoutCollection);
                             collectionAccessor.Add(exportedValue);
                         }
 
@@ -995,17 +1027,17 @@ namespace Microsoft.VisualStudio.Composition
                         return new ValueForImportSite(null);
                     }
 
-                    var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                    this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
+                    var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory, effectiveMetadataType, effectiveElementType, effectiveImportSiteWithoutCollection);
+                    this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue, effectiveImportSiteWithoutCollection);
                     return new ValueForImportSite(exportedValue);
                 }
             }
 
-            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<AssemblyName, Func<object?>, object, object>? lazyFactory)
+            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<AssemblyName, Func<object?>, object, object>? lazyFactory, Type? metadataType, Type effectiveImportSiteElementType, Type effectiveImportSiteTypeWithoutCollection)
             {
                 if (import.IsExportFactory)
                 {
-                    return this.CreateExportFactory(importingPartTracker, import, export);
+                    return this.CreateExportFactory(importingPartTracker, import, export, effectiveImportSiteElementType, effectiveImportSiteTypeWithoutCollection);
                 }
                 else
                 {
@@ -1019,25 +1051,24 @@ namespace Microsoft.VisualStudio.Composition
                         // This is importing itself.
                         object? part = importingPartTracker.Value;
                         object? value = import.IsLazy
-                            ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, () => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                            ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, () => part, this.GetStrongTypedMetadata(export.Metadata, metadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                         return value;
                     }
 
                     object? importedValue = import.IsLazy
-                        ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                        ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, metadataType ?? LazyServices.DefaultMetadataViewType))
                         : this.GetExportedValue(import, export, importingPartTracker, out _);
                     return importedValue;
                 }
             }
 
-            private object CreateExportFactory(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
+            private object CreateExportFactory(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Type importingSiteElementType, Type exportFactoryType)
             {
                 Requires.NotNull(importingPartTracker, nameof(importingPartTracker));
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
 
-                Type importingSiteElementType = import.ImportingSiteElementType;
                 ImmutableHashSet<string> sharingBoundaries = import.ExportFactorySharingBoundaries.ToImmutableHashSet();
                 bool newSharingScope = sharingBoundaries.Count > 0;
                 RuntimeComposition.RuntimePart exportedPart = this.composition.GetPart(export);
@@ -1055,7 +1086,7 @@ namespace Microsoft.VisualStudio.Composition
                     var disposableValue = newSharingScope ? scope : partLifecycle as IDisposable;
                     return new KeyValuePair<object?, IDisposable?>(constructedValue, disposableValue);
                 };
-                Type? exportFactoryType = import.ImportingSiteTypeWithoutCollection!;
+
                 var exportMetadata = export.Metadata;
 
                 return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
@@ -1091,9 +1122,10 @@ namespace Microsoft.VisualStudio.Composition
                                   ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
                 }
 
-                var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
+                var effectiveImportMetadata = GetEffectiveImportMetadata(import.Metadata, importingPartTracker);
+                var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, effectiveImportMetadata);
 
-                partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
+                partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker, effectiveImportMetadata);
 
                 return lazy ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback) :
                               ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
@@ -1133,6 +1165,11 @@ namespace Microsoft.VisualStudio.Composition
 
             private PartLifecycleTracker GetOrCreateValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
             {
+                return this.GetOrCreateValue(import, exportingRuntimePart, originalPartTypeRef, constructedPartTypeRef, importingPartTracker, import.Metadata);
+            }
+
+            private PartLifecycleTracker GetOrCreateValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker, IReadOnlyDictionary<string, object?> importMetadataOverride)
+            {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
                 Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
@@ -1146,9 +1183,72 @@ namespace Microsoft.VisualStudio.Composition
                     originalPartTypeRef,
                     constructedPartTypeRef,
                     exportingRuntimePart.SharingBoundary,
-                    import.Metadata,
+                    importMetadataOverride,
                     nonSharedInstanceRequired,
                     nonSharedPartOwner);
+            }
+
+            /// <summary>
+            /// For parameterized generic imports (those with <see cref="CompositionConstants.GenericParameterIndexesMetadataName"/>),
+            /// gets the type of the import site as declared on the open generic part (e.g. <c>List&lt;Lazy&lt;IFoo&lt;TOptions&gt;&gt;&gt;</c>),
+            /// closed over the importing part's concrete type arguments (e.g. <c>List&lt;Lazy&lt;IFoo&lt;MyOptions&gt;&gt;&gt;</c>).
+            /// </summary>
+            /// <param name="import">The import.</param>
+            /// <param name="importingPartTracker">The tracker of the closed generic part that declares the import.</param>
+            /// <param name="closedImportingSiteType">Receives the closed type of the import site.</param>
+            /// <returns><see langword="true"/> if <paramref name="import"/> is a parameterized generic import of a closed generic part; otherwise <see langword="false"/>.</returns>
+            private static bool TryGetClosedImportingSiteType(
+                RuntimeComposition.RuntimeImport import,
+                RuntimePartLifecycleTracker importingPartTracker,
+                [NotNullWhen(true)] out Type? closedImportingSiteType)
+            {
+                closedImportingSiteType = null;
+                if (!import.Metadata.ContainsKey(CompositionConstants.GenericParameterIndexesMetadataName)
+                    || !importingPartTracker.ImportMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out var partTypeArgsObj)
+                    || partTypeArgsObj is not Type[] partTypeArgs)
+                {
+                    return false;
+                }
+
+                Type? declaredImportingSiteType = import.ImportingMember is MemberInfo importingMember
+                    ? ReflectionHelpers.GetMemberType(importingMember)
+                    : import.ImportingParameter?.ParameterType;
+                if (declaredImportingSiteType is null)
+                {
+                    return false;
+                }
+
+                closedImportingSiteType = ReflectionHelpers.SubstituteGenericTypeParameters(declaredImportingSiteType, partTypeArgs);
+                return true;
+            }
+
+            /// <summary>
+            /// For parameterized generic imports (those with <see cref="CompositionConstants.GenericParameterIndexesMetadataName"/>),
+            /// computes effective import metadata by substituting the declaring part's concrete type arguments.
+            /// Returns the original metadata unchanged for all other imports.
+            /// </summary>
+            private static IReadOnlyDictionary<string, object?> GetEffectiveImportMetadata(
+                IReadOnlyDictionary<string, object?> importMetadata,
+                RuntimePartLifecycleTracker? importingPartTracker)
+            {
+                if (importingPartTracker is null)
+                {
+                    return importMetadata;
+                }
+
+                if (!importMetadata.TryGetValue(CompositionConstants.GenericParameterIndexesMetadataName, out var indexesObj) || indexesObj is not int[] indexes)
+                {
+                    return importMetadata;
+                }
+
+                if (!importingPartTracker.ImportMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out var outerTypeArgsObj) || outerTypeArgsObj is not Type[] outerTypeArgs)
+                {
+                    return importMetadata;
+                }
+
+                Type[] closedTypeArgs = indexes.Select(i => outerTypeArgs[i]).ToArray();
+                return ImmutableDictionary.CreateRange(importMetadata)
+                    .SetItem(CompositionConstants.GenericParametersMetadataName, closedTypeArgs);
             }
 
             private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker? partLifecycle, ReportFaultCallback? faultCallback)
@@ -1281,6 +1381,14 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(member, nameof(member));
+
+                if (member.DeclaringType is { } declaringType && declaringType.GetTypeInfo().ContainsGenericParameters)
+                {
+                    // The member is declared on an open generic part, so it cannot be read directly.
+                    // Look it up on the closed generic type that the part was instantiated as.
+                    member = ReflectionHelpers.CloseGenericType(declaringType, part.GetType()).GetTypeInfo()
+                        .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
+                }
 
                 try
                 {
@@ -1584,7 +1692,7 @@ namespace Microsoft.VisualStudio.Composition
             internal class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
                 private readonly RuntimeComposition.RuntimePart partDefinition;
-                private readonly IReadOnlyDictionary<string, object?> importMetadata;
+                internal readonly IReadOnlyDictionary<string, object?> ImportMetadata;
 
                 public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object?> importMetadata)
                     : base(owningExportProvider, partDefinition.SharingBoundary)
@@ -1593,7 +1701,7 @@ namespace Microsoft.VisualStudio.Composition
                     Requires.NotNull(importMetadata, nameof(importMetadata));
 
                     this.partDefinition = partDefinition;
-                    this.importMetadata = importMetadata;
+                    this.ImportMetadata = importMetadata;
                 }
 
                 public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker nonSharedPartOwner)
@@ -1603,7 +1711,7 @@ namespace Microsoft.VisualStudio.Composition
                     Requires.NotNull(importMetadata, nameof(importMetadata));
 
                     this.partDefinition = partDefinition;
-                    this.importMetadata = importMetadata;
+                    this.ImportMetadata = importMetadata;
                 }
 
                 protected new RuntimeExportProvider OwningExportProvider
@@ -1645,7 +1753,7 @@ namespace Microsoft.VisualStudio.Composition
                         return null;
                     }
 
-                    var constructedPartTypeRef = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
+                    var constructedPartTypeRef = GetPartConstructedTypeRef(this.partDefinition, this.ImportMetadata);
                     IReadOnlyList<RuntimeComposition.RuntimeImport> constructorImports = this.partDefinition.ImportingConstructorArguments;
                     object?[] ctorArgs = constructorImports.Count == 0 ? EmptyObjectArray : new object?[constructorImports.Count];
                     for (int i = 0; i < constructorImports.Count; i++)

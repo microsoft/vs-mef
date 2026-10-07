@@ -207,7 +207,10 @@ namespace Microsoft.VisualStudio.Composition
                 typeRef = typeRef.ElementTypeRef;
             }
 
-            if (typeRef.IsAnyLazyType() || typeRef.IsExportFactoryTypeV1() || typeRef.IsExportFactoryTypeV2())
+            // A wrapper around a generic type parameter (e.g. Lazy<T> on an open generic part) is represented by
+            // the wrapper's generic type definition, without type arguments. There is no type argument to unwrap
+            // then, so return the wrapper, which is reported as an import that uses generic type parameters.
+            if ((typeRef.IsAnyLazyType() || typeRef.IsExportFactoryTypeV1() || typeRef.IsExportFactoryTypeV2()) && !typeRef.IsGenericTypeDefinition)
             {
                 return typeRef.GenericTypeArguments[0];
             }
@@ -336,12 +339,31 @@ namespace Microsoft.VisualStudio.Composition
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
 
-            if (!contractType.IsEquivalentTo(typeof(object)))
+            // Add a static type-identity constraint except for `object` (which matches anything).
+            // A parameterized generic import (e.g. IOptionsFactory<TOptions>) is satisfied by an open generic
+            // export, so it is constrained to the identity of the generic type definition (IOptionsFactory<>).
+            Type identityType = GetImportContractIdentityType(contractType);
+            if (!identityType.IsEquivalentTo(typeof(object)))
             {
-                constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
+                constraints = constraints.Add(new ExportTypeIdentityConstraint(identityType));
             }
 
             return constraints;
+        }
+
+        /// <summary>
+        /// Gets the contract name of an import whose contract type is <paramref name="contractType"/>.
+        /// </summary>
+        /// <param name="contractType">The contract type of the import.</param>
+        /// <returns>
+        /// The contract name of <paramref name="contractType"/>, or of its generic type definition for a parameterized
+        /// generic import (e.g. <c>IOptionsFactory&lt;TOptions&gt;</c>), so that the contract name matches the open generic
+        /// export regardless of the positions of the part's type parameters in the import.
+        /// </returns>
+        protected internal static string GetImportContractName(Type contractType)
+        {
+            Requires.NotNull(contractType, nameof(contractType));
+            return GetContractName(GetImportContractIdentityType(contractType));
         }
 
         protected internal static ImmutableDictionary<string, object?> GetImportMetadataForGenericTypeImport(Type contractType)
@@ -349,6 +371,18 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(contractType, nameof(contractType));
             if (contractType.IsConstructedGenericType)
             {
+                Type[] typeArguments = contractType.GetGenericArguments();
+
+                // A parameterized generic import (e.g. IOptionsFactory<TOptions>) records the positions
+                // of the part's type parameters so the runtime can close the import once the part's
+                // concrete type arguments are known. Unlike a closed generic import, those arguments are
+                // generic parameters here and so cannot be stored as types in a serializable catalog.
+                if (typeArguments.All(arg => arg.IsGenericParameter))
+                {
+                    return ImmutableDictionary.Create<string, object?>()
+                        .Add(CompositionConstants.GenericParameterIndexesMetadataName, typeArguments.Select(arg => arg.GenericParameterPosition).ToArray());
+                }
+
                 return ImmutableDictionary.Create<string, object?>()
                     .Add(CompositionConstants.GenericContractMetadataName, GetContractName(contractType.GetGenericTypeDefinition()))
                     .Add(CompositionConstants.GenericParametersMetadataName, contractType.GenericTypeArguments);
@@ -357,6 +391,28 @@ namespace Microsoft.VisualStudio.Composition
             {
                 return ImmutableDictionary<string, object?>.Empty;
             }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether an import's contract is a "parameterized generic import":
+        /// a constructed generic type whose type arguments are all generic parameters of the declaring
+        /// open generic part (e.g. <c>IOptionsFactory&lt;TOptions&gt;</c> on
+        /// <c>OptionsManager&lt;TOptions&gt;</c>). Such imports bind to an open generic export and are
+        /// closed by the runtime with the part's concrete type arguments.
+        /// </summary>
+        private static bool IsParameterizedGenericImportContract(Type contractType)
+        {
+            return contractType.IsConstructedGenericType
+                && contractType.GetGenericArguments().All(arg => arg.IsGenericParameter);
+        }
+
+        /// <summary>
+        /// Gets the type whose contract name and type identity an import of <paramref name="contractType"/> uses:
+        /// the generic type definition for a parameterized generic import, otherwise <paramref name="contractType"/> itself.
+        /// </summary>
+        private static Type GetImportContractIdentityType(Type contractType)
+        {
+            return IsParameterizedGenericImportContract(contractType) ? contractType.GetGenericTypeDefinition() : contractType;
         }
 
         /// <summary>
