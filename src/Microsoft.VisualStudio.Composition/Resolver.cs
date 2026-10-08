@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (!this.NormalizedAssemblyCache.TryGetValue(assembly, out AssemblyName? assemblyName))
                 {
                     assemblyName = GetNormalizedAssemblyName(assembly.GetName());
-                    this.NormalizedAssemblyCache[assembly] = assemblyName;
+                    this.NormalizedAssemblyCache.Add(assembly, assemblyName);
                 }
 
                 return assemblyName;
