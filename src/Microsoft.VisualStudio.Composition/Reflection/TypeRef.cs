@@ -299,19 +299,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             TypeRef? result;
             lock (resolver.InstanceCache)
             {
-                WeakReference<TypeRef>? weakResult;
-                if (!resolver.InstanceCache.TryGetValue(type, out weakResult))
+                if (!resolver.InstanceCache.TryGetValue(type, out WeakReference<TypeRef>? weakResult))
                 {
                     result = new TypeRef(resolver, type);
                     resolver.InstanceCache.Add(type, new WeakReference<TypeRef>(result));
                 }
-                else
+                else if (!weakResult.TryGetTarget(out result))
                 {
-                    if (!weakResult.TryGetTarget(out result))
-                    {
-                        result = new TypeRef(resolver, type);
-                        weakResult.SetTarget(result);
-                    }
+                    result = new TypeRef(resolver, type);
+                    weakResult.SetTarget(result);
                 }
             }
 

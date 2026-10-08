@@ -27,12 +27,13 @@ namespace Microsoft.VisualStudio.Composition
         /// A cache of TypeRef instances that correspond to Type instances.
         /// </summary>
         /// <remarks>
-        /// This is for efficiency to avoid duplicates where convenient to do so.
-        /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
+        /// The weak keys allow types from collectible assemblies to be unloaded when no longer in use.
+        /// This is for efficiency to avoid duplicates where convenient to do so; it is not intended as a
+        /// guarantee of reference equality across equivalent TypeRef instances.
         /// </remarks>
-        internal readonly Dictionary<Type, WeakReference<Reflection.TypeRef>> InstanceCache = new Dictionary<Type, WeakReference<Reflection.TypeRef>>();
+        internal readonly ConditionalWeakTable<Type, WeakReference<Reflection.TypeRef>> InstanceCache = new ConditionalWeakTable<Type, WeakReference<Reflection.TypeRef>>();
 
-        internal readonly Dictionary<Assembly, AssemblyName> NormalizedAssemblyCache = new Dictionary<Assembly, AssemblyName>();
+        internal readonly ConditionalWeakTable<Assembly, AssemblyName> NormalizedAssemblyCache = new ConditionalWeakTable<Assembly, AssemblyName>();
 
         /// <summary>
         /// A map of assemblies loaded by VS MEF and their metadata.

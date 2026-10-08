@@ -8,6 +8,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
+#if NET
+    using System.Runtime.CompilerServices;
+    using System.Runtime.Loader;
+#endif
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
@@ -33,6 +37,80 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             Assert.Throws<ArgumentException>(() => RuntimeComposition.CreateRuntimeComposition(Enumerable.Empty<RuntimeComposition.RuntimePart>(), validComposition.MetadataViewsAndProviders, Resolver.DefaultInstance));
         }
+
+        #if NET
+        [Fact]
+        public void ResolverCachesDoNotPreventCollectibleAssemblyLoadContextFromUnloading()
+        {
+            WeakReference loadContextReference = CreateWeakReferenceToCollectibleAssemblyLoadContext();
+            for (int i = 0; loadContextReference.IsAlive && i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+
+            Assert.False(loadContextReference.IsAlive);
+        }
+
+        [Fact]
+        public void RuntimeCompositionKeepsCollectibleAssemblyLoadContextAlive()
+        {
+            (RuntimeComposition composition, WeakReference loadContextReference) = CreateCompositionWithCollectibleType();
+            for (int i = 0; loadContextReference.IsAlive && i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+
+            GC.KeepAlive(composition);
+            Assert.True(loadContextReference.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference CreateWeakReferenceToCollectibleAssemblyLoadContext()
+        {
+            var loadContext = new AssemblyLoadContext("ResolverCacheTest", isCollectible: true);
+            var assembly = loadContext.LoadFromAssemblyPath(typeof(RuntimeCompositionTests).Assembly.Location);
+            Type type = assembly.GetType(typeof(RuntimeCompositionTests).FullName!)!;
+            TypeRef.Get(type, Resolver.DefaultInstance);
+
+            var loadContextReference = new WeakReference(loadContext);
+            loadContext.Unload();
+            return loadContextReference;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (RuntimeComposition Composition, WeakReference LoadContextReference) CreateCompositionWithCollectibleType()
+        {
+            var loadContext = new AssemblyLoadContext("ResolverCacheTest", isCollectible: true);
+            var assembly = loadContext.LoadFromAssemblyPath(typeof(RuntimeCompositionTests).Assembly.Location);
+            Type type = assembly.GetType(typeof(RuntimeCompositionTests).FullName!)!;
+            Resolver resolver = Resolver.DefaultInstance;
+            TypeRef partTypeRef = TypeRef.Get(type, resolver)!;
+            TypeRef providerTypeRef = TypeRef.Get(typeof(RuntimeCompositionTests), resolver)!;
+            var runtimePart = new RuntimeComposition.RuntimePart(
+                partTypeRef,
+                importingConstructor: null,
+                importingConstructorArguments: Array.Empty<RuntimeComposition.RuntimeImport>(),
+                importingMembers: Array.Empty<RuntimeComposition.RuntimeImport>(),
+                exports: Array.Empty<RuntimeComposition.RuntimeExport>(),
+                onImportsSatisfiedMethods: Array.Empty<MethodRef>(),
+                sharingBoundary: null);
+            var providerExport = new RuntimeComposition.RuntimeExport(
+                "MetadataProvider",
+                providerTypeRef,
+                memberRef: null,
+                ImmutableDictionary<string, object?>.Empty);
+            var metadataViewsAndProviders = ImmutableDictionary<TypeRef, RuntimeComposition.RuntimeExport>.Empty.Add(providerTypeRef, providerExport);
+            RuntimeComposition composition = RuntimeComposition.CreateRuntimeComposition(new[] { runtimePart }, metadataViewsAndProviders, resolver);
+
+            var loadContextReference = new WeakReference(loadContext);
+            loadContext.Unload();
+            return (composition, loadContextReference);
+        }
+#endif
 
         [Fact]
         public void TestEmptyMetadataViewProviderThrowsException()
