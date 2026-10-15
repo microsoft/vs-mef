@@ -40,49 +40,49 @@ dotnet test --no-build -c Release
 **Run tests for a specific test project**:
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release
 ```
 
 **Run a single test method**:
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release -- --filter-method ClassName.MethodName
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-method ClassName.MethodName
 ```
 
 **Run all tests in a test class**:
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release -- --filter-class ClassName
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-class ClassName
 ```
 
 **Run tests with wildcard matching** (supports wildcards at beginning and/or end):
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release -- --filter-method "*Pattern*"
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-method "*Pattern*"
 ```
 
 **Run tests with a specific trait** (equivalent to category filtering):
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release -- --filter-trait "TraitName=value"
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-trait "TraitName=value"
 ```
 
 **Exclude tests with a specific trait** (skip unstable tests):
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release -- --filter-not-trait "TestCategory=FailsInCloudTest"
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-not-trait "TestCategory=FailsInCloudTest"
 ```
 
 **Run tests for a specific framework only**:
 
 ```bash
-dotnet test --project test/Library.Tests/Library.Tests.csproj --no-build -c Release --framework net9.0
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release --framework net8.0
 ```
 
 **List all available tests without running them**:
 
 ```bash
-cd test/Library.Tests
+cd test/Microsoft.VisualStudio.Composition.Tests
 dotnet run --no-build -c Release --framework net9.0 -- --list-tests
 ```
 
@@ -100,4 +100,4 @@ dotnet run --no-build -c Release --framework net9.0 -- --list-tests
 
 - Honor StyleCop rules and fix any reported build warnings _after_ getting tests to pass.
 - In C# files, use namespace _statements_ instead of namespace _blocks_ for all new files.
-- Add API doc comments to all new public and internal members.
+- Add API doc comments to all new public and internal members in shipping code under `src`. Tests and samples do not require XML API documentation; do not add XML docs to test or sample members solely to satisfy this rule.

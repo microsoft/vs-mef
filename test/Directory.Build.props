@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)..\bin\Tests\</BaseOutputPath>
+    <IsTestProject Condition="'$(IsTestProject)' == ''">false</IsTestProject>
     <IsPackable>false</IsPackable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>

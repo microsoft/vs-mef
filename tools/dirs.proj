@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.Build.Traversal">
+  <ItemGroup>
+    <ProjectReference Include="..\src\dirs.proj" />
+    <ProjectReference Include="..\test\dirs.proj" />
+    <ProjectReference Include="..\samples\Samples.csproj" Pack="false" Publish="false" />
+  </ItemGroup>
+</Project>

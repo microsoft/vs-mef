@@ -16,6 +16,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <RestoreEnablePackagePruning>true</RestoreEnablePackagePruning>
+    <PublishNativeAOTTests>false</PublishNativeAOTTests>
 
     <!-- https://learn.microsoft.com/en-us/dotnet/fundamentals/apicompat/package-validation/overview -->
     <EnablePackageValidation>true</EnablePackageValidation>
@@ -58,6 +59,11 @@
   </ItemGroup>
 
   <ItemDefinitionGroup>
+    <ProjectReference>
+      <!-- Keep referenced builds identical to the traversal's managed builds. -->
+      <GlobalPropertiesToRemove>_IsPublishing</GlobalPropertiesToRemove>
+      <UndefineProperties Condition="'$(UsingMicrosoftTraversalSdk)' == 'true'">_IsPublishing</UndefineProperties>
+    </ProjectReference>
     <!-- We always want MSBuild properties generated that point at the restored location of each package. -->
     <PackageReference GeneratePathProperty="true" />
   </ItemDefinitionGroup>
