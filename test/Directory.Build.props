@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)..\bin\Tests\</BaseOutputPath>
+    <!-- Each project owns its copy-local dependencies, including during parallel builds. -->
+    <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)..\bin\Tests\$(MSBuildProjectName)\</BaseOutputPath>
     <IsTestProject Condition="'$(IsTestProject)' == ''">false</IsTestProject>
     <IsPackable>false</IsPackable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

@@ -39,6 +39,10 @@ This repository can be built on Windows, Linux, and OSX.
 
 Building, testing, and packing this repository can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
 
+Test projects build to `bin/Tests/<project>/<configuration>/<framework>/` so parallel builds do not copy dependencies into the same directory.
+The missing-assembly test fixture intentionally builds outside the test runner's probing path.
+Build `test/dirs.proj` before running the cache-resiliency tests, which use both target frameworks of the assembly-discovery fixture.
+
 ## Testing
 
 You can use `dotnet test` to build and/or test the repo.

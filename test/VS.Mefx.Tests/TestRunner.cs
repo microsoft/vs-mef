@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Tests
             private static readonly string[] FilesToIgnore = { "BasicRejectionExpectedList.txt" };
 
             public static string UpdateFolder =
-                string.Format("..{0}..{0}..{0}..{0}test{0}VS.Mefx.Tests{0}TestData",
+                string.Format("..{0}..{0}..{0}..{0}..{0}test{0}VS.Mefx.Tests{0}TestData",
                     Path.DirectorySeparatorChar);
 
             public static string RunFolder = "TestData";
