@@ -6,7 +6,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <MicrosoftTestingPlatformVersion>2.5.1</MicrosoftTestingPlatformVersion>
 
-    <MicroBuildVersion>2.0.257</MicroBuildVersion>
+    <MicroBuildVersion>2.0.272</MicroBuildVersion>
     <CodeAnalysisVersion>5.9.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.4</CodefixTestingVersion>
   </PropertyGroup>
