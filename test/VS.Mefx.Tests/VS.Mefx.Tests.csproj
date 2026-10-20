@@ -19,9 +19,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.VSMefx\Microsoft.VisualStudio.Composition.VSMefx.csproj" />
+    <ProjectReference Include="TestFiles\**\*.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="TestFiles\**\*.cs" />
     <Content Include="TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
