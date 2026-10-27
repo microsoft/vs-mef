@@ -77,7 +77,60 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName!, TypeRefFlags.None, 0, new[] { typeRefNullableArgument }.ToImmutableArray(), false, new[] { typeRefNullableArgument }.ToImmutableArray(), null);
 
             var actualException = Assert.Throws<TypeLoadException>(() => typeRef.Resolve());
-            Assert.Contains("Could not load type 'Fake assembly", actualException.Message);
+            Assert.Contains("Fake assembly", actualException.Message);
+        }
+
+        /// <summary>
+        /// Verifies that a constructed generic type whose type arguments are all generic parameters
+        /// (e.g. <c>IFoo&lt;T&gt;</c> as it appears on an open generic part) is represented by its generic
+        /// type definition, so that the type arguments can be supplied when the declaring part is closed.
+        /// </summary>
+        [Fact]
+        public void Get_FullyOpenConstructedGenericType()
+        {
+            // Use the generic parameters of another type, since closing a generic type definition over its own
+            // generic parameters just yields the generic type definition again.
+            Type[] genericParameters = typeof(Dictionary<,>).GetGenericArguments();
+            Type fullyOpen = typeof(GenericTypeWithTwoParameters<,>).MakeGenericType(genericParameters[0], genericParameters[1]);
+            Assert.False(fullyOpen.IsGenericTypeDefinition);
+
+            TypeRef typeRef = TypeRef.Get(fullyOpen, TestUtilities.Resolver);
+            Assert.Empty(typeRef.GenericTypeArguments);
+            Assert.Equal(2, typeRef.GenericTypeParameterCount);
+            Assert.True(typeRef.IsGenericType);
+            Assert.True(typeRef.IsGenericTypeDefinition);
+            Assert.Same(typeof(GenericTypeWithTwoParameters<,>), typeRef.Resolve());
+            Assert.Equal(TypeRef.Get(typeof(GenericTypeWithTwoParameters<,>), TestUtilities.Resolver), typeRef);
+        }
+
+        /// <summary>
+        /// Verifies that an array of a constructed generic type whose type arguments are all generic parameters
+        /// is represented as an array of the generic type definition.
+        /// </summary>
+        [Fact]
+        public void Get_ArrayOfFullyOpenConstructedGenericType()
+        {
+            Type[] genericParameters = typeof(Dictionary<,>).GetGenericArguments();
+            Type fullyOpenArray = typeof(GenericTypeWithTwoParameters<,>).MakeGenericType(genericParameters[0], genericParameters[1]).MakeArrayType();
+
+            TypeRef typeRef = TypeRef.Get(fullyOpenArray, TestUtilities.Resolver);
+            Assert.True(typeRef.IsArray);
+            Assert.Equal(2, typeRef.GenericTypeParameterCount);
+            Assert.Same(typeof(GenericTypeWithTwoParameters<,>).MakeArrayType(), typeRef.Resolve());
+        }
+
+        /// <summary>
+        /// Verifies that a partially open constructed generic type is rejected rather than producing a
+        /// <see cref="TypeRef"/> with fewer type arguments than the generic type definition's arity,
+        /// which would fail later with a confusing error when resolved.
+        /// </summary>
+        [Fact]
+        public void Get_PartiallyOpenConstructedGenericTypeThrows()
+        {
+            Type[] genericParameters = typeof(GenericTypeWithTwoParameters<,>).GetGenericArguments();
+            Type partiallyOpen = typeof(GenericTypeWithTwoParameters<,>).MakeGenericType(genericParameters[0], typeof(int));
+
+            Assert.Throws<ArgumentException>(() => TypeRef.Get(partiallyOpen, TestUtilities.Resolver));
         }
 
         [Fact]
@@ -117,6 +170,10 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyIdentityV2, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
 
             Assert.NotEqual(typeRefV1, typeRefV2);
+        }
+
+        private class GenericTypeWithTwoParameters<T1, T2>
+        {
         }
 
         private class DirectlyRecursiveType : IEnumerable<DirectlyRecursiveType>

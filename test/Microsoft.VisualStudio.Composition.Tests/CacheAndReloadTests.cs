@@ -46,5 +46,97 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Export]
         public class SomeExport { }
+
+        [Fact]
+        public async Task CacheAndReloadParameterizedGenericImport()
+        {
+            var parts = await TestUtilities.V2Discovery.CreatePartsAsync(
+                typeof(CachedOptionsFactory<>),
+                typeof(CachedOptionsManager<>),
+                typeof(CachedOptionsApp));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(parts);
+            var configuration = CompositionConfiguration.Create(catalog);
+            Assert.Empty(configuration.CompositionErrors);
+
+            var ms = new MemoryStream();
+            await this.cacheManager.SaveAsync(configuration, ms);
+            configuration = null;
+
+            ms.Position = 0;
+            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms, TestUtilities.Resolver);
+            var container = exportProviderFactory.CreateExportProvider();
+
+            var app = container.GetExportedValue<CachedOptionsApp>();
+            Assert.NotNull(app);
+            Assert.NotNull(app.Manager);
+            Assert.NotNull(app.Manager.Factory);
+            Assert.IsType<CachedOptionsFactory<CachedGenericOptions>>(app.Manager.Factory);
+        }
+
+        public interface ICachedOptionsFactory<T> { }
+
+        [Export(typeof(ICachedOptionsFactory<>)), Shared]
+        public class CachedOptionsFactory<T> : ICachedOptionsFactory<T> { }
+
+        [Export, Shared]
+        public class CachedOptionsManager<TOptions>
+        {
+            [ImportingConstructor]
+            public CachedOptionsManager(ICachedOptionsFactory<TOptions> factory)
+            {
+                this.Factory = factory;
+            }
+
+            public ICachedOptionsFactory<TOptions> Factory { get; }
+        }
+
+        [Export, Shared]
+        public class CachedOptionsApp
+        {
+            [Import]
+            public CachedOptionsManager<CachedGenericOptions> Manager { get; set; } = null!;
+        }
+
+        public class CachedGenericOptions { }
+
+        [Fact]
+        public async Task CacheAndReloadParameterizedGenericImportMany()
+        {
+            var parts = await TestUtilities.V2Discovery.CreatePartsAsync(
+                typeof(CachedOptionsFactory<>),
+                typeof(CachedOptionsManagerMany<>),
+                typeof(CachedOptionsAppMany));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(parts);
+            var configuration = CompositionConfiguration.Create(catalog);
+            Assert.Empty(configuration.CompositionErrors);
+
+            var ms = new MemoryStream();
+            await this.cacheManager.SaveAsync(configuration, ms);
+            configuration = null;
+
+            ms.Position = 0;
+            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms, TestUtilities.Resolver);
+            var container = exportProviderFactory.CreateExportProvider();
+
+            var app = container.GetExportedValue<CachedOptionsAppMany>();
+            Assert.NotNull(app);
+            Assert.NotNull(app.Manager);
+            var factory = Assert.Single(app.Manager.Factories);
+            Assert.IsType<CachedOptionsFactory<CachedGenericOptions>>(factory);
+        }
+
+        [Export, Shared]
+        public class CachedOptionsManagerMany<TOptions>
+        {
+            [ImportMany]
+            public IEnumerable<ICachedOptionsFactory<TOptions>> Factories { get; set; } = null!;
+        }
+
+        [Export, Shared]
+        public class CachedOptionsAppMany
+        {
+            [Import]
+            public CachedOptionsManagerMany<CachedGenericOptions> Manager { get; set; } = null!;
+        }
     }
 }
