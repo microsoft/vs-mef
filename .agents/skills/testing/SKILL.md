@@ -11,44 +11,50 @@ user-invocable: false
 
 ## Running Tests
 
-**Run all tests**:
+There *may* be unstable tests that are attributed as such.
+Running the [dotnet-test-cloud.ps1](../../../tools/dotnet-test-cloud.ps1) script will execute all previously built tests except the unstable ones.
+The commands below will *not* automatically exclude unstable tests, but you may do so by adding a parameter to filter out those that set their `TestCategory` property to `FailsInCloudTest`.
+
+**Run all tests** (from the root of the repository):
 ```bash
 dotnet test --no-build -c Release
 ```
 
-**Run tests for a specific test project**:
+To run a specific test project, change to that project's directory first; the commands below then target it without hard-coding its path.
+
+**Run tests for a specific test project** (within that test project's directory):
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release
+dotnet test --no-build -c Release
 ```
 
 **Run a single test method**:
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-method ClassName.MethodName
+dotnet test --no-build -c Release -- --filter-method ClassName.MethodName
 ```
 
 **Run all tests in a test class**:
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-class ClassName
+dotnet test --no-build -c Release -- --filter-class ClassName
 ```
 
 **Run tests with wildcard matching** (supports wildcards at beginning and/or end):
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-method "*Pattern*"
+dotnet test --no-build -c Release -- --filter-method "*Pattern*"
 ```
 
 **Run tests with a specific trait**:
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-trait "TraitName=value"
+dotnet test --no-build -c Release -- --filter-trait "TraitName=value"
 ```
 
 **Exclude tests with a specific trait**:
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release -- --filter-not-trait "TestCategory=FailsInCloudTest"
+dotnet test --no-build -c Release -- --filter-not-trait "TestCategory=FailsInCloudTest"
 ```
 
 **Run tests for a specific framework only**:
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release --framework net8.0
+dotnet test --no-build -c Release --framework net8.0
 ```
 
 **List all available tests without running them**:

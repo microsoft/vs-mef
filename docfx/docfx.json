@@ -11,7 +11,8 @@
       ],
       "dest": "api",
       "properties": {
-        "IsDocFx": "true"
+        "IsDocFx": "true",
+        "NoWarn": "NU1901;NU1902;NU1903;NU1904"
       }
     }
   ],
