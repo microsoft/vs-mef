@@ -265,13 +265,20 @@ namespace Microsoft.VisualStudio.Composition
                 return null;
             }
 
-            value = this.SubstituteValueIfRequired(value);
+            object translatedValue = this.SubstituteValueIfRequired(value);
+            if (!ReferenceEquals(value, translatedValue))
+            {
+                // Substitutions compare equal to their resolved values, so SetItem can retain
+                // the substitution. Remove it first to cache the resolved object by identity.
+                _ = ImmutableInterlocked.Update(
+                    ref this.underlyingMetadata,
+                    static (metadata, entry) => entry.ForceReplacement
+                        ? metadata.Remove(entry.Key).Add(entry.Key, entry.Value)
+                        : metadata.SetItem(entry.Key, entry.Value),
+                    (Key: key, Value: translatedValue, ForceReplacement: this.direction == Direction.ToOriginalValue));
+            }
 
-            // Update our metadata dictionary with the substitution to avoid
-            // the translation costs next time.
-            this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
-
-            return value;
+            return translatedValue;
         }
 
         protected virtual object SubstituteValueIfRequired(object value)
