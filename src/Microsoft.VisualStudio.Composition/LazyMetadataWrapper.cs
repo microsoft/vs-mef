@@ -268,8 +268,8 @@ namespace Microsoft.VisualStudio.Composition
             object translatedValue = this.SubstituteValueIfRequired(value);
             if (!ReferenceEquals(value, translatedValue))
             {
-                // Substitutions compare equal to their resolved values, so SetItem can retain
-                // the substitution. Remove it first to cache the resolved object by identity.
+                // When resolving metadata, the deferred value compares equal to the result.
+                // SetItem would keep the deferred value, so remove it before adding the result.
                 _ = ImmutableInterlocked.Update(
                     ref this.underlyingMetadata,
                     static (metadata, entry) => entry.ForceReplacement

@@ -2,36 +2,6 @@
 
 This document records performance investigations, implemented optimizations, and possible future work.
 
-## Cached metadata reads
-
-[MetadataReadBenchmarks.cs](test/Microsoft.VisualStudio.Composition.Benchmarks/MetadataReadBenchmarks.cs) measures repeated reads of type arrays, enum values, and enum arrays from a deserialized composition.
-Both paths resolve the values before measurement, so this measures cache reuse rather than the first lazy resolution.
-
-Deferred metadata values deliberately compare equal to their resolved values.
-An immutable dictionary's `SetItem` can therefore retain the deferred representation instead of caching the resolved object.
-The translation cache forces that replacement, preserves semantic value comparisons, and avoids rewriting values that are already translated.
-
-Run the benchmarks with:
-
-```powershell
-dotnet run --project test\Microsoft.VisualStudio.Composition.Benchmarks\Microsoft.VisualStudio.Composition.Benchmarks.csproj -c Release --framework net472 -- --filter "*MetadataReadBenchmarks*" --job short --platform x64 --warmupCount 3 --iterationCount 8 --launchCount 1
-```
-
-A local Release comparison on .NET Framework 4.8, x64 RyuJIT, with concurrent workstation GC produced:
-
-| Metadata read | Before: bytes/read | After: bytes/read | Before: mean time | After: mean time |
-| --- | ---: | ---: | ---: | ---: |
-| Two-element type array | 353 B | 0 B | 823.6 ns | 68.2 ns |
-| Enum value | 56 B | 0 B | 710.7 ns | 59.4 ns |
-| Two-element enum array | 265 B | 0 B | 1,138.1 ns | 69.4 ns |
-
-There were seven or eight retained measurements per case after outlier removal.
-Baseline standard deviations were 4.3, 31.7, and 112.1 ns respectively; candidate standard deviations were 0.2, 0.2, and 0.3 ns.
-Gen0 collections per 1,000 reads fell from 0.0558, 0.0086, and 0.0420 respectively to zero; neither side recorded gen1 or gen2 collections.
-GC pause time was not collected.
-These results establish the repeated-read allocation reduction, not a scenario-level latency or GC-pause improvement.
-The first resolution remains lazy and still has a cost.
-
 ## Activation benchmarks
 
 `test/Microsoft.VisualStudio.Composition.Benchmarks/ActivationBenchmarks.cs` covers six steady-state activation shapes with expression compilation both disabled and enabled:
