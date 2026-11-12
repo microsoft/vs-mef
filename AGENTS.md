@@ -76,14 +76,14 @@ dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.Vi
 **Run tests for a specific framework only**:
 
 ```bash
-dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release --framework net8.0
+dotnet test --project test/Microsoft.VisualStudio.Composition.Tests/Microsoft.VisualStudio.Composition.Tests.csproj --no-build -c Release --framework net10.0
 ```
 
 **List all available tests without running them**:
 
 ```bash
 cd test/Microsoft.VisualStudio.Composition.Tests
-dotnet run --no-build -c Release --framework net9.0 -- --list-tests
+dotnet run --no-build -c Release --framework net10.0 -- --list-tests
 ```
 
 **Key points about test filtering with MTP v2 / xunit v3**:

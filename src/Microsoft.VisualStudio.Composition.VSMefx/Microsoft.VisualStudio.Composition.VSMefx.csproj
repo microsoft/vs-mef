@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0;net472</TargetFrameworks>
+    <TargetFrameworks>net10.0;net472</TargetFrameworks>
     <PackAsTool>true</PackAsTool>
     <AssemblyName>vsmefx</AssemblyName>
     <ToolCommandName>vsmefx</ToolCommandName>
