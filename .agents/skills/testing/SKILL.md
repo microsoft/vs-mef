@@ -54,13 +54,13 @@ dotnet test --no-build -c Release -- --filter-not-trait "TestCategory=FailsInClo
 
 **Run tests for a specific framework only**:
 ```bash
-dotnet test --no-build -c Release --framework net8.0
+dotnet test --no-build -c Release --framework net10.0
 ```
 
 **List all available tests without running them**:
 ```bash
 cd test/Microsoft.VisualStudio.Composition.Tests
-dotnet run --no-build -c Release --framework net8.0 -- --list-tests
+dotnet run --no-build -c Release --framework net10.0 -- --list-tests
 ```
 
 **Key points about test filtering with xUnit v3 / MTP v2**:
