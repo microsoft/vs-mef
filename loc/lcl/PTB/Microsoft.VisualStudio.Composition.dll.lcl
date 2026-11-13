@@ -70,7 +70,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Collection type must derive from ICollection<T>.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[O tipo de coleção deve derivar de ICollection<T>.]]></Val>
+            <Val><![CDATA[O tipo de coleção deve derivar da ICollection<T>.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -268,7 +268,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Importing constructor has an unsupported parameter type for an [ImportMany]5D;. Only T[]5D; and IEnumerable<T> are supported.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[O construtor de importação possui um tipo de parâmetro sem suporte para um [ImportarMuitos]5D;. Somente T[]5D; e IEnumerable<T> têm suporte.]]></Val>
+            <Val><![CDATA[O construtor de importação possui um tipo de parâmetro sem suporte para um [ImportMany]5D;. Somente T[]5D; e IEnumerable<T> têm suporte.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -547,7 +547,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0}: expected exactly 1 export matching constraints:]D;]A;{1} but the matching part has been invalidated.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0}: esperava exatamente 1 restrição de correspondência de exportação:]D;]A;{1}, mas a parte correspondente foi invalidada.]]></Val>
+            <Val><![CDATA[{0}: esperava-se exatamente 1 exportação que correspondesse às restrições:]D;]A;{1} mas a parte correspondente foi invalidada.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

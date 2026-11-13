@@ -268,7 +268,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Importing constructor has an unsupported parameter type for an [ImportMany]5D;. Only T[]5D; and IEnumerable<T> are supported.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Le constructeur d'importation a un type de paramètre non pris en charge pour [ImportMany]5D;. Seuls T[]5D; et IEnumerable<T> sont pris en charge.]]></Val>
+            <Val><![CDATA[Le constructeur d’importation a un type de paramètre non pris en charge pour [ImportMany]5D;. Seuls T[]5D; et IEnumerable<T> sont pris en charge.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -547,7 +547,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0}: expected exactly 1 export matching constraints:]D;]A;{1} but the matching part has been invalidated.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} : exactement 1 exportation correspondant aux contraintes attendues :]D;]A;{1} mais la partie correspondante a été invalidée.]]></Val>
+            <Val><![CDATA[{0} : exactement 1 contrainte de correspondance d’exportation attendue :]D;]A;{1} mais la partie correspondante a été invalidée.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
