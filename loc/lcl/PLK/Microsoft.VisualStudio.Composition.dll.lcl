@@ -268,7 +268,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Importing constructor has an unsupported parameter type for an [ImportMany]5D;. Only T[]5D; and IEnumerable<T> are supported.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Konstruktor importujący ma nieobsługiwany typ parametru elementu [ImportMany]5D;. Obsługiwane są tylko typy T[]5D; i IEnumerable<T>.]]></Val>
+            <Val><![CDATA[Konstruktor importujący ma nieobsługiwany typ parametru w przypadku elementu [ImportMany]5D;. Obsługiwane są tylko typy T[]5D; i IEnumerable<T>.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
