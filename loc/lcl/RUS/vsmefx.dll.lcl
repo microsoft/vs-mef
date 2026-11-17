@@ -371,7 +371,7 @@
       <Str Cat="Text">
         <Val><![CDATA[Microsoft]]></Val>
         <Tgt Cat="Text" Stat="Loc" Orig="New">
-          <Val><![CDATA[Майкрософт]]></Val>
+          <Val><![CDATA[Microsoft]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />

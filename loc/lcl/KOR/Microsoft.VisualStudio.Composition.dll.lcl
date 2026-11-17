@@ -70,7 +70,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Collection type must derive from ICollection<T>.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[수집 형식은 ICollection에서 파생되어야 합니다<T>.]]></Val>
+            <Val><![CDATA[컬렉션 형식은 ICollection<T>에서 파생되어야 합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -547,7 +547,7 @@
         <Str Cat="Text">
           <Val><![CDATA[{0}: expected exactly 1 export matching constraints:]D;]A;{1} but the matching part has been invalidated.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0}: 정확히 1개의 ]D;]A;{1} 내보내기 일치 제약 조건이 필요합니다. 하지만 일치 부분이 무효화되었습니다.]]></Val>
+            <Val><![CDATA[{0}: 제약 조건과 일치하는 내보내기가 정확히 1개여야 합니다:]D;]A;{1} 하지만 일치 부분이 무효화되었습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
