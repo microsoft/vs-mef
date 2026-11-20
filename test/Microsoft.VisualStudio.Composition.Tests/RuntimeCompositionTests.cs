@@ -129,6 +129,36 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(typeof(IDisposable), deserializedMetadata["Type"]);
         }
 
+        [Theory]
+        [InlineData("TypeArray")]
+        [InlineData("Enum")]
+        [InlineData("EnumArray")]
+        public async Task TranslatedMetadataValuesAreCachedAsync(string key)
+        {
+            ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty
+                .Add("TypeArray", new Type[] { typeof(string), typeof(int) })
+                .Add("Enum", MetadataValue.First)
+                .Add("EnumArray", new[] { MetadataValue.First, MetadataValue.Second });
+            RuntimeComposition composition = CreateComposition(CreatePart(typeof(string), "Contract", metadata));
+
+            RuntimeComposition deserializedComposition = await RoundTripAsync(composition);
+            IReadOnlyDictionary<string, object?> deserializedMetadata = deserializedComposition.GetExports("Contract").Single().Metadata;
+
+            object? firstValue = deserializedMetadata[key];
+            Assert.Equal(metadata[key], firstValue);
+            Assert.Same(firstValue, deserializedMetadata[key]);
+            Assert.True(deserializedMetadata.TryGetValue(key, out object? secondValue));
+            Assert.Same(firstValue, secondValue);
+
+            _ = deserializedMetadata[key == "TypeArray" ? "EnumArray" : "TypeArray"];
+            Assert.Same(firstValue, deserializedMetadata[key]);
+            Assert.Same(firstValue, deserializedMetadata.Single(pair => pair.Key == key).Value);
+
+            Assert.Equal(composition, deserializedComposition);
+            RuntimeComposition reserializedComposition = await RoundTripAsync(deserializedComposition);
+            Assert.Equal(composition, reserializedComposition);
+        }
+
         /// <summary>
         /// Verifies that common metadata array types are preserved during deserialization.
         /// </summary>
@@ -182,6 +212,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Same(deserializedMetadata["Zero1"], deserializedMetadata["Zero2"]);
             Assert.Same(deserializedMetadata["One1"], deserializedMetadata["One2"]);
             Assert.NotSame(deserializedMetadata["Two1"], deserializedMetadata["Two2"]);
+        }
+
+        private enum MetadataValue
+        {
+            First,
+            Second,
         }
 
         private static RuntimeComposition.RuntimePart CreatePart(Type type, params string[] contractNames)
