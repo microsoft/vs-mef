@@ -156,7 +156,9 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+#pragma warning disable SA1315 // Preserve the public parameter name for named callers.
         public bool Equals(IImportSatisfiabilityConstraint? obj)
+#pragma warning restore SA1315
         {
             var other = obj as ImportMetadataViewConstraint;
             if (other == null)

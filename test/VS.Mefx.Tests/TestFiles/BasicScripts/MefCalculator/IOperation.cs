@@ -12,7 +12,9 @@ namespace MefCalculator
 
     [Export(typeof(IOperation))]
     [ExportMetadata("Symbol", "+")]
+#pragma warning disable SA1649 // The fixture groups operations with their interface.
     public class Add : IOperation
+#pragma warning restore SA1649
     {
         public int Operate(int left, int right)
         {

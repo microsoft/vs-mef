@@ -294,10 +294,10 @@ namespace Microsoft.VisualStudio.Composition
                 object metadataMaybeWrapped = parameterType.IsInstanceOfType(metadata)
                     ? metadata
                     : parameterType.IsAssignableFrom(typeof(Dictionary<string, object?>))
-                    ? metadata.ToDictionary(pair => pair.Key, pair => pair.Value)
-                    : parameterType.IsAssignableFrom(typeof(ImmutableDictionary<string, object?>))
-                    ? ImmutableDictionary.CreateRange(metadata)
-                    : throw Assumes.NotReachable();
+                        ? metadata.ToDictionary(pair => pair.Key, pair => pair.Value)
+                        : parameterType.IsAssignableFrom(typeof(ImmutableDictionary<string, object?>))
+                            ? ImmutableDictionary.CreateRange(metadata)
+                            : throw Assumes.NotReachable();
                 return constructor.Invoke(new[] { metadataMaybeWrapped });
             }
         }

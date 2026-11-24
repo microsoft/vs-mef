@@ -1087,16 +1087,18 @@ namespace Microsoft.VisualStudio.Composition
                 if (export.MemberRef?.IsStatic == true)
                 {
                     partLifecycle = null;
-                    return lazy ? ConstructLazyStaticExportedValue(this, import, export, importingPartTracker, this.faultCallback) :
-                                  ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+                    return lazy
+                        ? ConstructLazyStaticExportedValue(this, import, export, importingPartTracker, this.faultCallback)
+                        : ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
 
-                return lazy ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback) :
-                              ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+                return lazy
+                    ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback)
+                    : ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
 
                 static Func<object?> ConstructLazyStaticExportedValue(RuntimeExportProvider exportProvider, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, ReportFaultCallback? faultCallback)
                 {
@@ -1121,8 +1123,9 @@ namespace Microsoft.VisualStudio.Composition
                 // Special case importing of ExportProvider
                 if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
                 {
-                    exportProvider = lazy ? () => this.NonDisposableWrapper.Value :
-                                                  this.NonDisposableWrapper.Value;
+                    exportProvider = lazy
+                        ? () => this.NonDisposableWrapper.Value
+                        : this.NonDisposableWrapper.Value;
 
                     return true;
                 }
@@ -1669,8 +1672,8 @@ namespace Microsoft.VisualStudio.Composition
                                 this.partDefinition,
                                 importingConstructorOrFactoryMethod,
                                 out Func<object?[], object?>? instanceFactory)
-                            ? instanceFactory!(ctorArgs)
-                            : importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
+                                    ? instanceFactory!(ctorArgs)
+                                    : importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
                         Assumes.NotNull(part);
                         return part;
                     }

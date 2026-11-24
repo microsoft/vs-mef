@@ -46,7 +46,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return this.Name == otherField.Name;
         }
 
+#pragma warning disable SA1315 // Preserve the public parameter name for named callers.
         public bool Equals(FieldRef? fieldRef) => this.Equals((MemberRef?)fieldRef);
+#pragma warning restore SA1315
 
         public override int GetHashCode()
         {

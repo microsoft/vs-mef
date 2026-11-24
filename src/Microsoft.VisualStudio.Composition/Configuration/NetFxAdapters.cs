@@ -318,15 +318,15 @@ namespace Microsoft.VisualStudio.Composition
                 return this.definition.IsConstraintSatisfiedBy(v1ExportDefinition);
             }
 
-            public bool Equals(IImportSatisfiabilityConstraint? obj)
+            public bool Equals(IImportSatisfiabilityConstraint? other)
             {
-                var other = obj as ImportConstraint;
-                if (other == null)
+                var constraint = other as ImportConstraint;
+                if (constraint == null)
                 {
                     return false;
                 }
 
-                return this.definition.Equals(other.definition);
+                return this.definition.Equals(constraint.definition);
             }
         }
 

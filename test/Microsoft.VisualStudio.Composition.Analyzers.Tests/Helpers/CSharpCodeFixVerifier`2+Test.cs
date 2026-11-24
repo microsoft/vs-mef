@@ -30,7 +30,7 @@ public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
                 return from resourceName in Assembly.GetExecutingAssembly().GetManifestResourceNames()
                        where resourceName.StartsWith(additionalFilePrefix, StringComparison.Ordinal)
                        let content = ReadManifestResource(Assembly.GetExecutingAssembly(), resourceName)
-                       select (filename: resourceName.Substring(additionalFilePrefix.Length), SourceText.From(content));
+                       select (resourceName.Substring(additionalFilePrefix.Length), SourceText.From(content));
             });
         }
 

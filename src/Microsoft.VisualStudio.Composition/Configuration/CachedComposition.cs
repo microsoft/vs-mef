@@ -273,9 +273,11 @@ namespace Microsoft.VisualStudio.Composition
                     flags |= import.ImportingMemberRef == null ? RuntimeImportFlags.IsParameter : 0;
                     flags |= import.IsNonSharedInstanceRequired ? RuntimeImportFlags.IsNonSharedInstanceRequired : 0;
                     flags |= import.IsExportFactory ? RuntimeImportFlags.IsExportFactory : 0;
-                    flags |=
-                        import.Cardinality == ImportCardinality.ExactlyOne ? RuntimeImportFlags.CardinalityExactlyOne :
-                        import.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
+                    flags |= import.Cardinality == ImportCardinality.ExactlyOne
+                        ? RuntimeImportFlags.CardinalityExactlyOne
+                        : import.Cardinality == ImportCardinality.OneOrZero
+                            ? RuntimeImportFlags.CardinalityOneOrZero
+                            : 0;
                     this.writer!.Write((byte)flags);
 
                     if (import.ImportingMemberRef == null)
@@ -337,7 +339,7 @@ namespace Microsoft.VisualStudio.Composition
                     var satisfyingExports = this.ReadList(this.reader, this.readRuntimeExportDelegate);
                     var metadata = this.ReadMetadata();
                     IReadOnlyList<string?> exportFactorySharingBoundaries = isExportFactory
-                        ? this.ReadList(this.reader, this.readStringDelegate)
+                        ? this.ReadList(this.reader, this.ReadStringDelegate)
                         : ImmutableList<string>.Empty;
 
                     return importingMember == null

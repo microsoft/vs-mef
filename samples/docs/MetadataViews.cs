@@ -69,7 +69,9 @@ public interface ILegacyHandlerMetadata
     bool SupportsAsync { get; }
 }
 
+#pragma warning disable SA1202 // Keep each documentation example in its own region.
 public class LegacyHandlerMetadataView : ILegacyHandlerMetadata
+#pragma warning restore SA1202
 {
     public LegacyHandlerMetadataView(IDictionary<string, object> metadata)
     {

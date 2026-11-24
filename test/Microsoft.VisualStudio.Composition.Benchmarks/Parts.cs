@@ -21,8 +21,8 @@ public interface ICache { object Get(string key); }
 public interface IProcessor { string Process(string input); }
 public interface IServiceMetadata { int Order { get; } string Category { get; } }
 
-[MefV2.Export(typeof(ILogger)), MefV2.Shared] public class ConsoleLogger : ILogger { public void Log(string m) { } }
-[MefV2.Export(typeof(ICache)), MefV2.Shared] public class MemoryCache : ICache { public object Get(string k) => null!; }
+[MefV2.Export(typeof(ILogger)), MefV2.Shared] public class ConsoleLogger : ILogger { public void Log(string message) { } }
+[MefV2.Export(typeof(ICache)), MefV2.Shared] public class MemoryCache : ICache { public object Get(string key) => null!; }
 
 [MefV2.Export(typeof(IService)), MefV2.ExportMetadata("Order", 1), MefV2.ExportMetadata("Category", "beta"), MefV2.Shared] public class Service1 : IService { public string Name => "1"; }
 [MefV2.Export(typeof(IService)), MefV2.ExportMetadata("Order", 2), MefV2.ExportMetadata("Category", "gamma"), MefV2.Shared] public class Service2 : IService { public string Name => "2"; }
