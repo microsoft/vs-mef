@@ -111,17 +111,15 @@ namespace Microsoft.VisualStudio.Composition
             indentingWriter.WriteLine("RequiredCreationPolicy: {0}", this.RequiredCreationPolicy);
         }
 
-#pragma warning disable SA1315 // Preserve the public parameter name for named callers.
-        public bool Equals(IImportSatisfiabilityConstraint? obj)
-#pragma warning restore SA1315
+        public bool Equals(IImportSatisfiabilityConstraint? other)
         {
-            var other = obj as PartCreationPolicyConstraint;
-            if (other == null)
+            var constraint = other as PartCreationPolicyConstraint;
+            if (constraint == null)
             {
                 return false;
             }
 
-            return this.RequiredCreationPolicy == other.RequiredCreationPolicy;
+            return this.RequiredCreationPolicy == constraint.RequiredCreationPolicy;
         }
     }
 }
