@@ -40,16 +40,16 @@ namespace Microsoft.VisualStudio.Composition
             return false;
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint? obj)
+        public bool Equals(IImportSatisfiabilityConstraint? other)
         {
-            var other = obj as ExportMetadataValueImportConstraint;
-            if (other == null)
+            var constraint = other as ExportMetadataValueImportConstraint;
+            if (constraint == null)
             {
                 return false;
             }
 
-            return this.Name == other.Name
-                && EqualityComparer<object?>.Default.Equals(this.Value, other.Value);
+            return this.Name == constraint.Name
+                && EqualityComparer<object?>.Default.Equals(this.Value, constraint.Value);
         }
 
         public void ToString(TextWriter writer)

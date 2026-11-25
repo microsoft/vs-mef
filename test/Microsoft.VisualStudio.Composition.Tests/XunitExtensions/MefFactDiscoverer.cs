@@ -28,11 +28,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.diagnosticMessageSink = diagnosticMessageSink;
         }
 
-        public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttributeInfo)
+        public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
         {
             var methodDisplay = discoveryOptions.MethodDisplayOrDefault();
 
-            yield return new MefFactTestCase(this.diagnosticMessageSink, methodDisplay, TestMethodDisplayOptions.None, testMethod, factAttributeInfo);
+            yield return new MefFactTestCase(this.diagnosticMessageSink, methodDisplay, TestMethodDisplayOptions.None, testMethod, factAttribute);
         }
 
         private static IEnumerable<Type> GetNestedTypesRecursively(Type parentType)

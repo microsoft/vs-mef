@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return this.Name == otherField.Name;
         }
 
-        public bool Equals(FieldRef? fieldRef) => this.Equals((MemberRef?)fieldRef);
+        public bool Equals(FieldRef? other) => this.Equals((MemberRef?)other);
 
         public override int GetHashCode()
         {

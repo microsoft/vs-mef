@@ -156,15 +156,15 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint? obj)
+        public bool Equals(IImportSatisfiabilityConstraint? other)
         {
-            var other = obj as ImportMetadataViewConstraint;
-            if (other == null)
+            var constraint = other as ImportMetadataViewConstraint;
+            if (constraint == null)
             {
                 return false;
             }
 
-            return ByValueEquality.Dictionary<string, MetadatumRequirement>().Equals(this.Requirements, other.Requirements);
+            return ByValueEquality.Dictionary<string, MetadatumRequirement>().Equals(this.Requirements, constraint.Requirements);
         }
 
         private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(TypeRef metadataViewRef, Resolver resolver)

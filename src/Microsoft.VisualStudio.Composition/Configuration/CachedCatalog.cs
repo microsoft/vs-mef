@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.Composition
                     var cardinality = this.ReadImportCardinality();
                     var metadata = this.ReadMetadata();
                     var constraints = this.ReadList(this.readIImportSatisfiabilityConstraintDelegate);
-                    var sharingBoundaries = this.ReadList(this.readStringDelegate);
+                    var sharingBoundaries = this.ReadList(this.ReadStringDelegate);
                     return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
                 }
             }

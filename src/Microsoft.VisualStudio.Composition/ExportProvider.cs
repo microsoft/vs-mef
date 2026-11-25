@@ -1305,7 +1305,8 @@ namespace Microsoft.VisualStudio.Composition
                 var metadata = ImmutableDictionary.CreateRange(this.Definition.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity);
 
                 string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
-                    ? closedTypeIdentity : this.Definition.ContractName;
+                    ? closedTypeIdentity
+                    : this.Definition.ContractName;
 
                 return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime, this.ShouldDisposeExportedValue)
                 {

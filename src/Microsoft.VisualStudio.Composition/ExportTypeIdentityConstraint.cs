@@ -61,15 +61,15 @@ namespace Microsoft.VisualStudio.Composition
             indentingWriter.WriteLine("TypeIdentityName: {0}", this.TypeIdentityName);
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint? obj)
+        public bool Equals(IImportSatisfiabilityConstraint? other)
         {
-            var other = obj as ExportTypeIdentityConstraint;
-            if (other == null)
+            var constraint = other as ExportTypeIdentityConstraint;
+            if (constraint == null)
             {
                 return false;
             }
 
-            return this.TypeIdentityName == other.TypeIdentityName;
+            return this.TypeIdentityName == constraint.TypeIdentityName;
         }
     }
 }

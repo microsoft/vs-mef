@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition
         protected Dictionary<string, int> sizeStats;
 #endif
 
-        private protected readonly Func<string?> readStringDelegate;
+        private protected readonly Func<string?> ReadStringDelegate;
         private readonly Func<object?> readObjectDelegate;
         private readonly Func<TypeRef?> readTypeRefDelegate;
 
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Composition
             this.trace = new IndentingTextWriter(new StreamWriter(File.OpenWrite(Environment.ExpandEnvironmentVariables(@"%TEMP%\VS-MEF.read.log"))));
 #endif
 
-            this.readStringDelegate = this.ReadString;
+            this.ReadStringDelegate = this.ReadString;
             this.readObjectDelegate = this.ReadObject;
             this.readTypeRefDelegate = this.ReadTypeRef;
         }
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.Composition
             this.objectTableCapacityStreamPosition = writerStream.CanSeek ? writer.BaseStream.Position : -1;
             this.writer.Write(estimatedObjectCount);
 
-            this.readStringDelegate = this.ReadString;
+            this.ReadStringDelegate = this.ReadString;
             this.readObjectDelegate = this.ReadObject;
             this.readTypeRefDelegate = this.ReadTypeRef;
         }

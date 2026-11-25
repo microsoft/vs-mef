@@ -372,10 +372,10 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
         return float.IsNaN(value)
             ? "global::System.Single.NaN"
             : float.IsPositiveInfinity(value)
-            ? "global::System.Single.PositiveInfinity"
-            : float.IsNegativeInfinity(value)
-            ? "global::System.Single.NegativeInfinity"
-            : value.ToString("R", CultureInfo.InvariantCulture) + "F";
+                ? "global::System.Single.PositiveInfinity"
+                : float.IsNegativeInfinity(value)
+                    ? "global::System.Single.NegativeInfinity"
+                    : value.ToString("R", CultureInfo.InvariantCulture) + "F";
     }
 
     private static string GetDoubleLiteral(double value)
@@ -383,10 +383,10 @@ public sealed class MetadataViewSourceGenerator : IIncrementalGenerator
         return double.IsNaN(value)
             ? "global::System.Double.NaN"
             : double.IsPositiveInfinity(value)
-            ? "global::System.Double.PositiveInfinity"
-            : double.IsNegativeInfinity(value)
-            ? "global::System.Double.NegativeInfinity"
-            : value.ToString("R", CultureInfo.InvariantCulture) + "D";
+                ? "global::System.Double.PositiveInfinity"
+                : double.IsNegativeInfinity(value)
+                    ? "global::System.Double.NegativeInfinity"
+                    : value.ToString("R", CultureInfo.InvariantCulture) + "D";
     }
 
     private readonly record struct MetadataViewSpec(
